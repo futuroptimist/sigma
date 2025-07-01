@@ -1,0 +1,5 @@
+# Available LLM endpoints for sigma
+# Add one URL per line
+https://token.place/api
+http://localhost:11434/v1/chat/completions  # local Ollama
+https://api.openai.com/v1/chat/completions

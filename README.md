@@ -1,22 +1,36 @@
 # sigma
 
-## what is sigma?
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-sigma is a fully open source, MIT-licensed, set of schematics and instructions to make your very own AI pin from scratch, with an option to run everything fully self-hosted if you wish (or via token.place if you prefer hosted).
+Sigma is an open-source ESP32 "AI pin" that lets you talk to a language model via a push‑to‑talk button. Audio is captured and sent to Whisper for speech recognition, routed through the LLM of your choice, then played back with low‑latency text‑to‑speech in a 3D‑printed OpenSCAD case.
 
-## roadmap
+## Getting Started
 
-- [ ] breadboard MVP with a button toggling an LED
-- [ ] hook up LLM
-- [ ] voice input via https://github.com/ggerganov/whisper.cpp
-- [ ] voice output via some open source TTS (I don't have much knowledge here yet)
-- [ ] 3D print enclosure for push to talk button
-- [ ] 3D print enclosure for raspi (or whatever microcontroller I decide on)
-- [ ] make blog post
-- [ ] make video
+1. Install [PlatformIO](https://platformio.org/).
+2. Clone this repository.
+3. Build the firmware:
+
+```bash
+pio run
+```
+
+Helper scripts for STT, TTS and the LLM API live in `software/`. Configure the endpoint you want to use in [`llms.txt`](llms.txt).
+
+See [`AGENTS.md`](AGENTS.md) for details on how we integrate LLMs and prompts.
+
+## Roadmap
+
+- [ ] Breadboard MVP with a button toggling an LED
+- [ ] Hook up LLM
+- [ ] Voice input via [whisper.cpp](https://github.com/ggerganov/whisper.cpp)
+- [ ] Voice output via an open source TTS
+- [ ] 3D print enclosure for push-to-talk button
+- [ ] 3D print enclosure for the microcontroller
+- [ ] Blog post
+- [ ] Demo video
 - [ ] CONTRIBUTORS.md
-- [ ] ???
 
-## origin of name?
+## Contributing
 
-No reason, just a nice name I think. If you like acronyms, I came up with Secure Interactive Gizmo Materializing AI (S.I.G.M.A.). As this is an MIT-licensed project, feel free to reskin this however you'd like in your fork!
+Pull requests are welcome! Please open an issue first to discuss major changes. By contributing you agree to license your work under the MIT license.
+
