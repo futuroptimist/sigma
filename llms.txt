@@ -1,0 +1,6 @@
+# Recommended LLM endpoints
+
+- token.place (default remote endpoint)
+- Local models via Ollama
+- OpenAI GPT models
+- Any REST-compatible LLM service

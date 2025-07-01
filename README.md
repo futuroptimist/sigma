@@ -1,22 +1,40 @@
-# sigma
+# Sigma
 
-## what is sigma?
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-sigma is a fully open source, MIT-licensed, set of schematics and instructions to make your very own AI pin from scratch, with an option to run everything fully self-hosted if you wish (or via token.place if you prefer hosted).
+Sigma is an open-source ESP32 "AI pin" with a push-to-talk button, mic and speaker that streams audio through Whisper STT → any LLM → low-latency TTS, all inside a printable OpenSCAD case you can fork, hack and wear.
 
-## roadmap
+## Features
+- Push-to-talk hardware using ESP32
+- Whisper speech-to-text via local or remote server
+- Pluggable LLM backend (token.place by default)
+- Low-latency text-to-speech playback
+- Parametric OpenSCAD enclosure
 
-- [ ] breadboard MVP with a button toggling an LED
-- [ ] hook up LLM
-- [ ] voice input via https://github.com/ggerganov/whisper.cpp
-- [ ] voice output via some open source TTS (I don't have much knowledge here yet)
-- [ ] 3D print enclosure for push to talk button
-- [ ] 3D print enclosure for raspi (or whatever microcontroller I decide on)
-- [ ] make blog post
-- [ ] make video
-- [ ] CONTRIBUTORS.md
-- [ ] ???
+## Getting Started
+1. Clone this repository.
+2. Install [PlatformIO](https://platformio.org/) for the firmware.
+3. Build the firmware inside `firmware/`:
+   ```bash
+   cd firmware
+   pio run
+   ```
+4. Edit `llms.txt` to point to your preferred LLM endpoint.
 
-## origin of name?
+See [AGENTS.md](AGENTS.md) for details on using LLM-driven tooling.
 
-No reason, just a nice name I think. If you like acronyms, I came up with Secure Interactive Gizmo Materializing AI (S.I.G.M.A.). As this is an MIT-licensed project, feel free to reskin this however you'd like in your fork!
+## Roadmap
+- [ ] Breadboard MVP with LED and button
+- [ ] Connect to LLM backend
+- [ ] Integrate Whisper STT
+- [ ] Add TTS playback
+- [ ] Design printable push-to-talk button
+- [ ] Complete OpenSCAD enclosure
+- [ ] Publish build log and demo video
+- [ ] Add `CONTRIBUTORS.md`
+
+## Contributing
+Pull requests are welcome. Please open an issue to discuss major changes first.
+
+## Origin of name
+No deep meaning—"Sigma" just sounded cool! If you prefer an acronym, try **Secure Interactive Gizmo Materializing AI** (S.I.G.M.A.). This project is MIT-licensed, so feel free to remix it in your own fork.
