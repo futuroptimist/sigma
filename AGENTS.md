@@ -24,6 +24,7 @@ completely inspectable by the user.
   **request** section.
 - If you add helper scripts or CLI flags, describe them here so future
   contributors can reproduce your workflow.
+- Run the tests with `make test` to ensure everything passes before committing.
 
 ## Repo Layout
 

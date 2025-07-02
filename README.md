@@ -18,6 +18,14 @@ Helper scripts for STT, TTS and the LLM API live in `software/`. Configure the e
 
 See [`AGENTS.md`](AGENTS.md) for details on how we integrate LLMs and prompts.
 
+## Testing
+
+Run the test suite with Make:
+
+```bash
+make test
+```
+
 ## Roadmap
 
 - [ ] Breadboard MVP with a button toggling an LED
