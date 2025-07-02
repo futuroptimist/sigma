@@ -1,0 +1,12 @@
+# Sigma
+> Self-hosted ESP32 "AI pin" for voice conversations with language models.
+
+Key docs and links for language models:
+
+## Docs
+- [README](README.md): project overview and setup
+- [AGENTS](AGENTS.md): LLM workflow and prompts
+- [LICENSE](LICENSE): MIT terms
+
+## Optional
+- [GitHub repo](https://github.com/futuroptimist/sigma)
