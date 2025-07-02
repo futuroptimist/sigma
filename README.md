@@ -29,6 +29,9 @@ See [`AGENTS.md`](AGENTS.md) for details on how we integrate LLMs and prompts.
 - [ ] Blog post
 - [ ] Demo video
 - [ ] CONTRIBUTORS.md
+- [ ] Modular magnetic connectors for accessories (NFC-based detection)
+- [ ] Detachable compute unit for local LLM inference
+- [ ] Robotic carrier platform (quadruped → flying → biped)
 
 ## Contributing
 

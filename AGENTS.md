@@ -2,9 +2,10 @@
 
 This file documents how LLMs and other AI agents are used within the **sigma** project.
 
-Sigma is a hardware and firmware stack for an ESP32 "AI pin" that relays
-voice through Whisper-based speech recognition, routes the text to a
-configurable LLM, and plays replies back with text‑to‑speech.
+Sigma is a fully open‑source, MIT‑licensed hardware and firmware stack for an ESP32 "AI pin" that relays
+voice through Whisper‑based speech recognition, routes the text to a
+configurable LLM, and plays replies back with text‑to‑speech. Everything is designed to be self‑hosted and
+completely inspectable by the user.
 
 ## LLM Workflows
 
@@ -27,7 +28,7 @@ configurable LLM, and plays replies back with text‑to‑speech.
 ## Repo Layout
 
 - `firmware/` – PlatformIO project for the ESP32.
-- `enclosure/` – OpenSCAD files for the enclosure.
+- `hardware/` – OpenSCAD models and other accessories.
 - `software/` – Python helpers for STT/TTS and LLM calls.
 
 Refer to the [README](README.md) for installation steps and the project roadmap.
