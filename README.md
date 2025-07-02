@@ -45,3 +45,7 @@ make test
 
 Pull requests are welcome! Please open an issue first to discuss major changes. By contributing you agree to license your work under the MIT license.
 
+## Origin of the Name
+
+"Sigma" just sounds cool. If you prefer an acronym, call it **Secure Interactive Gizmo Materializing AI (S.I.G.M.A.)**. Feel free to rebrand it in your own fork.
+
