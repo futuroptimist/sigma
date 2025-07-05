@@ -36,7 +36,7 @@ make test
 - [ ] 3D print enclosure for the microcontroller
 - [ ] Blog post
 - [ ] Demo video
-- [ ] CONTRIBUTORS.md
+- [ ] CONTRIBUTING.md
 - [ ] Modular magnetic connectors for accessories (NFC-based detection)
 - [ ] Detachable compute unit for local LLM inference
 - [ ] Robotic carrier platform (quadruped → flying → biped)
