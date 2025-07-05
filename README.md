@@ -1,6 +1,7 @@
 # sigma
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![codecov](https://codecov.io/gh/futuroptimist/sigma/branch/main/graph/badge.svg)](https://codecov.io/gh/futuroptimist/sigma)
 
 Sigma is an open-source ESP32 "AI pin" that lets you talk to a language model via a push‑to‑talk button. Audio is captured and sent to Whisper for speech recognition, routed through the LLM of your choice, then played back with low‑latency text‑to‑speech in a 3D‑printed OpenSCAD case.
 
