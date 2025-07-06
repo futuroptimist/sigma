@@ -1,7 +1,7 @@
 # sigma
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![codecov](https://codecov.io/gh/futuroptimist/sigma/branch/main/graph/badge.svg)](https://codecov.io/gh/futuroptimist/sigma)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://codecov.io/gh/futuroptimist/sigma)
 
 Sigma is an open-source ESP32 "AI pin" that lets you talk to a language model via a push‑to‑talk button. Audio is captured and sent to Whisper for speech recognition, routed through the LLM of your choice, then played back with low‑latency text‑to‑speech in a 3D‑printed OpenSCAD case.
 
@@ -13,6 +13,14 @@ Sigma is an open-source ESP32 "AI pin" that lets you talk to a language model vi
 
 ```bash
 pio run
+```
+
+4. Install [uv](https://github.com/astral-sh/uv) and setup pre-commit hooks:
+```bash
+curl -Ls https://astral.sh/uv/install.sh | sh
+uv venv
+uv pip install pre-commit
+pre-commit install
 ```
 
 Helper scripts for STT, TTS and the LLM API live in `software/`. Configure the endpoint you want to use in [`llms.txt`](llms.txt).
@@ -37,7 +45,7 @@ make test
 - [ ] 3D print enclosure for the microcontroller
 - [ ] Blog post
 - [ ] Demo video
-- [ ] CONTRIBUTING.md
+- [x] CONTRIBUTING.md
 - [ ] Modular magnetic connectors for accessories (NFC-based detection)
 - [ ] Detachable compute unit for local LLM inference
 - [ ] Robotic carrier platform (quadruped → flying → biped)
