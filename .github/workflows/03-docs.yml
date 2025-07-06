@@ -1,0 +1,19 @@
+name: Docs Preview & Link Check
+on:
+  push:
+    paths:
+      - 'docs/**'
+      - 'README.md'
+
+jobs:
+  linkcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: astral-sh/setup-uv@v1
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - run: |
+          uv pip install --system linkchecker
+          linkchecker README.md docs/ || true
