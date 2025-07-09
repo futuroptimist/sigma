@@ -2,3 +2,4 @@ ESP32
 Whisper
 LLM
 OpenSCAD
+WROOM
