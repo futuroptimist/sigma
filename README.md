@@ -5,6 +5,8 @@
 
 Sigma is an open-source ESP32 "AI pin" that lets you talk to a language model via a push‑to‑talk button. Audio is captured and sent to Whisper for speech recognition, routed through the LLM of your choice, then played back with low‑latency text‑to‑speech in a 3D‑printed OpenSCAD case.
 
+Hardware models for the enclosure live in [`hardware/cad`](hardware/cad) with assembly instructions in [`docs/sigma-s1-assembly.md`](docs/sigma-s1-assembly.md).
+
 ## Getting Started
 
 1. Install [PlatformIO](https://platformio.org/).
@@ -57,4 +59,3 @@ Pull requests are welcome! Please open an issue first to discuss major changes. 
 ## Origin of the Name
 
 "Sigma" just sounds cool. If you prefer an acronym, call it **Secure Interactive Gizmo Materializing AI (S.I.G.M.A.)**. Feel free to rebrand it in your own fork.
-
