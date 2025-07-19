@@ -1,7 +1,10 @@
 # sigma
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://codecov.io/gh/futuroptimist/sigma)
+[![Lint & Format](https://img.shields.io/github/actions/workflow/status/futuroptimist/sigma/.github/workflows/01-lint-format.yml?label=lint%20%26%20format)](https://github.com/futuroptimist/sigma/actions/workflows/01-lint-format.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/futuroptimist/sigma/.github/workflows/02-tests.yml?label=tests)](https://github.com/futuroptimist/sigma/actions/workflows/02-tests.yml)
+[![Coverage](https://codecov.io/gh/futuroptimist/sigma/branch/main/graph/badge.svg)](https://codecov.io/gh/futuroptimist/sigma)
+[![Docs](https://img.shields.io/github/actions/workflow/status/futuroptimist/sigma/.github/workflows/03-docs.yml?label=docs)](https://github.com/futuroptimist/sigma/actions/workflows/03-docs.yml)
+[![License](https://img.shields.io/github/license/futuroptimist/sigma)](LICENSE)
 
 Sigma is an open-source ESP32 "AI pin" that lets you talk to a language model via a push‑to‑talk button. Audio is captured and sent to Whisper for speech recognition, routed through the LLM of your choice, then played back with low‑latency text‑to‑speech in a 3D‑printed OpenSCAD case.
 
@@ -54,8 +57,19 @@ make test
 
 ## Contributing
 
-Pull requests are welcome! Please open an issue first to discuss major changes. By contributing you agree to license your work under the MIT license.
+Pull requests are welcome! Please open an issue first to discuss major changes. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. By contributing you agree to license your work under the MIT license.
 
 ## Origin of the Name
 
 "Sigma" just sounds cool. If you prefer an acronym, call it **Secure Interactive Gizmo Materializing AI (S.I.G.M.A.)**. Feel free to rebrand it in your own fork.
+
+## Values
+
+We aim for a positive-sum, empathetic community. Sigma follows regenerative and open-source principles so knowledge flows back into every project.
+
+## Related Projects
+
+- [flywheel](https://github.com/futuroptimist/flywheel) – GitHub template powering this repo
+- [Axel](https://github.com/futuroptimist/axel) – personal LLM accelerator
+- [Gabriel](https://github.com/futuroptimist/gabriel) – security-focused LLM companion
+- [token.place](https://github.com/futuroptimist/token.place) – stateless faucet for LLM inference
