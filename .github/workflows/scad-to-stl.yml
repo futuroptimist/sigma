@@ -1,0 +1,31 @@
+name: Build STL
+on:
+  push:
+    paths: ['hardware/cad/**/*.scad']
+  workflow_dispatch:
+
+jobs:
+  build-stl:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install OpenSCAD
+        run: sudo apt-get update && sudo apt-get install -y openscad
+      - name: Render SCAD files
+        run: bash scripts/build_stl.sh
+      - name: Commit STL models
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add hardware/stl/**/*.stl || true
+          if git diff --cached --quiet; then
+            echo "No STL changes to commit"
+          else
+            git commit -m "chore: update STL models"
+            git push
+          fi

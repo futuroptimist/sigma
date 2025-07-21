@@ -1,24 +1,54 @@
-// Simple enclosure for Sigma S1
-// Designed for ESP32-WROOM module with mic, speaker, and AA battery compartment
-// Parameters allow tweaking wall thickness and overall dimensions
+/* Sigma S1 Enclosure
+   Basic shell for an ESP32 device with
+   push-to-talk button, microphone and speaker.
+   Inspired by wove/flywheel/sugarkube CAD conventions.
+*/
 
-thickness = 2;            // wall thickness in mm
-width = 60;               // enclosure width in mm
-height = 80;              // enclosure height in mm
-depth = 30;               // enclosure depth in mm
-battery_length = 52;      // length of AA battery compartment
+wall = 2;             // shell thickness in mm
+width = 60;           // outer width
+height = 80;          // outer height
+depth = 30;           // outer depth
+battery_length = 52;  // AA holder length
 
-module shell() {
+button_d = 8;         // diameter of push button hole
+mic_d = 3;            // microphone opening
+speaker_d = 10;       // overall speaker area
+speaker_holes = 5;    // number of speaker vents
+
+module battery_cutout() {
+    translate([(width-battery_length)/2, depth-1, wall])
+        cube([battery_length, 1, 14], center=false);
+}
+
+module button_hole() {
+    translate([width/2, 0, height-20])
+        rotate([90,0,0])
+            cylinder(d=button_d, h=depth+1);
+}
+
+module mic_hole() {
+    translate([width/3, 0, height/2])
+        rotate([90,0,0])
+            cylinder(d=mic_d, h=depth+1);
+}
+
+module speaker_grill() {
+    for(i=[0:speaker_holes-1])
+        translate([2*width/3, 0, height/2 + i*4])
+            rotate([90,0,0])
+                cylinder(d=speaker_d/speaker_holes, h=depth+1);
+}
+
+module enclosure() {
     difference() {
-        // outer shell
         cube([width, depth, height], center=false);
-        // hollow interior
-        translate([thickness, thickness, thickness])
-            cube([width-2*thickness, depth-2*thickness, height-2*thickness], center=false);
-        // battery cutout at bottom
-        translate([(width-battery_length)/2, depth-1, thickness])
-            cube([battery_length, 1, 14], center=false);
+        translate([wall, wall, wall])
+            cube([width-2*wall, depth-2*wall, height-2*wall], center=false);
+        battery_cutout();
+        button_hole();
+        mic_hole();
+        speaker_grill();
     }
 }
 
-shell();
+enclosure();

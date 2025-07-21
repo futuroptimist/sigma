@@ -20,17 +20,18 @@ See `hardware/cad/sigma-s1-enclosure.scad` for the OpenSCAD model.
 1. Open `sigma-s1-enclosure.scad` in OpenSCAD.
 2. Adjust the `thickness` and overall dimensions if needed.
 3. Export to STL and print with 0.2 mm layer height.
+   STL files are automatically generated in `hardware/stl/` by a
+   GitHub Actions workflow whenever the SCAD sources change.
 
 ## Wiring Diagram
 
 ```
-[Button] --+-- [Mic]
-           |
-        [ESP32]
-           |
-        [Speaker]
-           |
-      [AA Holder]
+graph TD
+    Button --> ESP32
+    Mic --> ESP32
+    Speaker --> ESP32
+    ESP32 --> LDO
+    LDO --> AA_Holder
 ```
 
 The ESP32 sits in the upper section while the batteries slide into the
