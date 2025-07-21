@@ -8,7 +8,10 @@
 
 Sigma is an open-source ESP32 "AI pin" that lets you talk to a language model via a push‑to‑talk button. Audio is captured and sent to Whisper for speech recognition, routed through the LLM of your choice, then played back with low‑latency text‑to‑speech in a 3D‑printed OpenSCAD case.
 
-Hardware models for the enclosure live in [`hardware/cad`](hardware/cad) with assembly instructions in [`docs/sigma-s1-assembly.md`](docs/sigma-s1-assembly.md).
+Hardware models for the enclosure live in [`hardware/cad`](hardware/cad) with
+STL exports in [`hardware/stl`](hardware/stl). A GitHub Actions workflow
+automatically regenerates the STL files whenever the SCAD sources change.
+Assembly instructions live in [`docs/sigma-s1-assembly.md`](docs/sigma-s1-assembly.md).
 
 ## Getting Started
 
