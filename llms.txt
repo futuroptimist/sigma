@@ -1,12 +1,19 @@
 # Sigma
-> Self-hosted ESP32 "AI pin" for voice conversations with language models.
 
-Key docs and links for language models:
+> Open-source ESP32 voice assistant that streams audio to Whisper, talks to a language model, and plays the reply with text-to-speech.
 
 ## Docs
-- [README](README.md): project overview and setup
-- [AGENTS](AGENTS.md): LLM workflow and prompts
-- [LICENSE](LICENSE): MIT terms
+- [README](README.md): setup and roadmap
+- [AGENTS](AGENTS.md): guidelines for AI helpers
+- [docs/sigma-s1-assembly.md](docs/sigma-s1-assembly.md): hardware assembly
+- [CONTRIBUTING](CONTRIBUTING.md): contribution workflow
+
+## LLM Endpoints
+- [token.place](https://github.com/futuroptimist/token.place): default stateless API
+- [OpenRouter](https://openrouter.ai/): hosted aggregator of multiple models
+- [OpenAI API](https://platform.openai.com/): commercial chat models
+- [Ollama](https://ollama.ai/): local runner for open models
+- [llama.cpp](https://github.com/ggerganov/llama.cpp): compile models for edge devices
 
 ## Optional
 - [GitHub repo](https://github.com/futuroptimist/sigma)
