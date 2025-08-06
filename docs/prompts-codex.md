@@ -28,4 +28,3 @@ REQUEST:
 OUTPUT:
 A pull request describing the change and summarizing test results.
 ```
-

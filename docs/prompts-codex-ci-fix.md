@@ -27,4 +27,3 @@ REQUEST:
 OUTPUT:
 A pull request URL with passing checks and explanation of the failure.
 ```
-

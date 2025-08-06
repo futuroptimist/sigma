@@ -33,6 +33,12 @@ pre-commit install
 
 Helper scripts for STT, TTS and the LLM API live in `software/`. Configure the endpoint you want to use in [`llms.txt`](llms.txt).
 
+You can list the configured endpoints with:
+
+```bash
+python -m llms
+```
+
 See [`AGENTS.md`](AGENTS.md) for details on how we integrate LLMs and prompts.
 
 ## Testing
