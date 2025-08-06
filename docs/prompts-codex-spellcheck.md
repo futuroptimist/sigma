@@ -28,4 +28,3 @@ REQUEST:
 OUTPUT:
 A pull request URL that summarizes the fixes and shows passing check results.
 ```
-
