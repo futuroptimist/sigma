@@ -13,5 +13,6 @@ def test_get_llm_endpoints_parses_file():
 
 
 def test_get_llm_endpoints_skips_unrelated_sections():
-    endpoints = dict(llms.get_llm_endpoints())
+    missing_file = tmp_path / "missing.txt"
+    endpoints = llms.get_llm_endpoints(str(missing_file))
     assert "GitHub repo" not in endpoints

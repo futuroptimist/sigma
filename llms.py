@@ -18,9 +18,19 @@ def get_llm_endpoints(path: str = "llms.txt") -> List[Tuple[str, str]]:
     List[Tuple[str, str]]
         List of ``(name, url)`` tuples for each configured endpoint.
         Only links under the "## LLM Endpoints" section are considered.
+
+    Notes
+    -----
+    If the file does not exist an empty list is returned instead of raising
+    ``FileNotFoundError``.
     """
 
-    lines = Path(path).read_text(encoding="utf-8").splitlines()
+    llms_path = Path(path)
+    try:
+        lines = llms_path.read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        return []
+
     pattern = re.compile(r"^- \[(?P<name>[^\]]+)\]\((?P<url>https?://[^)]+)\)")
     endpoints: List[Tuple[str, str]] = []
     in_section = False
