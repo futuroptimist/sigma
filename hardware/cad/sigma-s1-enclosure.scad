@@ -14,6 +14,8 @@ button_d = 8;         // diameter of push button hole
 mic_d = 3;            // microphone opening
 speaker_d = 10;       // overall speaker area
 speaker_holes = 5;    // number of speaker vents
+lanyard_d = 4;        // diameter of lanyard hole
+lanyard_offset = 5;   // distance from left edge
 
 module battery_cutout() {
     translate([(width-battery_length)/2, depth-1, wall])
@@ -39,6 +41,11 @@ module speaker_grill() {
                 cylinder(d=speaker_d/speaker_holes, h=depth+1);
 }
 
+module lanyard_hole() {
+    translate([lanyard_offset, depth/2, height - wall/2])
+        cylinder(d=lanyard_d, h=wall+1, center=true);
+}
+
 module enclosure() {
     difference() {
         cube([width, depth, height], center=false);
@@ -48,6 +55,7 @@ module enclosure() {
         button_hole();
         mic_hole();
         speaker_grill();
+        lanyard_hole();
     }
 }
 
