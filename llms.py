@@ -17,15 +17,22 @@ def get_llm_endpoints(path: str = "llms.txt") -> List[Tuple[str, str]]:
     -------
     List[Tuple[str, str]]
         List of ``(name, url)`` tuples for each configured endpoint.
+        Only links under the "## LLM Endpoints" section are considered.
     """
 
     lines = Path(path).read_text(encoding="utf-8").splitlines()
     pattern = re.compile(r"^- \[(?P<name>[^\]]+)\]\((?P<url>https?://[^)]+)\)")
     endpoints: List[Tuple[str, str]] = []
+    in_section = False
     for line in lines:
-        match = pattern.match(line.strip())
-        if match:
-            endpoints.append((match.group("name"), match.group("url")))
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            in_section = stripped == "## LLM Endpoints"
+            continue
+        if in_section:
+            match = pattern.match(stripped)
+            if match:
+                endpoints.append((match.group("name"), match.group("url")))
     return endpoints
 
 
