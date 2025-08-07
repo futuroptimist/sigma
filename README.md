@@ -39,6 +39,8 @@ You can list the configured endpoints with:
 python -m llms
 ```
 
+If `llms.txt` is missing the command prints nothing and exits without error.
+
 See [`AGENTS.md`](AGENTS.md) for details on how we integrate LLMs and prompts.
 
 ## Testing
