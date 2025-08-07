@@ -5,12 +5,12 @@ from pathlib import Path
 from typing import List, Tuple
 
 
-def get_llm_endpoints(path: str = "llms.txt") -> List[Tuple[str, str]]:
+def get_llm_endpoints(path: str | Path = "llms.txt") -> List[Tuple[str, str]]:
     """Return LLM endpoints listed in ``llms.txt``.
 
     Parameters
     ----------
-    path: str
+    path: str | Path
         Path to the ``llms.txt`` file.
 
     Returns

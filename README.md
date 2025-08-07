@@ -41,6 +41,8 @@ python -m llms
 
 If `llms.txt` is missing the command prints nothing and exits without error.
 
+The `llms.get_llm_endpoints` helper accepts either a string path or a `pathlib.Path` for custom locations.
+
 See [`AGENTS.md`](AGENTS.md) for details on how we integrate LLMs and prompts.
 
 ## Testing
