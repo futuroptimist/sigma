@@ -14,8 +14,8 @@ button_d = 8;         // diameter of push button hole
 mic_d = 3;            // microphone opening
 speaker_d = 10;       // overall speaker area
 speaker_holes = 5;    // number of speaker vents
-lanyard_d = 4;        // diameter of lanyard hole
-lanyard_offset = 5;   // distance from left edge
+lanyard_d = 5;        // diameter of lanyard hole
+lanyard_offset = 6;   // distance from left edge
 
 module battery_cutout() {
     translate([(width-battery_length)/2, depth-1, wall])
