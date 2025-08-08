@@ -2,16 +2,16 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 
-def get_llm_endpoints(path: str = "llms.txt") -> List[Tuple[str, str]]:
+def get_llm_endpoints(path: Optional[str] = None) -> List[Tuple[str, str]]:
     """Return LLM endpoints listed in ``llms.txt``.
 
     Parameters
     ----------
-    path: str
-        Path to the ``llms.txt`` file.
+    path: str | None, optional
+        Optional path to ``llms.txt``. Defaults to the copy beside this module.
 
     Returns
     -------
@@ -24,7 +24,10 @@ def get_llm_endpoints(path: str = "llms.txt") -> List[Tuple[str, str]]:
     ``FileNotFoundError``.
     """
 
-    llms_path = Path(path)
+    if path is None:
+        llms_path = Path(__file__).with_name("llms.txt")
+    else:
+        llms_path = Path(path)
     try:
         lines = llms_path.read_text(encoding="utf-8").splitlines()
     except FileNotFoundError:
