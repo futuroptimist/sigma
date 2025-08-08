@@ -13,7 +13,7 @@ battery_length = 52;  // AA holder length
 button_d = 8;         // diameter of push button hole
 mic_d = 3;            // microphone opening
 speaker_d = 10;       // overall speaker area
-speaker_holes = 5;    // number of speaker vents
+speaker_holes = 7;    // number of speaker vents
 lanyard_d = 4;        // diameter of lanyard hole
 lanyard_offset = 5;   // distance from left edge
 
