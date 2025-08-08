@@ -5,7 +5,8 @@ push‑to‑talk device. Models are written in OpenSCAD so you can tweak
 dimensions as needed.
 
 The enclosure includes cutouts for the button, microphone, speaker, battery,
-and a small lanyard hole for attaching a strap.
+and a small lanyard hole for attaching a strap. The hole now measures 5 mm in
+diameter and sits 6 mm from the left edge.
 
 - `cad/` – OpenSCAD models for 3D printing
 - `stl/` – auto-generated STL exports
