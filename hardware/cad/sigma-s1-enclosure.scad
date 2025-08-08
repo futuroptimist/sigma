@@ -16,6 +16,9 @@ speaker_d = 10;       // overall speaker area
 speaker_holes = 5;    // number of speaker vents
 lanyard_d = 4;        // diameter of lanyard hole
 lanyard_offset = 5;   // distance from left edge
+usb_w = 10;           // width of USB-C cutout
+usb_h = 4;            // height of USB-C cutout
+usb_z = 10;           // distance from bottom to cutout
 
 module battery_cutout() {
     translate([(width-battery_length)/2, depth-1, wall])
@@ -46,6 +49,11 @@ module lanyard_hole() {
         cylinder(d=lanyard_d, h=wall+1, center=true);
 }
 
+module usb_cutout() {
+    translate([width/2 - usb_w/2, -1, wall + usb_z])
+        cube([usb_w, wall + 2, usb_h], center=false);
+}
+
 module enclosure() {
     difference() {
         cube([width, depth, height], center=false);
@@ -56,6 +64,7 @@ module enclosure() {
         mic_hole();
         speaker_grill();
         lanyard_hole();
+        usb_cutout();
     }
 }
 
