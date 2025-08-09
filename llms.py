@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 from pathlib import Path
 from typing import List, Optional, Tuple
 
 
+@lru_cache(maxsize=None)
 def get_llm_endpoints(path: Optional[str] = None) -> List[Tuple[str, str]]:
     """Return LLM endpoints listed in ``llms.txt``.
 
@@ -22,7 +24,8 @@ def get_llm_endpoints(path: Optional[str] = None) -> List[Tuple[str, str]]:
     -----
     Only bullet links within the ``## LLM Endpoints`` section are parsed. If
     the file does not exist an empty list is returned instead of raising
-    ``FileNotFoundError``.
+    ``FileNotFoundError``. Results are cached per-process so repeated calls do
+    not re-read ``llms.txt``.
     """
 
     if path is None:

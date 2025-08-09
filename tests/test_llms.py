@@ -27,3 +27,22 @@ def test_get_llm_endpoints_works_from_any_cwd(tmp_path, monkeypatch):
 def test_get_llm_endpoints_ignores_optional_section():
     endpoints = dict(llms.get_llm_endpoints())
     assert "GitHub repo" not in endpoints
+
+
+def test_get_llm_endpoints_caches_results(monkeypatch):
+    calls = 0
+    original_read_text = Path.read_text
+
+    def spy_read_text(self, *args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return original_read_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", spy_read_text)
+    cache_clear = getattr(llms.get_llm_endpoints, "cache_clear", None)
+    if cache_clear:
+        cache_clear()
+
+    llms.get_llm_endpoints()
+    llms.get_llm_endpoints()
+    assert calls == 1
