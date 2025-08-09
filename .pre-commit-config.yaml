@@ -10,5 +10,10 @@ repos:
       - id: run-checks
         name: Run checks
         entry: bash scripts/checks.sh
-        language: system
+        language: python
+        additional_dependencies:
+          - flake8
+          - isort
+          - black
+          - pytest
         pass_filenames: false
