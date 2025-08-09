@@ -23,7 +23,7 @@ Assembly instructions live in [`docs/sigma-s1-assembly.md`](docs/sigma-s1-assemb
 pio run
 ```
 
-4. Install [uv](https://github.com/astral-sh/uv) and setup pre-commit hooks:
+4. Install [uv](https://github.com/astral-sh/uv) and set up pre-commit hooks:
 ```bash
 curl -Ls https://astral.sh/uv/install.sh | sh
 uv venv
