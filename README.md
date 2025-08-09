@@ -53,6 +53,18 @@ Run the test suite with Make:
 make test
 ```
 
+## Utilities
+
+Helper functions live in the `sigma` package. For example, `average_percentile`
+returns the mean percentile rank of a sequence:
+
+```python
+from sigma.utils import average_percentile
+
+values = [1, 2, 3]
+print(average_percentile(values))  # 66.666...
+```
+
 ## Roadmap
 
 - [ ] Breadboard MVP with a button toggling an LED
