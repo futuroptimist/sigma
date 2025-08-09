@@ -22,3 +22,8 @@ def test_get_llm_endpoints_works_from_any_cwd(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     endpoints = dict(llms.get_llm_endpoints())
     assert "token.place" in endpoints
+
+
+def test_get_llm_endpoints_ignores_optional_section():
+    endpoints = dict(llms.get_llm_endpoints())
+    assert "GitHub repo" not in endpoints
