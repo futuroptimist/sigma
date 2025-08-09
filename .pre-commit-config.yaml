@@ -3,7 +3,9 @@ repos:
     rev: v4.5.0
     hooks:
       - id: trailing-whitespace
+        exclude: hardware/stl/
       - id: end-of-file-fixer
+        exclude: hardware/stl/
       - id: check-yaml
   - repo: local
     hooks:
