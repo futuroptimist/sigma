@@ -9,6 +9,7 @@
 - [CONTRIBUTING](CONTRIBUTING.md): contribution workflow
 
 ## LLM Endpoints
+# Parsed by llms.get_llm_endpoints
 - [token.place](https://github.com/futuroptimist/token.place): default stateless API
 - [OpenRouter](https://openrouter.ai/): hosted aggregator of multiple models
 - [OpenAI API](https://platform.openai.com/): commercial chat models
@@ -16,4 +17,5 @@
 - [llama.cpp](https://github.com/ggerganov/llama.cpp): compile models for edge devices
 
 ## Optional
+# Ignored by llms.get_llm_endpoints
 - [GitHub repo](https://github.com/futuroptimist/sigma)

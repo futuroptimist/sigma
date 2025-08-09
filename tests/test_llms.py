@@ -29,3 +29,8 @@ def test_get_llm_endpoints_handles_uppercase_scheme(tmp_path):
     llms_file.write_text("- [Example](HTTPS://example.com)", encoding="utf-8")
     endpoints = llms.get_llm_endpoints(str(llms_file))
     assert endpoints == [("Example", "HTTPS://example.com")]
+
+    
+def test_get_llm_endpoints_ignores_optional_section():
+    endpoints = dict(llms.get_llm_endpoints())
+    assert "GitHub repo" not in endpoints

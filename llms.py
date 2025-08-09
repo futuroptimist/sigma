@@ -20,7 +20,8 @@ def get_llm_endpoints(path: Optional[str] = None) -> List[Tuple[str, str]]:
 
     Notes
     -----
-    If the file does not exist an empty list is returned instead of raising
+    Only bullet links within the ``## LLM Endpoints`` section are parsed. If
+    the file does not exist an empty list is returned instead of raising
     ``FileNotFoundError``.
     URL schemes are matched case-insensitively so ``HTTPS`` and ``https``
     are treated the same.
@@ -39,8 +40,15 @@ def get_llm_endpoints(path: Optional[str] = None) -> List[Tuple[str, str]]:
         r"^- \[(?P<name>[^\]]+)\]\((?P<url>https?://[^)]+)\)", re.IGNORECASE
     )
     endpoints: List[Tuple[str, str]] = []
+    in_section = False
     for line in lines:
-        match = pattern.match(line.strip())
+        stripped = line.strip()
+        if stripped.startswith("##"):
+            in_section = stripped == "## LLM Endpoints"
+            continue
+        if not in_section:
+            continue
+        match = pattern.match(stripped)
         if match:
             endpoints.append((match.group("name"), match.group("url")))
     return endpoints
