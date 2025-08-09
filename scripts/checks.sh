@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 flake8 . --exclude=.venv
 isort --check-only . --skip .venv
