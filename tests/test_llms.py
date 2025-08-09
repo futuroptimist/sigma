@@ -27,3 +27,14 @@ def test_get_llm_endpoints_works_from_any_cwd(tmp_path, monkeypatch):
 def test_get_llm_endpoints_ignores_optional_section():
     endpoints = dict(llms.get_llm_endpoints())
     assert "GitHub repo" not in endpoints
+
+
+def test_get_llm_endpoints_expands_user_paths(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    path = tmp_path / "custom.txt"
+    path.write_text(
+        "## LLM Endpoints\n- [foo](https://example.com)\n",
+        encoding="utf-8",
+    )
+    endpoints = dict(llms.get_llm_endpoints("~/custom.txt"))
+    assert endpoints == {"foo": "https://example.com"}
