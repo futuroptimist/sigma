@@ -9,7 +9,14 @@ from sigma.utils import average_percentile  # noqa: E402
 
 def test_average_percentile_basic():
     values = [1, 2, 3]
-    expected = 66.6666666667
+    expected = 50.0
+    assert math.isclose(average_percentile(values), expected, rel_tol=1e-9)
+
+
+def test_average_percentile_with_duplicates():
+    values = [1, 1, 2]
+    # Percentiles: 33.33, 33.33, 83.33 -> average 50
+    expected = 50.0
     assert math.isclose(average_percentile(values), expected, rel_tol=1e-9)
 
 

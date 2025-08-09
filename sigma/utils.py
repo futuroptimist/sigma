@@ -1,6 +1,6 @@
 """Utility functions for the Sigma project."""
 
-from bisect import bisect_right
+from bisect import bisect_left, bisect_right
 from typing import Sequence
 
 
@@ -8,8 +8,10 @@ def average_percentile(values: Sequence[float]) -> float:
     """Return the average percentile rank of *values* within the list.
 
     Each value's percentile rank is computed as the percentage of entries less
-    than or equal to it. The function returns the mean of these percentiles and
-    raises ``ValueError`` if *values* is empty.
+    than the value plus half of the entries equal to it. This "midrank" method
+    avoids skewing the result when duplicates are present. The function returns
+    the mean of these percentiles and raises ``ValueError`` if *values* is
+    empty.
     """
     if not values:
         raise ValueError("values must be non-empty")
@@ -18,6 +20,8 @@ def average_percentile(values: Sequence[float]) -> float:
     n = len(sorted_vals)
     total = 0.0
     for v in values:
-        rank = bisect_right(sorted_vals, v)
+        lo = bisect_left(sorted_vals, v)
+        hi = bisect_right(sorted_vals, v)
+        rank = (lo + hi) / 2
         total += (rank / n) * 100
     return total / n
