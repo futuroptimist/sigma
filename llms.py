@@ -20,8 +20,8 @@ def get_llm_endpoints(path: Optional[str] = None) -> List[Tuple[str, str]]:
 
     Notes
     -----
-    If the file does not exist an empty list is returned instead of raising
-    ``FileNotFoundError``.
+    If the file does not exist or cannot be read an empty list is returned
+    instead of raising an exception.
     """
 
     if path is None:
@@ -30,7 +30,7 @@ def get_llm_endpoints(path: Optional[str] = None) -> List[Tuple[str, str]]:
         llms_path = Path(path)
     try:
         lines = llms_path.read_text(encoding="utf-8").splitlines()
-    except FileNotFoundError:
+    except OSError:
         return []
 
     pattern = re.compile(r"^- \[(?P<name>[^\]]+)\]\((?P<url>https?://[^)]+)\)")

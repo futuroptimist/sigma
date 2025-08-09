@@ -18,6 +18,13 @@ def test_get_llm_endpoints_missing_file_returns_empty_list(tmp_path):
     assert endpoints == []
 
 
+def test_get_llm_endpoints_unreadable_file(tmp_path):
+    unreadable = tmp_path / "unreadable"
+    unreadable.mkdir()
+    endpoints = llms.get_llm_endpoints(str(unreadable))
+    assert endpoints == []
+
+
 def test_get_llm_endpoints_works_from_any_cwd(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     endpoints = dict(llms.get_llm_endpoints())
