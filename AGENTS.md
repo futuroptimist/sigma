@@ -1,6 +1,8 @@
 # Sigma Agents Guide
 
-This file helps AI agents like OpenAI Codex understand the structure and workflows of the **Sigma** project. Sigma is a fully open-source ESP32 "AI pin" that uses Whisper for speech recognition, routes text to a configurable LLM, and replies with text-to-speech.
+This file helps AI agents like OpenAI Codex understand the structure and workflows of the
+**Sigma** project. Sigma is a fully open-source ESP32 "AI pin" that uses Whisper for speech
+recognition, routes text to a configurable LLM, and replies with text-to-speech.
 
 ## Project Structure
 - `/firmware` – PlatformIO project for the ESP32

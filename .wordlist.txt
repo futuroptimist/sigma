@@ -30,6 +30,7 @@ pyspelling
 README
 rebrand
 repo
+roadmap
 Roadmap
 STL
 stl
