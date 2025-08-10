@@ -1,5 +1,6 @@
 """Utility functions for the Sigma project."""
 
+import math
 from bisect import bisect_left, bisect_right
 from typing import Iterable
 
@@ -12,11 +13,13 @@ def average_percentile(values: Iterable[float]) -> float:
     the value plus half of the entries equal to it. This "midrank" method
     avoids skewing the result when duplicates are present. The function returns
     the mean of these percentiles and raises ``ValueError`` if *values* is
-    empty.
+    empty or contains non-finite numbers such as ``NaN`` or ``inf``.
     """
     vals = list(values)
     if not vals:
         raise ValueError("values must be non-empty")
+    if any(not math.isfinite(v) for v in values):
+        raise ValueError("values must be finite numbers")
 
     sorted_vals = sorted(vals)
     n = len(sorted_vals)
