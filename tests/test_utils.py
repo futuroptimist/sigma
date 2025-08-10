@@ -27,3 +27,9 @@ def test_average_percentile_empty_list_raises():
         pass
     else:
         raise AssertionError("ValueError not raised")
+
+
+def test_average_percentile_accepts_generators():
+    values = (v for v in [1, 2, 3])
+    expected = 50.0
+    assert math.isclose(average_percentile(values), expected, rel_tol=1e-9)
