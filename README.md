@@ -62,7 +62,7 @@ returns the mean percentile rank of a sequence:
 from sigma.utils import average_percentile
 
 values = [1, 2, 3]
-print(average_percentile(values))  # 66.666...
+print(average_percentile(values))  # 50.0
 ```
 
 ## Roadmap
