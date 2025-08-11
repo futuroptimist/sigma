@@ -39,6 +39,7 @@ STT
 svg
 TTS
 txt
+utils
 uv
 venv
 Whisper
