@@ -16,7 +16,7 @@ speaker_d = 10;       // overall speaker area
 speaker_holes = 7;    // number of speaker vents
 lanyard_d = 5;        // diameter of lanyard hole
 lanyard_offset = 6;   // distance from left edge
-usb_w = 10;           // width of USB-C cutout
+usb_w = 12;           // width of USB-C cutout (increased for cable clearance)
 usb_h = 4;            // height of USB-C cutout
 usb_z = 10;           // distance from bottom to cutout
 
