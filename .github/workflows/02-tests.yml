@@ -12,8 +12,8 @@ jobs:
           python-version: '3.x'
       - run: uv pip install --system pytest coverage
       - run: |
-          coverage run -m pytest -q
-          coverage xml
+          python -m coverage run -m pytest -q
+          python -m coverage xml
       - uses: codecov/codecov-action@v5
         if: ${{ env.CODECOV_TOKEN != '' }}
         env:
