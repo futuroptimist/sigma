@@ -65,6 +65,14 @@ values = [1, 2, 3]
 print(average_percentile(values))  # 50.0
 ```
 
+The percentile rank of a single value is available via `percentile_rank`:
+
+```python
+from sigma.utils import percentile_rank
+
+print(percentile_rank(2, [1, 2, 3]))  # 50.0
+```
+
 ## Roadmap
 
 - [ ] Breadboard MVP with a button toggling an LED

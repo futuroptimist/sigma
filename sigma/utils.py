@@ -5,6 +5,30 @@ from bisect import bisect_left, bisect_right
 from typing import Sequence
 
 
+def _midrank(value: float, sorted_vals: Sequence[float]) -> float:
+    """Return percentile rank of ``value`` given ``sorted_vals``."""
+    lo = bisect_left(sorted_vals, value)
+    hi = bisect_right(sorted_vals, value)
+    rank = (lo + hi) / 2
+    return (rank / len(sorted_vals)) * 100
+
+
+def percentile_rank(value: float, values: Sequence[float]) -> float:
+    """Return the percentile rank of ``value`` within ``values``.
+
+    The percentile is computed using the "midrank" method: the percentage of
+    entries less than ``value`` plus half of the entries equal to it. Raises
+    ``ValueError`` if ``values`` is empty or if any number is non-finite.
+    """
+    if not values:
+        raise ValueError("values must be non-empty")
+    if any(not math.isfinite(v) for v in (*values, value)):
+        raise ValueError("values must be finite numbers")
+
+    sorted_vals = sorted(values)
+    return _midrank(value, sorted_vals)
+
+
 def average_percentile(values: Sequence[float]) -> float:
     """Return the average percentile rank of *values* within the list.
 
@@ -21,10 +45,5 @@ def average_percentile(values: Sequence[float]) -> float:
 
     sorted_vals = sorted(values)
     n = len(sorted_vals)
-    total = 0.0
-    for v in values:
-        lo = bisect_left(sorted_vals, v)
-        hi = bisect_right(sorted_vals, v)
-        rank = (lo + hi) / 2
-        total += (rank / n) * 100
+    total = sum(_midrank(v, sorted_vals) for v in values)
     return total / n
