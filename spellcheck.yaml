@@ -2,7 +2,7 @@ spellchecker: aspell
 matrix:
   - name: markdown
     sources:
-      - README.md
+      - "*.md"
       - docs/**/*.md
     dictionary:
       wordlists:
