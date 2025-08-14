@@ -9,8 +9,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - uses: astral-sh/setup-uv@v2
-      - run: uv pip install --system pytest coverage
+      - run: python -m pip install pytest coverage
       - run: |
           python -m coverage run -m pytest -q
           python -m coverage xml
