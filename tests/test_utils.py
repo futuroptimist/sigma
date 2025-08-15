@@ -45,3 +45,14 @@ def test_percentile_rank_empty_list_raises():
 def test_percentile_rank_non_finite_raises():
     with pytest.raises(ValueError):
         percentile_rank(math.nan, [1.0])
+
+
+def test_percentile_rank_accepts_iterable():
+    values = (v for v in [1, 2, 3])
+    assert math.isclose(percentile_rank(2, values), 50.0, rel_tol=1e-9)
+
+
+def test_average_percentile_accepts_iterable():
+    values = (v for v in [1, 2, 3])
+    expected = 50.0
+    assert math.isclose(average_percentile(values), expected, rel_tol=1e-9)

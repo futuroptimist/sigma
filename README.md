@@ -59,7 +59,7 @@ make test
 ## Utilities
 
 Helper functions live in the `sigma` package. For example, `average_percentile`
-returns the mean percentile rank of a sequence:
+returns the mean percentile rank of an iterable:
 
 ```python
 from sigma.utils import average_percentile
