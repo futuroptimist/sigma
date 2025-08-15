@@ -4,6 +4,7 @@ matrix:
     sources:
       - "*.md"
       - docs/**/*.md
+      - hardware/**/*.md
     dictionary:
       wordlists:
         - .wordlist.txt
