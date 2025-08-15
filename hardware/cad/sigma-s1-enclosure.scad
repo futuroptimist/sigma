@@ -14,8 +14,8 @@ button_d = 8;         // diameter of push button hole
 mic_d = 3;            // microphone opening
 speaker_d = 10;       // overall speaker area
 speaker_holes = 7;    // number of speaker vents
-lanyard_d = 5;        // diameter of lanyard hole
-lanyard_offset = 6;   // distance from left edge
+lanyard_d = 5;        // diameter of lanyard holes
+lanyard_offset = 6;   // distance from each edge
 usb_w = 14;           // width of USB-C cutout (extra cable clearance)
 usb_h = 4;            // height of USB-C cutout
 usb_z = 10;           // distance from bottom to cutout
@@ -44,9 +44,10 @@ module speaker_grill() {
                 cylinder(d=speaker_d/speaker_holes, h=depth+1);
 }
 
-module lanyard_hole() {
-    translate([lanyard_offset, depth/2, height - wall/2])
-        cylinder(d=lanyard_d, h=wall+1, center=true);
+module lanyard_holes() {
+    for (x=[lanyard_offset, width - lanyard_offset])
+        translate([x, depth/2, height - wall/2])
+            cylinder(d=lanyard_d, h=wall+1, center=true);
 }
 
 module usb_cutout() {
@@ -63,7 +64,7 @@ module enclosure() {
         button_hole();
         mic_hole();
         speaker_grill();
-        lanyard_hole();
+        lanyard_holes();
         usb_cutout();
     }
 }

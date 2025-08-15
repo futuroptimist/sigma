@@ -5,9 +5,9 @@ push‑to‑talk device. Models are written in OpenSCAD so you can tweak
 dimensions as needed.
 
 The enclosure includes cutouts for the button, microphone, speaker, battery,
-USB-C port, and a small lanyard hole for attaching a strap. The hole measures
-6 mm in diameter and sits 6 mm from the left edge. The USB-C cutout is 14 mm
-wide for improved cable clearance.
+USB-C port, and a pair of lanyard holes for attaching a strap. Each hole
+measures 5 mm in diameter and sits 6 mm from its respective side edge. The
+USB-C cutout is 14 mm wide for improved cable clearance.
 
 - `cad/` – OpenSCAD models for 3D printing
 - `stl/` – auto-generated STL exports
