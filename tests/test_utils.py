@@ -45,3 +45,11 @@ def test_percentile_rank_empty_list_raises():
 def test_percentile_rank_non_finite_raises():
     with pytest.raises(ValueError):
         percentile_rank(math.nan, [1.0])
+
+
+def test_percentile_rank_accepts_generators():
+    def gen():
+        for v in [1.0, 2.0, 3.0]:
+            yield v
+
+    assert math.isclose(percentile_rank(2.0, gen()), 50.0, rel_tol=1e-9)
