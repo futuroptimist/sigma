@@ -35,6 +35,7 @@ https
 img
 io
 isort
+llm
 llms
 md
 microcontroller
