@@ -56,3 +56,13 @@ def test_get_llm_endpoints_supports_star_bullets(tmp_path):
     )
     endpoints = llms.get_llm_endpoints(str(llms_file))
     assert endpoints == [("Example", "https://example.com")]
+
+
+def test_get_llm_endpoints_allows_extra_space_after_bullet(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n-  [Example](https://example.com)",
+        encoding="utf-8",
+    )
+    endpoints = llms.get_llm_endpoints(str(llms_file))
+    assert endpoints == [("Example", "https://example.com")]
