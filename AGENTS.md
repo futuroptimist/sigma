@@ -18,7 +18,11 @@ recognition, routes text to a configurable LLM, and replies with text-to-speech.
 
 ## LLM Workflow
 1. **Speech‑to‑Text** – Audio is streamed to a `whisper.cpp` service
-2. **Conversation** – Transcripts are sent to an LLM endpoint from `llms.txt` (default is [token.place](https://github.com/futuroptimist/token.place); alternatives include [OpenRouter](https://openrouter.ai/), [OpenAI API](https://platform.openai.com/), [Ollama](https://ollama.ai/), or a local [llama.cpp](https://github.com/ggerganov/llama.cpp) instance)
+2. **Conversation** – Transcripts are sent to an LLM endpoint from `llms.txt` (default is
+   [token.place](https://github.com/futuroptimist/token.place); alternatives include
+   [OpenRouter](https://openrouter.ai/), [OpenAI API](https://platform.openai.com/),
+   [Ollama](https://ollama.ai/), or a local
+   [llama.cpp](https://github.com/ggerganov/llama.cpp) instance)
 3. **Text‑to‑Speech** – Responses are synthesized and played back on the device
 
 ## Testing Requirements
