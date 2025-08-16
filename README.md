@@ -77,6 +77,15 @@ from sigma.utils import percentile_rank
 print(percentile_rank(2, [1, 2, 3]))  # 50.0
 ```
 
+Use `clamp` to bound a value to an inclusive range:
+
+```python
+from sigma.utils import clamp
+
+print(clamp(5, 0, 10))   # 5
+print(clamp(15, 0, 10))  # 10
+```
+
 ## Roadmap
 
 - [ ] Breadboard MVP with a button toggling an LED
