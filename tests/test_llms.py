@@ -58,6 +58,15 @@ def test_get_llm_endpoints_supports_star_bullets(tmp_path):
     assert endpoints == [("Example", "https://example.com")]
 
 
+def test_get_llm_endpoints_supports_plus_bullets(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n+ [Example](https://example.com)", encoding="utf-8"
+    )
+    endpoints = llms.get_llm_endpoints(str(llms_file))
+    assert endpoints == [("Example", "https://example.com")]
+
+
 def test_get_llm_endpoints_heading_case_insensitive(tmp_path):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text(
