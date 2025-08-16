@@ -53,3 +53,17 @@ def average_percentile(values: Iterable[float]) -> float:
     n = len(sorted_vals)
     total = sum(_midrank(v, sorted_vals) for v in vals)
     return total / n
+
+
+def clamp(value: float, lower: float, upper: float) -> float:
+    """Return ``value`` clamped to the inclusive range [``lower``, ``upper``].
+
+    Raises ``ValueError`` if the bounds are invalid or any argument is
+    non-finite. ``lower`` may equal ``upper``.
+    """
+
+    if any(not math.isfinite(v) for v in (value, lower, upper)):
+        raise ValueError("value and bounds must be finite numbers")
+    if lower > upper:
+        raise ValueError("lower bound must be <= upper bound")
+    return max(lower, min(value, upper))
