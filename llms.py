@@ -39,7 +39,7 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
 
     # Only parse bullet links in the "## LLM Endpoints" section.
     pattern = re.compile(
-        r"^[\-*] \[(?P<name>[^\]]+)\]\((?P<url>https?://[^)]+)\)",
+        r"^[-*] \[(?P<name>[^\]]+)\]\((?P<url>https?://[^)]+)\)",
         re.IGNORECASE,
     )
     endpoints: List[Tuple[str, str]] = []
