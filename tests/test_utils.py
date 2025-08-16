@@ -32,6 +32,11 @@ def test_average_percentile_non_finite_raises():
         average_percentile([1.0, math.nan])
 
 
+def test_average_percentile_non_numeric_raises():
+    with pytest.raises(ValueError):
+        average_percentile([1.0, "a"])
+
+
 def test_percentile_rank_basic():
     values = [1, 2, 3]
     assert math.isclose(percentile_rank(2, values), 50.0, rel_tol=1e-9)
@@ -45,6 +50,16 @@ def test_percentile_rank_empty_list_raises():
 def test_percentile_rank_non_finite_raises():
     with pytest.raises(ValueError):
         percentile_rank(math.nan, [1.0])
+
+
+def test_percentile_rank_non_numeric_value_raises():
+    with pytest.raises(ValueError):
+        percentile_rank("a", [1.0])
+
+
+def test_percentile_rank_non_numeric_in_values_raises():
+    with pytest.raises(ValueError):
+        percentile_rank(1.0, [1.0, "a"])
 
 
 def test_percentile_rank_accepts_generators():
