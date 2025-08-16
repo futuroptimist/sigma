@@ -44,7 +44,8 @@ python -m llms
 
 If `llms.txt` is missing the command prints nothing and exits without error. The helper
 locates `llms.txt` relative to its own file, so you can run it from any working
-directory.
+directory. The optional path argument to ``llms.get_llm_endpoints`` expands environment
+variables (e.g. ``$HOME``) before resolving ``~`` to the user's home.
 
 See [`AGENTS.md`](AGENTS.md) for details on how we integrate LLMs and prompts.
 
@@ -74,6 +75,15 @@ The percentile rank of a single value is available via `percentile_rank`:
 from sigma.utils import percentile_rank
 
 print(percentile_rank(2, [1, 2, 3]))  # 50.0
+```
+
+Use `clamp` to bound a value to an inclusive range:
+
+```python
+from sigma.utils import clamp
+
+print(clamp(5, 0, 10))   # 5
+print(clamp(15, 0, 10))  # 10
 ```
 
 ## Roadmap
