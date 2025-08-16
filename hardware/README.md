@@ -6,7 +6,7 @@ dimensions as needed.
 
 The enclosure includes cutouts for the button, microphone, speaker, battery,
 USB-C port, and a small lanyard hole for attaching a strap. The hole measures
-8 mm in diameter and sits 6 mm from the left edge. The USB-C cutout is 14 mm
+9 mm in diameter and sits 6 mm from the left edge. The USB-C cutout is 14 mm
 wide for improved cable clearance.
 
 - `cad/` – OpenSCAD models for 3D printing
