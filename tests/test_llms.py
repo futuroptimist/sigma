@@ -75,3 +75,13 @@ def test_get_llm_endpoints_allows_indented_bullets(tmp_path):
     )
     endpoints = llms.get_llm_endpoints(str(llms_file))
     assert endpoints == [("Example", "https://example.com")]
+
+
+def test_get_llm_endpoints_expands_env_vars(tmp_path, monkeypatch):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [foo](https://example.com)\n", encoding="utf-8"
+    )
+    monkeypatch.setenv("SIGMA_LLM_DIR", str(tmp_path))
+    endpoints = dict(llms.get_llm_endpoints("$SIGMA_LLM_DIR/custom.txt"))
+    assert endpoints == {"foo": "https://example.com"}

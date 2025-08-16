@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 from typing import List, Tuple
@@ -11,8 +12,9 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     Parameters
     ----------
     path: str | Path | None, optional
-        Optional path to ``llms.txt``. ``~`` expands to the user home
-        directory. Defaults to the copy beside this module.
+        Optional path to ``llms.txt``. Environment variables like ``$HOME``
+        are expanded, then ``~`` expands to the user home directory.
+        Defaults to the copy beside this module.
 
     Returns
     -------
@@ -31,7 +33,7 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     if path is None:
         llms_path = Path(__file__).with_name("llms.txt")
     else:
-        llms_path = Path(path).expanduser()
+        llms_path = Path(os.path.expandvars(path)).expanduser()
     try:
         lines = llms_path.read_text(encoding="utf-8").splitlines()
     except FileNotFoundError:
