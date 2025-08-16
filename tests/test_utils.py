@@ -42,8 +42,8 @@ def test_percentile_rank_empty_list_raises():
         percentile_rank(1, [])
 
 
-def test_percentile_rank_non_finite_raises():
-    with pytest.raises(ValueError):
+def test_percentile_rank_non_finite_value_message():
+    with pytest.raises(ValueError, match="value must be a finite number"):
         percentile_rank(math.nan, [1.0])
 
 

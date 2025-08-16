@@ -18,14 +18,16 @@ def percentile_rank(value: float, values: Iterable[float]) -> float:
 
     The percentile is computed using the "midrank" method: the percentage of
     entries less than ``value`` plus half of the entries equal to it. Raises
-    ``ValueError`` if ``values`` is empty or if any number is non-finite.
-    ``values`` may be any iterable and is materialized internally, so
-    generators are consumed only once.
+    ``ValueError`` if ``values`` is empty, ``value`` is not finite, or any
+    number in ``values`` is non-finite. ``values`` may be any iterable and is
+    materialized internally, so generators are consumed only once.
     """
     vals = list(values)
     if not vals:
         raise ValueError("values must be non-empty")
-    if not math.isfinite(value) or any(not math.isfinite(v) for v in vals):
+    if not math.isfinite(value):
+        raise ValueError("value must be a finite number")
+    if any(not math.isfinite(v) for v in vals):
         raise ValueError("values must be finite numbers")
 
     sorted_vals = sorted(vals)
