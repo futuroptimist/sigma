@@ -9,7 +9,7 @@
 - [CONTRIBUTING](CONTRIBUTING.md): contribution workflow
 
 ## LLM Endpoints
-# Parsed by llms.get_llm_endpoints (bullets may start with '-' or '*')
+# Parsed by llms.get_llm_endpoints (bullets may start with '-', '*', or '+')
 - [token.place](https://github.com/futuroptimist/token.place): default stateless API
 - [OpenRouter](https://openrouter.ai/): hosted aggregator of multiple models
 - [OpenAI API](https://platform.openai.com/): commercial chat models
