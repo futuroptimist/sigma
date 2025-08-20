@@ -29,3 +29,8 @@ def test_clamp_invalid_bounds():
 def test_clamp_non_finite_raises():
     with pytest.raises(ValueError):
         clamp(math.nan, 0, 1)
+
+
+def test_clamp_non_numeric_raises():
+    with pytest.raises(ValueError):
+        clamp("a", 0, 1)
