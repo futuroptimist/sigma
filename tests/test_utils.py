@@ -37,6 +37,14 @@ def test_average_percentile_non_numeric_raises():
         average_percentile([1.0, "a"])
 
 
+def test_average_percentile_accepts_generators():
+    def gen():
+        for v in [1.0, 2.0, 3.0]:
+            yield v
+
+    assert math.isclose(average_percentile(gen()), 50.0, rel_tol=1e-9)
+
+
 def test_percentile_rank_basic():
     values = [1, 2, 3]
     assert math.isclose(percentile_rank(2, values), 50.0, rel_tol=1e-9)

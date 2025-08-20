@@ -56,7 +56,7 @@ def average_percentile(values: Iterable[float]) -> float:
         raise ValueError("values must be finite numbers") from exc
 
     sorted_vals = sorted(vals)
-    n = len(sorted_vals)
+    n = len(vals)
     total = sum(_midrank(v, sorted_vals) for v in vals)
     return total / n
 
