@@ -19,6 +19,9 @@ lanyard_offset = 6;   // distance from left edge
 usb_w = 14;           // width of USB-C cutout (extra cable clearance)
 usb_h = 4;            // height of USB-C cutout
 usb_z = 10;           // distance from bottom to cutout
+led_d = 5;            // diameter of status LED hole
+led_offset = 10;      // distance from right edge
+led_z = height - 30;  // height of LED hole
 
 module battery_cutout() {
     translate([(width-battery_length)/2, depth-1, wall])
@@ -54,6 +57,12 @@ module usb_cutout() {
         cube([usb_w, wall + 2, usb_h], center=false);
 }
 
+module led_hole() {
+    translate([width - led_offset, 0, led_z])
+        rotate([90,0,0])
+            cylinder(d=led_d, h=depth+1);
+}
+
 module enclosure() {
     difference() {
         cube([width, depth, height], center=false);
@@ -65,6 +74,7 @@ module enclosure() {
         speaker_grill();
         lanyard_hole();
         usb_cutout();
+        led_hole();
     }
 }
 
