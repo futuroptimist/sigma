@@ -77,6 +77,8 @@ from sigma.utils import percentile_rank
 print(percentile_rank(2, [1, 2, 3]))  # 50.0
 ```
 
+Both `average_percentile` and `percentile_rank` accept any iterable, so generators work too.
+
 Use `clamp` to bound a value to an inclusive range:
 
 ```python
