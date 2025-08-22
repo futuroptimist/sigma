@@ -34,3 +34,22 @@ def test_clamp_non_finite_raises():
 def test_clamp_non_numeric_raises():
     with pytest.raises(ValueError):
         clamp("a", 0, 1)
+
+
+def test_clamp_equal_bounds():
+    assert clamp(5, 10, 10) == 10
+    assert clamp(15, 10, 10) == 10
+
+
+def test_clamp_non_finite_bounds_raises():
+    with pytest.raises(ValueError):
+        clamp(1, 0, math.inf)
+    with pytest.raises(ValueError):
+        clamp(1, float("-inf"), 0)
+
+
+def test_clamp_non_numeric_bounds_raises():
+    with pytest.raises(ValueError):
+        clamp(1, "a", 2)
+    with pytest.raises(ValueError):
+        clamp(1, 0, "b")
