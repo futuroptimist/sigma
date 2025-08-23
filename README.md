@@ -36,7 +36,7 @@ uv venv
 uv pip install pre-commit
 pre-commit install
 ```
-
+Use the `llms.py` helper to manage language model endpoints.
 Configure LLM endpoints in [`llms.txt`](llms.txt), which the [`llms.py`](llms.py) helper parses.
 The parser matches the `## LLM Endpoints` heading case-insensitively,
 so `## llm endpoints` also works.
@@ -56,9 +56,10 @@ See [`AGENTS.md`](AGENTS.md) for details on how we integrate LLMs and prompts.
 
 ## Testing
 
-Run the test suite with Make:
+Run pre-commit hooks and the test suite before committing:
 
 ```bash
+pre-commit run --all-files
 make test
 ```
 
