@@ -41,8 +41,8 @@ Helper scripts live in [`scripts/`](scripts/) and LLM helpers in [`llms.py`](llm
 Use the `llms.py` helper to manage language model endpoints.
 Configure LLM endpoints in [`llms.txt`](llms.txt), which the [`llms.py`](llms.py) helper parses.
 The parser matches the `## LLM Endpoints` heading case-insensitively,
-so `## llm endpoints` also works. Subheadings (###) can group endpoints and are
-ignored by the parser.
+so `## llm endpoints` also works.
+Bullet links may start with `-`, `*`, or `+` and extra spaces after the bullet are ignored.
 
 You can list the configured endpoints with:
 

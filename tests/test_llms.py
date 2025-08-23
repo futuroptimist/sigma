@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import llms  # noqa: E402
@@ -49,19 +51,12 @@ def test_get_llm_endpoints_expands_user_paths(tmp_path, monkeypatch):
     assert endpoints == {"foo": "https://example.com"}
 
 
-def test_get_llm_endpoints_supports_star_bullets(tmp_path):
+@pytest.mark.parametrize("bullet", ["*", "+"])
+def test_get_llm_endpoints_supports_alt_bullets(tmp_path, bullet):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text(
-        "## LLM Endpoints\n* [Example](https://example.com)", encoding="utf-8"
-    )
-    endpoints = llms.get_llm_endpoints(str(llms_file))
-    assert endpoints == [("Example", "https://example.com")]
-
-
-def test_get_llm_endpoints_supports_plus_bullets(tmp_path):
-    llms_file = tmp_path / "custom.txt"
-    llms_file.write_text(
-        "## LLM Endpoints\n+ [Example](https://example.com)", encoding="utf-8"
+        f"## LLM Endpoints\n{bullet} [Example](https://example.com)",
+        encoding="utf-8",
     )
     endpoints = llms.get_llm_endpoints(str(llms_file))
     assert endpoints == [("Example", "https://example.com")]
@@ -86,10 +81,10 @@ def test_get_llm_endpoints_allows_indented_bullets(tmp_path):
     assert endpoints == [("Example", "https://example.com")]
 
 
-def test_get_llm_endpoints_allows_subheadings(tmp_path):
+def test_get_llm_endpoints_allows_multiple_spaces_after_bullet(tmp_path):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text(
-        "## LLM Endpoints\n### Group A\n- [Example](https://example.com)",
+        "## LLM Endpoints\n-   [Example](https://example.com)",
         encoding="utf-8",
     )
     endpoints = llms.get_llm_endpoints(str(llms_file))

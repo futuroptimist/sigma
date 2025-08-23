@@ -24,7 +24,8 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     Notes
     -----
     Only bullet links starting with ``-``, ``*``, or ``+`` within the
-    ``## LLM Endpoints`` section are parsed. The section heading is matched
+    ``## LLM Endpoints`` section are parsed. Any amount of whitespace may
+    follow the bullet before the link. The section heading is matched
     case-insensitively. URL schemes are also matched case-insensitively so
     ``HTTPS`` and ``https`` are treated the same. If the file does not exist
     an empty list is returned instead of raising ``FileNotFoundError``.
@@ -41,7 +42,7 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
 
     # Only parse bullet links in the "## LLM Endpoints" section.
     pattern = re.compile(
-        r"^[-*+] \[(?P<name>[^\]]+)\]\((?P<url>https?://[^)]+)\)",
+        r"^[-*+]\s+\[(?P<name>[^\]]+)\]\((?P<url>https?://[^)]+)\)",
         re.IGNORECASE,
     )
     endpoints: List[Tuple[str, str]] = []
