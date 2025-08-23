@@ -76,3 +76,15 @@ def test_percentile_rank_accepts_generators():
             yield v
 
     assert math.isclose(percentile_rank(2.0, gen()), 50.0, rel_tol=1e-9)
+
+
+def test_percentile_rank_with_duplicates():
+    values = [1, 1, 2, 3]
+    assert math.isclose(percentile_rank(1, values), 25.0, rel_tol=1e-9)
+    assert math.isclose(percentile_rank(2, values), 62.5, rel_tol=1e-9)
+
+
+def test_percentile_rank_out_of_range():
+    values = [1, 2, 3]
+    assert math.isclose(percentile_rank(0, values), 0.0, rel_tol=1e-9)
+    assert math.isclose(percentile_rank(4, values), 100.0, rel_tol=1e-9)
