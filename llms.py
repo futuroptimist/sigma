@@ -49,8 +49,13 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     in_section = False
     for line in lines:
         stripped = line.strip()
-        if stripped.startswith("##"):
-            in_section = stripped.casefold() == "## llm endpoints"
+        if stripped.startswith("# ") and not stripped.startswith("## "):
+            continue
+        heading = re.match(r"^(#+)\s", stripped)
+        if heading:
+            level = len(heading.group(1))
+            if level <= 2:
+                in_section = stripped.casefold() == "## llm endpoints"
             continue
         if not in_section:
             continue
