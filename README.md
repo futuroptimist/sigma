@@ -1,11 +1,19 @@
 # sigma
 
-[![Lint & Format](https://img.shields.io/github/actions/workflow/status/futuroptimist/sigma/.github/workflows/01-lint-format.yml?label=lint%20%26%20format)](https://github.com/futuroptimist/sigma/actions/workflows/01-lint-format.yml)
-[![Tests](https://img.shields.io/github/actions/workflow/status/futuroptimist/sigma/.github/workflows/02-tests.yml?label=tests)](https://github.com/futuroptimist/sigma/actions/workflows/02-tests.yml)
-[![Coverage](https://codecov.io/gh/futuroptimist/sigma/branch/main/graph/badge.svg)](https://codecov.io/gh/futuroptimist/sigma)
-[![Docs](https://img.shields.io/github/actions/workflow/status/futuroptimist/sigma/.github/workflows/03-docs.yml?label=docs)](https://github.com/futuroptimist/sigma/actions/workflows/03-docs.yml)
+[![Lint & Format][lint-badge]][lint-workflow]
+[![Tests][tests-badge]][tests-workflow]
+[![Coverage][coverage-badge]][coverage-url]
+[![Docs][docs-badge]][docs-workflow]
 [![License](https://img.shields.io/github/license/futuroptimist/sigma)](LICENSE)
 
+[lint-badge]: https://img.shields.io/github/actions/workflow/status/futuroptimist/sigma/.github/workflows/01-lint-format.yml?label=lint%20%26%20format
+[lint-workflow]: https://github.com/futuroptimist/sigma/actions/workflows/01-lint-format.yml
+[tests-badge]: https://img.shields.io/github/actions/workflow/status/futuroptimist/sigma/.github/workflows/02-tests.yml?label=tests
+[tests-workflow]: https://github.com/futuroptimist/sigma/actions/workflows/02-tests.yml
+[coverage-badge]: https://codecov.io/gh/futuroptimist/sigma/branch/main/graph/badge.svg
+[coverage-url]: https://codecov.io/gh/futuroptimist/sigma
+[docs-badge]: https://img.shields.io/github/actions/workflow/status/futuroptimist/sigma/.github/workflows/03-docs.yml?label=docs
+[docs-workflow]: https://github.com/futuroptimist/sigma/actions/workflows/03-docs.yml
 Sigma is an open-source ESP32 "AI pin" that lets you talk to a language model via a push‑to‑talk button. Audio is captured and sent to Whisper for speech recognition, routed through the LLM of your choice, then played back with low‑latency text‑to‑speech in a 3D‑printed OpenSCAD case.
 
 Hardware models for the enclosure live in [`hardware/cad`](hardware/cad) with
@@ -35,6 +43,7 @@ Helper scripts for STT, TTS and the LLM API live in `software/`.
 Configure the endpoint you want to use in [`llms.txt`](llms.txt).
 The parser matches the `## LLM Endpoints` heading case-insensitively,
 so `## llm endpoints` also works.
+Bullet links may start with `-`, `*`, or `+` and extra spaces after the bullet are ignored.
 
 You can list the configured endpoints with:
 
