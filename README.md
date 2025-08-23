@@ -11,6 +11,12 @@ Sigma is an open-source ESP32 "AI pin" that lets you talk to a language model vi
 Hardware models for the enclosure live in [`hardware/cad`](hardware/cad) with
 STL exports in [`hardware/stl`](hardware/stl). A GitHub Actions workflow
 automatically regenerates the STL files whenever the SCAD sources change.
+Regenerate STLs locally with:
+
+```bash
+bash scripts/build_stl.sh
+```
+
 Assembly instructions live in [`docs/sigma-s1-assembly.md`](docs/sigma-s1-assembly.md).
 
 ## Getting Started
@@ -31,8 +37,7 @@ uv pip install pre-commit
 pre-commit install
 ```
 
-Helper scripts for STT, TTS and the LLM API live in `software/`.
-Configure the endpoint you want to use in [`llms.txt`](llms.txt).
+Configure LLM endpoints in [`llms.txt`](llms.txt), which the [`llms.py`](llms.py) helper parses.
 The parser matches the `## LLM Endpoints` heading case-insensitively,
 so `## llm endpoints` also works.
 
