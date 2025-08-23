@@ -31,7 +31,7 @@ uv pip install pre-commit
 pre-commit install
 ```
 
-Helper scripts for STT, TTS and the LLM API live in `software/`.
+Helper scripts live in [`scripts/`](scripts/) and LLM helpers in [`llms.py`](llms.py).
 Configure the endpoint you want to use in [`llms.txt`](llms.txt).
 The parser matches the `## LLM Endpoints` heading case-insensitively,
 so `## llm endpoints` also works.
