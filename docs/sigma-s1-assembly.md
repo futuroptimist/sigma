@@ -24,6 +24,11 @@ See `hardware/cad/sigma-s1-enclosure.scad` for the OpenSCAD model.
 3. Export to STL and print with 0.2 mm layer height.
    STL files are automatically generated in `hardware/stl/` by a
    GitHub Actions workflow whenever the SCAD sources change.
+   Regenerate them locally with:
+
+   ```bash
+   bash scripts/build_stl.sh
+   ```
 
 ## Wiring Diagram
 
