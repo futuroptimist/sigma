@@ -86,6 +86,16 @@ def test_get_llm_endpoints_allows_indented_bullets(tmp_path):
     assert endpoints == [("Example", "https://example.com")]
 
 
+def test_get_llm_endpoints_allows_subheadings(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n### Group A\n- [Example](https://example.com)",
+        encoding="utf-8",
+    )
+    endpoints = llms.get_llm_endpoints(str(llms_file))
+    assert endpoints == [("Example", "https://example.com")]
+
+
 def test_get_llm_endpoints_expands_env_vars(tmp_path, monkeypatch):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text(

@@ -34,7 +34,8 @@ pre-commit install
 Helper scripts for STT, TTS and the LLM API live in `software/`.
 Configure the endpoint you want to use in [`llms.txt`](llms.txt).
 The parser matches the `## LLM Endpoints` heading case-insensitively,
-so `## llm endpoints` also works.
+so `## llm endpoints` also works. Subheadings (###) can group endpoints and are
+ignored by the parser.
 
 You can list the configured endpoints with:
 
