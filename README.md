@@ -51,9 +51,10 @@ See [`AGENTS.md`](AGENTS.md) for details on how we integrate LLMs and prompts.
 
 ## Testing
 
-Run the test suite with Make:
+Run pre-commit hooks and the test suite before committing:
 
 ```bash
+pre-commit run --all-files
 make test
 ```
 
