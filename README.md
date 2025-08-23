@@ -36,6 +36,8 @@ uv venv
 uv pip install pre-commit
 pre-commit install
 ```
+
+Helper scripts live in [`scripts/`](scripts/) and LLM helpers in [`llms.py`](llms.py).
 Use the `llms.py` helper to manage language model endpoints.
 Configure LLM endpoints in [`llms.txt`](llms.txt), which the [`llms.py`](llms.py) helper parses.
 The parser matches the `## LLM Endpoints` heading case-insensitively,
