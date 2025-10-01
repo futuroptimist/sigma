@@ -91,6 +91,16 @@ def test_get_llm_endpoints_allows_multiple_spaces_after_bullet(tmp_path):
     assert endpoints == [("Example", "https://example.com")]
 
 
+def test_get_llm_endpoints_allows_no_space_after_bullet(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n-[Example](https://example.com)",
+        encoding="utf-8",
+    )
+    endpoints = llms.get_llm_endpoints(str(llms_file))
+    assert endpoints == [("Example", "https://example.com")]
+
+
 def test_get_llm_endpoints_expands_env_vars(tmp_path, monkeypatch):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text(
