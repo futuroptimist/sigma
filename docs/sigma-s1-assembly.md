@@ -53,5 +53,10 @@ the side openings before closing the shell.
 4. Insert the AA holder and feed its leads to the module.
 5. Close the enclosure with small screws or glue as preferred.
 
-A future update will include a 3D viewer so you can inspect the model
-right from the repository.
+## Preview the Model
+
+Use the interactive viewer at
+[`docs/sigma-s1-viewer.html`](sigma-s1-viewer.html) to inspect the STL in
+your browser. Serve the repository locally, for example with
+`python -m http.server`, then open the viewer page and drag to orbit or
+scroll to zoom.

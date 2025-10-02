@@ -16,4 +16,6 @@ repos:
           - isort
           - black
           - pytest
+          - playwright
+          - pytest-playwright
         pass_filenames: false
