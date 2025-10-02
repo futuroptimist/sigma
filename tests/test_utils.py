@@ -57,6 +57,11 @@ def test_average_percentile_accepts_fraction():
     assert math.isclose(average_percentile(values), 50.0, rel_tol=1e-9)
 
 
+def test_average_percentile_mixed_numeric_types():
+    values = [1.0, Decimal("2"), Fraction(3, 1)]
+    assert math.isclose(average_percentile(values), 50.0, rel_tol=1e-9)
+
+
 def test_percentile_rank_basic():
     values = [1, 2, 3]
     assert math.isclose(percentile_rank(2, values), 50.0, rel_tol=1e-9)
@@ -100,6 +105,12 @@ def test_percentile_rank_accepts_fraction():
     values = [Fraction(1, 4), Fraction(1, 2), Fraction(3, 4)]
     result = percentile_rank(Fraction(1, 2), values)
     assert math.isclose(result, 50.0, rel_tol=1e-9)
+
+
+def test_percentile_rank_mixed_numeric_types():
+    values = [1.0, Decimal("1"), 3.0]
+    result = percentile_rank(Decimal("2"), values)
+    assert math.isclose(result, (2 / 3) * 100, rel_tol=1e-9)
 
 
 def test_percentile_rank_with_duplicates():
