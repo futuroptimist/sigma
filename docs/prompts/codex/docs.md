@@ -1,6 +1,6 @@
 ---
 title: 'Codex Docs Update Prompt'
-slug: 'prompts-codex-docs'
+slug: 'docs'
 ---
 
 # Codex Docs Update Prompt

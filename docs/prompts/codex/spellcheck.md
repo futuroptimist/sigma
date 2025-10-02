@@ -1,6 +1,6 @@
 ---
 title: 'Codex Spellcheck Prompt'
-slug: 'prompts-codex-spellcheck'
+slug: 'spellcheck'
 ---
 
 # Codex Spellcheck Prompt
