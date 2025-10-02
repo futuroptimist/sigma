@@ -4,7 +4,8 @@ This guide explains how to build the Sigma S1 push‑to‑talk device.
 The design uses an ESP32‑WROOM module, a microphone, speaker and
 an AA battery compartment housed in a 3D printed enclosure.
 
-The case also features a small lanyard hole for attaching a strap; the hole is 10 mm in diameter.
+The case also features a small lanyard hole for attaching a strap; the hole is 10 mm in diameter
+and sits 6 mm from the left edge so standard paracord loops clear the shell.
 
 See `hardware/cad/sigma-s1-enclosure.scad` for the OpenSCAD model.
 
