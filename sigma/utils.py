@@ -39,7 +39,20 @@ def _ensure_finite_numbers(values: Iterable[Any], message: str) -> None:
         raise ValueError(message)
 
 
-def _midrank(value: float, sorted_vals: Sequence[float]) -> float:
+def _to_fraction(value: Any) -> Fraction:
+    """Return a :class:`fractions.Fraction` representation of *value*."""
+
+    if isinstance(value, Fraction):
+        return value
+    if isinstance(value, Decimal):
+        return Fraction(value)
+    try:
+        return Fraction(value)
+    except (TypeError, ValueError):
+        return Fraction(float(value))
+
+
+def _midrank(value: Fraction, sorted_vals: Sequence[Fraction]) -> float:
     """Return percentile rank of ``value`` given ``sorted_vals``."""
     lo = bisect_left(sorted_vals, value)
     hi = bisect_right(sorted_vals, value)
@@ -64,8 +77,10 @@ def percentile_rank(value: float, values: Iterable[float]) -> float:
     _ensure_finite_numbers([value], "values must be finite numbers")
     _ensure_finite_numbers(vals, "values must be finite numbers")
 
-    sorted_vals = sorted(vals)
-    return _midrank(value, sorted_vals)
+    comparable_value = _to_fraction(value)
+    comparable_vals = [_to_fraction(v) for v in vals]
+    sorted_vals = sorted(comparable_vals)
+    return _midrank(comparable_value, sorted_vals)
 
 
 def average_percentile(values: Iterable[float]) -> float:
@@ -85,9 +100,13 @@ def average_percentile(values: Iterable[float]) -> float:
         raise ValueError("values must be non-empty")
     _ensure_finite_numbers(vals, "values must be finite numbers")
 
-    sorted_vals = sorted(vals)
+    comparable_vals = [_to_fraction(v) for v in vals]
+    sorted_vals = sorted(comparable_vals)
     n = len(vals)
-    total = sum(_midrank(v, sorted_vals) for v in vals)
+    total = sum(
+        _midrank(comparable, sorted_vals)
+        for comparable in comparable_vals
+    )
     return total / n
 
 
@@ -103,6 +122,13 @@ def clamp(value: float, lower: float, upper: float) -> float:
     _ensure_finite_numbers(
         (value, lower, upper), "value and bounds must be finite numbers"
     )
-    if lower > upper:
+    comparable_value = _to_fraction(value)
+    comparable_lower = _to_fraction(lower)
+    comparable_upper = _to_fraction(upper)
+    if comparable_lower > comparable_upper:
         raise ValueError("lower bound must be <= upper bound")
-    return max(lower, min(value, upper))
+    if comparable_value < comparable_lower:
+        return lower
+    if comparable_value > comparable_upper:
+        return upper
+    return value
