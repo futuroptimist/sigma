@@ -23,4 +23,5 @@ for name, url in get_llm_endpoints():
 
 The helper resolves `llms.txt` relative to its own file, so it works from
 any working directory. The optional path argument expands environment
-variables (e.g. `$HOME`) before resolving `~` to your home directory.
+variables (e.g. `$HOME`) before resolving `~` to your home directory and can
+be a `str` or `pathlib.Path`.
