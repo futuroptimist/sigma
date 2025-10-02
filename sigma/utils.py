@@ -2,7 +2,41 @@
 
 import math
 from bisect import bisect_left, bisect_right
-from typing import Iterable, Sequence
+from decimal import Decimal
+from fractions import Fraction
+from typing import Any, Iterable, Sequence
+
+
+def _is_finite_number(value: Any) -> bool:
+    """Return ``True`` if ``value`` is a finite numeric type."""
+
+    if isinstance(value, (str, bytes, bytearray)):
+        return False
+    if isinstance(value, bool):
+        return True
+    if isinstance(value, int):
+        return True
+    if isinstance(value, Decimal):
+        return value.is_finite()
+    if isinstance(value, Fraction):
+        return True
+    try:
+        return math.isfinite(value)  # type: ignore[arg-type]
+    except TypeError:
+        try:
+            coerced = float(value)
+        except (TypeError, ValueError, OverflowError):
+            return False
+        return math.isfinite(coerced)
+    except OverflowError:
+        return True
+
+
+def _ensure_finite_numbers(values: Iterable[Any], message: str) -> None:
+    """Raise ``ValueError`` if any element of ``values`` is non-finite."""
+
+    if not all(_is_finite_number(v) for v in values):
+        raise ValueError(message)
 
 
 def _midrank(value: float, sorted_vals: Sequence[float]) -> float:
@@ -17,19 +51,18 @@ def percentile_rank(value: float, values: Iterable[float]) -> float:
     """Return the percentile rank of ``value`` within ``values``.
 
     The percentile is computed using the "midrank" method: the percentage of
-    entries less than ``value`` plus half of the entries equal to it. Raises
-    ``ValueError`` if ``values`` is empty or if ``value`` or any element of
-    ``values`` is non-numeric or non-finite. ``values`` may be any iterable and
-    is materialized internally, so generators are consumed only once.
+    entries less than ``value`` plus half of the entries equal to it. Accepts
+    ``int``, ``float``, :class:`decimal.Decimal`, and
+    :class:`fractions.Fraction` inputs. Raises ``ValueError`` if ``values`` is
+    empty or if ``value`` or any element of ``values`` is non-numeric or
+    non-finite. ``values`` may be any iterable and is materialized internally,
+    so generators are consumed only once.
     """
     vals = list(values)
     if not vals:
         raise ValueError("values must be non-empty")
-    try:
-        if not math.isfinite(value) or any(not math.isfinite(v) for v in vals):
-            raise ValueError("values must be finite numbers")
-    except TypeError as exc:
-        raise ValueError("values must be finite numbers") from exc
+    _ensure_finite_numbers([value], "values must be finite numbers")
+    _ensure_finite_numbers(vals, "values must be finite numbers")
 
     sorted_vals = sorted(vals)
     return _midrank(value, sorted_vals)
@@ -43,17 +76,14 @@ def average_percentile(values: Iterable[float]) -> float:
     avoids skewing the result when duplicates are present. The function returns
     the mean of these percentiles and raises ``ValueError`` if *values* is
     empty or contains non-numeric or non-finite numbers such as ``NaN`` or
-    ``inf``. ``values`` may be any iterable and is materialized internally, so
-    generators are consumed only once.
+    ``inf``. Supports ``int``, ``float``, :class:`decimal.Decimal`, and
+    :class:`fractions.Fraction` inputs. ``values`` may be any iterable and is
+    materialized internally, so generators are consumed only once.
     """
     vals = list(values)
     if not vals:
         raise ValueError("values must be non-empty")
-    try:
-        if any(not math.isfinite(v) for v in vals):
-            raise ValueError("values must be finite numbers")
-    except TypeError as exc:
-        raise ValueError("values must be finite numbers") from exc
+    _ensure_finite_numbers(vals, "values must be finite numbers")
 
     sorted_vals = sorted(vals)
     n = len(vals)
@@ -65,14 +95,14 @@ def clamp(value: float, lower: float, upper: float) -> float:
     """Return ``value`` clamped to the inclusive range [``lower``, ``upper``].
 
     Raises ``ValueError`` if the bounds are invalid or any argument is
-    non-numeric or non-finite. ``lower`` may equal ``upper``.
+    non-numeric or non-finite. Supports ``int``, ``float``,
+    :class:`decimal.Decimal`, and :class:`fractions.Fraction` inputs. ``lower``
+    may equal ``upper``.
     """
 
-    try:
-        if any(not math.isfinite(v) for v in (value, lower, upper)):
-            raise ValueError("value and bounds must be finite numbers")
-    except TypeError as exc:
-        raise ValueError("value and bounds must be finite numbers") from exc
+    _ensure_finite_numbers(
+        (value, lower, upper), "value and bounds must be finite numbers"
+    )
     if lower > upper:
         raise ValueError("lower bound must be <= upper bound")
     return max(lower, min(value, upper))

@@ -19,12 +19,27 @@ if importlib.util.find_spec("pytest_playwright") is None:  # pragma: no cover
     )
 
 try:
-    from playwright.sync_api import Page
+    from playwright.sync_api import Error as PlaywrightError
+    from playwright.sync_api import Page, sync_playwright
 except ModuleNotFoundError:  # pragma: no cover - optional dependency guard
     pytest.skip(
         "Playwright is required for viewer tests",
         allow_module_level=True,
     )
+else:
+    try:
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            browser.close()
+    except PlaywrightError as exc:  # pragma: no cover - environment dependent
+        message = str(exc)
+        if "missing dependencies" in message:
+            pytest.skip(
+                "Playwright browser dependencies missing; install via "
+                "`playwright install-deps`.",
+                allow_module_level=True,
+            )
+        raise
 
 from pytest_playwright.pytest_playwright import (  # isort: skip
     browser_context_args as _playwright_browser_context_args,

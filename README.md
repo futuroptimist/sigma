@@ -80,6 +80,9 @@ uv pip install playwright pytest-playwright
 python -m playwright install --with-deps chromium
 ```
 
+If those system dependencies are missing the Playwright-based viewer test skips automatically
+and prints a reminder to run `playwright install-deps`.
+
 ## Utilities
 
 Helper functions live in the `sigma` package. For example, `average_percentile`
@@ -101,14 +104,19 @@ print(percentile_rank(2, [1, 2, 3]))  # 50.0
 ```
 
 Both `average_percentile` and `percentile_rank` accept any iterable, so generators work too.
+The helpers handle `decimal.Decimal` and `fractions.Fraction` values in addition to ints and
+floats, provided every number is finite.
 
 Use `clamp` to bound a value to an inclusive range:
 
 ```python
+from decimal import Decimal
+
 from sigma.utils import clamp
 
 print(clamp(5, 0, 10))   # 5
 print(clamp(15, 0, 10))  # 10
+print(clamp(Decimal("1.5"), Decimal("0"), Decimal("2")))  # Decimal('1.5')
 ```
 
 ## Roadmap
