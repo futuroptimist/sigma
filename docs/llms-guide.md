@@ -2,7 +2,8 @@
 
 `llms.py` parses `llms.txt` to discover available language model endpoints.
 The `llms.txt` file uses Markdown bullet lists under the `## LLM Endpoints`
-heading; entries can start with `-`, `*`, or `+`.
+heading; entries can start with `-`, `*`, or `+`. Trailing `#` characters after
+the heading text are ignored, so `## LLM Endpoints ##` is also recognised.
 
 ## Listing Endpoints
 
