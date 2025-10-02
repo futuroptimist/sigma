@@ -11,6 +11,8 @@ Sigma is an open-source ESP32 "AI pin" that lets you talk to a language model vi
 Hardware models for the enclosure live in [`hardware/cad`](hardware/cad) with
 STL exports in [`hardware/stl`](hardware/stl). A GitHub Actions workflow
 automatically regenerates the STL files whenever the SCAD sources change.
+The primary OpenSCAD file exposes a `thickness` parameter so you can tweak the
+wall thickness before exporting a print.
 Regenerate STLs locally with:
 
 ```bash
