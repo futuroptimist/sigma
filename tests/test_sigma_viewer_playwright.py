@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import math
 import threading
 from functools import partial
@@ -11,18 +12,21 @@ from typing import Any, Iterator
 
 import pytest
 
-pytest.importorskip(
-    "pytest_playwright", reason="pytest-playwright plugin is required for viewer tests"
-)
+if importlib.util.find_spec("pytest_playwright") is None:  # pragma: no cover
+    pytest.skip(
+        "pytest-playwright plugin is required for viewer tests",
+        allow_module_level=True,
+    )
 
 try:
     from playwright.sync_api import Page
 except ModuleNotFoundError:  # pragma: no cover - optional dependency guard
     pytest.skip(
-        "Playwright is required for viewer tests", allow_module_level=True
+        "Playwright is required for viewer tests",
+        allow_module_level=True,
     )
 
-from pytest_playwright.pytest_playwright import (
+from pytest_playwright.pytest_playwright import (  # isort: skip
     browser_context_args as _playwright_browser_context_args,
 )
 
@@ -65,7 +69,7 @@ def browser_context_args(
 ) -> dict:
     """Allow Playwright to load CDN assets served over HTTPS."""
 
-    base_args = _playwright_browser_context_args._fixture_function(
+    base_args = _playwright_browser_context_args.__wrapped__(
         pytestconfig, playwright, device, base_url, _pw_artifacts_folder
     )
     return {**base_args, "ignore_https_errors": True}
