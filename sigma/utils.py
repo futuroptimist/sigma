@@ -103,9 +103,10 @@ def average_percentile(values: Iterable[float]) -> float:
     comparable_vals = [_to_fraction(v) for v in vals]
     sorted_vals = sorted(comparable_vals)
     n = len(vals)
-    total = sum(
-        _midrank(comparable, sorted_vals) for comparable in comparable_vals
-    )
+    midranks = []
+    for comparable in comparable_vals:
+        midranks.append(_midrank(comparable, sorted_vals))
+    total = sum(midranks)
     return total / n
 
 
