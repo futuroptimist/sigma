@@ -6,6 +6,7 @@
 - [README](README.md): setup and roadmap
 - [AGENTS](AGENTS.md): guidelines for AI helpers
 - [docs/sigma-s1-assembly.md](docs/sigma-s1-assembly.md): hardware assembly
+- [docs/sigma-s1-viewer.md](docs/sigma-s1-viewer.md): interactive 3D enclosure preview
 - [CONTRIBUTING](CONTRIBUTING.md): contribution workflow
 
 ## LLM Endpoints

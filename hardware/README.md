@@ -7,7 +7,8 @@ dimensions as needed.
 The enclosure includes cutouts for the button, microphone, speaker, battery,
 USB-C port, a small lanyard hole for attaching a strap, and a 5 mm status LED
 opening. The lanyard hole measures 12 mm in diameter and sits 6 mm from the left
-edge. The USB-C cutout is 14 mm wide for improved cable clearance.
+edge. The USB-C cutout is 14 mm wide for improved cable clearance. You can
+preview the enclosure in the [Sigma S1 3D viewer](../docs/sigma-s1-viewer.md).
 
 - `cad/` – OpenSCAD models for 3D printing
 - `stl/` – auto-generated STL exports

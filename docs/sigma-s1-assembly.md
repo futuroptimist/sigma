@@ -2,7 +2,8 @@
 
 This guide explains how to build the Sigma S1 push‑to‑talk device.
 The design uses an ESP32‑WROOM module, a microphone, speaker and
-an AA battery compartment housed in a 3D printed enclosure.
+an AA battery compartment housed in a 3D printed enclosure. For a
+360° view of the case, open the [Sigma S1 3D viewer](sigma-s1-viewer.md).
 
 The case also features a small lanyard hole for attaching a strap; the hole is 10 mm in diameter.
 
@@ -52,6 +53,3 @@ the side openings before closing the shell.
 3. Place the ESP32 into the printed case.
 4. Insert the AA holder and feed its leads to the module.
 5. Close the enclosure with small screws or glue as preferred.
-
-A future update will include a 3D viewer so you can inspect the model
-right from the repository.
