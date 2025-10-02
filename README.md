@@ -17,6 +17,10 @@ Regenerate STLs locally with:
 bash scripts/build_stl.sh
 ```
 
+Preview the enclosure in 3D by serving the repo locally (for example,
+`python -m http.server`) and opening
+[`docs/sigma-s1-viewer.html`](docs/sigma-s1-viewer.html) in a browser.
+
 Assembly instructions live in [`docs/sigma-s1-assembly.md`](docs/sigma-s1-assembly.md).
 
 ## Getting Started
@@ -66,6 +70,14 @@ Run pre-commit hooks and the test suite before committing:
 ```bash
 pre-commit run --all-files
 make test
+```
+
+Playwright powers the end-to-end coverage for the enclosure viewer. Install its
+runtime once before running the tests locally:
+
+```bash
+uv pip install playwright pytest-playwright
+python -m playwright install --with-deps chromium
 ```
 
 ## Utilities

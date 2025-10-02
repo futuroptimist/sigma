@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Sigma S1 Enclosure Viewer</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #0d1117;
+        color: #e6edf3;
+        overflow: hidden;
+      }
+      header {
+        position: absolute;
+        top: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(13, 17, 23, 0.75);
+        padding: 0.5rem 1rem;
+        border-radius: 999px;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(12px);
+        z-index: 10;
+        font-size: 0.9rem;
+      }
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+      .hint {
+        position: absolute;
+        bottom: 1.25rem;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.85rem;
+        color: #9da7b3;
+        background: rgba(13, 17, 23, 0.6);
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.75rem;
+        backdrop-filter: blur(12px);
+      }
+      a {
+        color: #58a6ff;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      Sigma S1 Enclosure &bull; Drag to orbit, scroll to zoom
+    </header>
+    <canvas id="viewer" role="img" aria-label="3D render of the Sigma S1 enclosure"></canvas>
+    <div class="hint">
+      STL source: <code>hardware/stl/sigma-s1-enclosure.stl</code>
+    </div>
+    <script type="module">
+      import * as THREE from "./vendor/three/three.module.js";
+      import { OrbitControls } from "./vendor/three/OrbitControls.js";
+      import { STLLoader } from "./vendor/three/STLLoader.js";
+
+      const canvas = document.getElementById("viewer");
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.setPixelRatio(window.devicePixelRatio);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0d1117);
+
+      const camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        2000,
+      );
+      camera.position.set(160, 120, 140);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+      controls.autoRotate = false;
+      controls.target.set(0, 0, 0);
+
+      const viewerState = {
+        renderer,
+        scene,
+        camera,
+        controls,
+        ready: false,
+        error: null,
+        getCameraState: () => ({
+          position: camera.position.toArray(),
+          target: controls.target.toArray(),
+          distance: camera.position.distanceTo(controls.target),
+        }),
+        getRendererSize: () => {
+          const { x, y } = renderer.getSize(new THREE.Vector2());
+          return { width: x, height: y };
+        },
+      };
+      window.__sigmaViewer = viewerState;
+
+      const keyLight = new THREE.DirectionalLight(0xffffff, 1.1);
+      keyLight.position.set(120, 160, 100);
+      scene.add(keyLight);
+
+      const fillLight = new THREE.DirectionalLight(0x89b4ff, 0.4);
+      fillLight.position.set(-80, 40, -100);
+      scene.add(fillLight);
+
+      scene.add(new THREE.AmbientLight(0x404040));
+
+      const grid = new THREE.GridHelper(200, 20, 0x2b3240, 0x202532);
+      grid.position.y = -40;
+      scene.add(grid);
+
+      const loader = new STLLoader();
+      loader.load(
+        "../hardware/stl/sigma-s1-enclosure.stl",
+        (geometry) => {
+          geometry.center();
+          geometry.rotateX(-Math.PI / 2);
+          const material = new THREE.MeshStandardMaterial({
+            color: 0x3fa9f5,
+            metalness: 0.15,
+            roughness: 0.55,
+          });
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          scene.add(mesh);
+          viewerState.ready = true;
+          window.dispatchEvent(new Event("sigma-viewer:ready"));
+        },
+        undefined,
+        (error) => {
+          console.error("Failed to load STL", error);
+          viewerState.error = error?.message ?? String(error);
+          window.dispatchEvent(new Event("sigma-viewer:error"));
+        },
+      );
+
+      function resizeRenderer() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        renderer.setSize(width, height, false);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+      }
+
+      window.addEventListener("resize", resizeRenderer);
+      resizeRenderer();
+
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      }
+
+      animate();
+    </script>
+  </body>
+</html>
