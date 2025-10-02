@@ -7,10 +7,22 @@ import threading
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Iterator
+from typing import Any, Iterator
 
 import pytest
-from playwright.sync_api import Page
+
+pytest.importorskip(
+    "pytest_playwright", reason="pytest-playwright plugin is required for viewer tests"
+)
+
+try:
+    from playwright.sync_api import Page
+except ModuleNotFoundError:  # pragma: no cover - optional dependency guard
+    pytest.skip(
+        "Playwright is required for viewer tests", allow_module_level=True
+    )
+
+from pytest_playwright.pytest_playwright import browser_context_args as _base_context_args
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 VIEWER_PATH = REPO_ROOT / "docs" / "sigma-s1-viewer.html"
@@ -42,10 +54,19 @@ def static_file_server() -> Iterator[str]:
 
 
 @pytest.fixture
-def browser_context_args(browser_context_args: dict) -> dict:
+def browser_context_args(
+    pytestconfig: pytest.Config,
+    playwright: Any,
+    device: str | None,
+    base_url: str | None,
+    _pw_artifacts_folder: Any,
+) -> dict:
     """Allow Playwright to load CDN assets served over HTTPS."""
 
-    return {**browser_context_args, "ignore_https_errors": True}
+    base_args = _base_context_args(
+        pytestconfig, playwright, device, base_url, _pw_artifacts_folder
+    )
+    return {**base_args, "ignore_https_errors": True}
 
 
 @pytest.mark.playwright
