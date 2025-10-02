@@ -34,7 +34,8 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     if path is None:
         llms_path = Path(__file__).with_name("llms.txt")
     else:
-        llms_path = Path(os.path.expandvars(path)).expanduser()
+        raw_path = os.fspath(path)
+        llms_path = Path(os.path.expandvars(raw_path)).expanduser()
     try:
         lines = llms_path.read_text(encoding="utf-8").splitlines()
     except FileNotFoundError:

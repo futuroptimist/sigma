@@ -54,7 +54,8 @@ python -m llms
 If `llms.txt` is missing the command prints nothing and exits without error. The helper
 locates `llms.txt` relative to its own file, so you can run it from any working
 directory. The optional path argument to ``llms.get_llm_endpoints`` expands environment
-variables (e.g. ``$HOME``) before resolving ``~`` to the user's home.
+variables (e.g. ``$HOME``) before resolving ``~`` to the user's home, and accepts either
+string paths or ``pathlib.Path`` objects.
 
 See [`AGENTS.md`](AGENTS.md) for details on how we integrate LLMs and prompts.
 
