@@ -21,7 +21,8 @@ See `hardware/cad/sigma-s1-enclosure.scad` for the OpenSCAD model.
 ## Printing the Case
 
 1. Open `sigma-s1-enclosure.scad` in OpenSCAD.
-2. Adjust the `thickness` and overall dimensions if needed.
+2. Adjust the `thickness` parameter (aliased to the legacy `wall` value) and overall dimensions if
+   needed.
 3. Export to STL and print with 0.2 mm layer height.
    STL files are automatically generated in `hardware/stl/` by a
    GitHub Actions workflow whenever the SCAD sources change.

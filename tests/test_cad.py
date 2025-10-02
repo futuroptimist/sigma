@@ -17,3 +17,11 @@ def test_lanyard_hole_matches_documented_dimensions():
     offset = _extract_param("lanyard_offset")
     assert diameter == 10.0
     assert offset == 6.0
+
+
+def test_wall_thickness_parameter_documented_and_used():
+    thickness = _extract_param("thickness")
+    assert thickness == 2.0
+
+    text = SCAD_PATH.read_text(encoding="utf-8")
+    assert "width-2*thickness" in text

@@ -4,7 +4,8 @@
    Inspired by wove/flywheel/sugarkube CAD conventions.
 */
 
-wall = 2;             // shell thickness in mm
+thickness = 2;        // shell thickness in mm (adjust to tweak the shell)
+wall = thickness;     // legacy alias for backwards compatibility
 width = 60;           // outer width
 height = 80;          // outer height
 depth = 30;           // outer depth
@@ -24,7 +25,7 @@ led_offset = 10;      // distance from right edge
 led_z = height - 30;  // height of LED hole
 
 module battery_cutout() {
-    translate([(width-battery_length)/2, depth-1, wall])
+    translate([(width-battery_length)/2, depth-1, thickness])
         cube([battery_length, 1, 14], center=false);
 }
 
@@ -48,13 +49,13 @@ module speaker_grill() {
 }
 
 module lanyard_hole() {
-    translate([lanyard_offset, depth/2, height - wall/2])
-        cylinder(d=lanyard_d, h=wall+1, center=true);
+    translate([lanyard_offset, depth/2, height - thickness/2])
+        cylinder(d=lanyard_d, h=thickness+1, center=true);
 }
 
 module usb_cutout() {
-    translate([width/2 - usb_w/2, -1, wall + usb_z])
-        cube([usb_w, wall + 2, usb_h], center=false);
+    translate([width/2 - usb_w/2, -1, thickness + usb_z])
+        cube([usb_w, thickness + 2, usb_h], center=false);
 }
 
 module led_hole() {
@@ -66,8 +67,8 @@ module led_hole() {
 module enclosure() {
     difference() {
         cube([width, depth, height], center=false);
-        translate([wall, wall, wall])
-            cube([width-2*wall, depth-2*wall, height-2*wall], center=false);
+        translate([thickness, thickness, thickness])
+            cube([width-2*thickness, depth-2*thickness, height-2*thickness], center=false);
         battery_cutout();
         button_hole();
         mic_hole();
