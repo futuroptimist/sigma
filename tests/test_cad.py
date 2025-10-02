@@ -17,3 +17,8 @@ def test_lanyard_hole_matches_documented_dimensions():
     offset = _extract_param("lanyard_offset")
     assert diameter == 10.0
     assert offset == 6.0
+
+
+def test_enclosure_exposes_thickness_parameter():
+    thickness = _extract_param("thickness")
+    assert thickness == 2.0
