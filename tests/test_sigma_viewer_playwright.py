@@ -22,7 +22,9 @@ except ModuleNotFoundError:  # pragma: no cover - optional dependency guard
         "Playwright is required for viewer tests", allow_module_level=True
     )
 
-from pytest_playwright.pytest_playwright import browser_context_args as _base_context_args
+from pytest_playwright.pytest_playwright import (
+    browser_context_args as _playwright_browser_context_args,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 VIEWER_PATH = REPO_ROOT / "docs" / "sigma-s1-viewer.html"
@@ -63,7 +65,7 @@ def browser_context_args(
 ) -> dict:
     """Allow Playwright to load CDN assets served over HTTPS."""
 
-    base_args = _base_context_args(
+    base_args = _playwright_browser_context_args._fixture_function(
         pytestconfig, playwright, device, base_url, _pw_artifacts_folder
     )
     return {**base_args, "ignore_https_errors": True}
