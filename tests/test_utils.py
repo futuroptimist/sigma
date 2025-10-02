@@ -113,6 +113,12 @@ def test_percentile_rank_mixed_numeric_types():
     assert math.isclose(result, (2 / 3) * 100, rel_tol=1e-9)
 
 
+def test_percentile_rank_mixed_fraction_and_decimal():
+    values = [Fraction(1, 2), Decimal("0.25"), 0.75]
+    result = percentile_rank(Fraction(1, 2), values)
+    assert math.isclose(result, 50.0, rel_tol=1e-9)
+
+
 def test_percentile_rank_with_duplicates():
     values = [1, 1, 2, 3]
     assert math.isclose(percentile_rank(1, values), 25.0, rel_tol=1e-9)

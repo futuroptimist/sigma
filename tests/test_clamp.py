@@ -59,6 +59,16 @@ def test_clamp_mixed_numeric_types():
     assert clamp(1.5, Decimal("0"), 1.0) == 1.0
 
 
+def test_clamp_preserves_bound_types():
+    result = clamp(Decimal("5"), 0, Decimal("3"))
+    assert result == Decimal("3")
+    assert isinstance(result, Decimal)
+
+    result = clamp(Fraction(3, 2), Fraction(0), 1.0)
+    assert result == 1.0
+    assert isinstance(result, float)
+
+
 def test_clamp_non_finite_bounds_raises():
     with pytest.raises(ValueError):
         clamp(1, 0, math.inf)
