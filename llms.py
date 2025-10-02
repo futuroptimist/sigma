@@ -26,9 +26,11 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     Only bullet links starting with ``-``, ``*``, or ``+`` within the
     ``## LLM Endpoints`` section are parsed. Any amount of whitespace may
     follow the bullet before the link. The section heading is matched
-    case-insensitively. URL schemes are also matched case-insensitively so
-    ``HTTPS`` and ``https`` are treated the same. If the file does not exist
-    an empty list is returned instead of raising ``FileNotFoundError``.
+    case-insensitively, and optional trailing ``#`` characters are ignored
+    so ``## LLM Endpoints ##`` is treated the same as ``## LLM Endpoints``.
+    URL schemes are also matched case-insensitively so ``HTTPS`` and
+    ``https`` are treated the same. If the file does not exist an empty list
+    is returned instead of raising ``FileNotFoundError``.
     """
 
     if path is None:
@@ -48,15 +50,17 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     )
     endpoints: List[Tuple[str, str]] = []
     in_section = False
+    heading_pattern = re.compile(r"^(#+)\s*(.*?)\s*#*\s*$")
     for line in lines:
         stripped = line.strip()
-        if stripped.startswith("# ") and not stripped.startswith("## "):
+        if stripped.startswith("#") and not stripped.startswith("##"):
             continue
-        heading = re.match(r"^(#+)\s", stripped)
+        heading = heading_pattern.match(stripped)
         if heading:
             level = len(heading.group(1))
             if level <= 2:
-                in_section = stripped.casefold() == "## llm endpoints"
+                title = heading.group(2).strip()
+                in_section = title.casefold() == "llm endpoints"
             continue
         if not in_section:
             continue

@@ -71,6 +71,16 @@ def test_get_llm_endpoints_heading_case_insensitive(tmp_path):
     assert "Example" in endpoints
 
 
+def test_get_llm_endpoints_heading_allows_closing_hashes(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints ##\n- [Example](https://example.com)",
+        encoding="utf-8",
+    )
+    endpoints = dict(llms.get_llm_endpoints(str(llms_file)))
+    assert endpoints == {"Example": "https://example.com"}
+
+
 def test_get_llm_endpoints_allows_indented_bullets(tmp_path):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text(
