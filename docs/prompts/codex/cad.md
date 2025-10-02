@@ -1,6 +1,6 @@
 ---
 title: 'Codex CAD Prompt'
-slug: 'prompts-codex-cad'
+slug: 'cad'
 ---
 
 # Codex CAD Prompt

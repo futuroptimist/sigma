@@ -1,6 +1,6 @@
 ---
 title: 'Codex Implementation Prompt'
-slug: 'prompts-codex-implement'
+slug: 'implement'
 ---
 
 # Codex Implementation Prompt

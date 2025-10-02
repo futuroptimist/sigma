@@ -1,6 +1,6 @@
 ---
 title: 'Codex Test Addition Prompt'
-slug: 'prompts-codex-tests'
+slug: 'tests'
 ---
 
 # Codex Test Addition Prompt

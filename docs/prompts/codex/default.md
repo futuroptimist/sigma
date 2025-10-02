@@ -1,6 +1,6 @@
 ---
 title: 'Sigma Codex Prompt'
-slug: 'prompts-codex'
+slug: 'default'
 ---
 
 # Codex Automation Prompt

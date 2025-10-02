@@ -1,6 +1,6 @@
 ---
 title: 'Codex CI-Failure Fix Prompt'
-slug: 'prompts-codex-ci-fix'
+slug: 'ci-fix'
 ---
 
 # Codex CI-Failure Fix Prompt
