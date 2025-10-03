@@ -32,6 +32,7 @@ Assembly instructions live in [`docs/sigma-s1-assembly.md`](docs/sigma-s1-assemb
 3. Build the firmware:
 
 ```bash
+cd firmware
 pio run
 ```
 
@@ -63,6 +64,21 @@ locates `llms.txt` relative to its own file, so you can run it from any working
 directory. The optional path argument to ``llms.get_llm_endpoints`` expands environment
 variables (e.g. ``$HOME``) before resolving ``~`` to the user's home, and accepts either
 string paths or ``pathlib.Path`` objects.
+
+## Firmware
+
+The [`firmware/`](firmware) directory contains a PlatformIO project targeting the
+`esp32dev` board with the Arduino framework. By default the build flags expose
+three macros:
+
+- `SIGMA_FIRMWARE_VERSION` – firmware version string printed on boot.
+- `SIGMA_STATUS_LED` – GPIO driving the status LED (defaults to `GPIO2`).
+- `SIGMA_BUTTON_PIN` – GPIO assigned to the push-to-talk button (defaults to `GPIO0`).
+
+When flashed to an ESP32 the firmware mirrors the button state to the status LED
+and reports transitions over the serial console at 115200 baud. Adjust the GPIO
+mappings by overriding the macros via PlatformIO's `build_flags` if your
+hardware layout differs.
 
 See [`AGENTS.md`](AGENTS.md) for details on how we integrate LLMs and prompts.
 
