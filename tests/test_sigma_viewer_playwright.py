@@ -39,6 +39,12 @@ else:
                 "`playwright install-deps`.",
                 allow_module_level=True,
             )
+        if "Executable doesn't exist" in message:
+            pytest.skip(
+                "Playwright browsers not installed; run `playwright install "
+                "chromium`.",
+                allow_module_level=True,
+            )
         raise
 
 from pytest_playwright.pytest_playwright import (  # isort: skip
