@@ -52,6 +52,8 @@ so `## llm endpoints` also works. Closing `#` characters are ignored,
 so `## LLM Endpoints ##` is treated the same way.
 Bullet links may start with `-`, `*`, or `+`; spacing after the bullet is optional, so
 `-[Example](https://example.com)` and `-   [Example](https://example.com)` both work.
+Single-`#` comment lines are allowed before the list begins, but once endpoints appear a
+new single-`#` heading ends the section the same way any `##` heading does.
 
 You can list the configured endpoints with:
 

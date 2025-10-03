@@ -129,3 +129,20 @@ def test_get_llm_endpoints_accepts_path_objects(tmp_path):
     )
     endpoints = llms.get_llm_endpoints(llms_file)
     assert endpoints == [("Example", "https://example.com")]
+
+
+def test_get_llm_endpoints_stops_at_top_level_heading(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "# Title\n"
+            "## LLM Endpoints\n"
+            "# Comment about the list\n"
+            "- [Example](https://example.com)\n"
+            "# Another Section\n"
+            "- [Ignored](https://ignored.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    endpoints = llms.get_llm_endpoints(llms_file)
+    assert endpoints == [("Example", "https://example.com")]

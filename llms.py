@@ -50,10 +50,14 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     )
     endpoints: List[Tuple[str, str]] = []
     in_section = False
+    section_has_entry = False
     heading_pattern = re.compile(r"^(#+)\s*(.*?)\s*#*\s*$")
     for line in lines:
         stripped = line.strip()
         if stripped.startswith("#") and not stripped.startswith("##"):
+            if in_section and section_has_entry:
+                in_section = False
+                section_has_entry = False
             continue
         heading = heading_pattern.match(stripped)
         if heading:
@@ -61,12 +65,14 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
             if level <= 2:
                 title = heading.group(2).strip()
                 in_section = title.casefold() == "llm endpoints"
+                section_has_entry = False
             continue
         if not in_section:
             continue
         match = pattern.match(stripped)
         if match:
             endpoints.append((match.group("name"), match.group("url")))
+            section_has_entry = True
     return endpoints
 
 
