@@ -4,6 +4,9 @@
 The `llms.txt` file uses Markdown bullet lists under the `## LLM Endpoints`
 heading; entries can start with `-`, `*`, or `+`. Trailing `#` characters after
 the heading text are ignored, so `## LLM Endpoints ##` is also recognised.
+Comments that start with a single `#` may appear before the list, but once an
+endpoint has been parsed another single-`#` heading terminates the section just
+like a `##` heading.
 
 ## Listing Endpoints
 
