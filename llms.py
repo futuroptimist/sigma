@@ -5,35 +5,13 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import List, Tuple
+from typing import Dict, List, Tuple
+
+__all__ = ["get_llm_endpoints", "resolve_llm_endpoint"]
 
 
 def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
-    """Return LLM endpoints listed in ``llms.txt``.
-
-    Parameters
-    ----------
-    path: str | Path | None, optional
-        Optional path to ``llms.txt``. Environment variables like ``$HOME``
-        are expanded, then ``~`` expands to the user home directory.
-        Defaults to the copy beside this module.
-
-    Returns
-    -------
-    List[Tuple[str, str]]
-        List of ``(name, url)`` tuples for each configured endpoint.
-
-    Notes
-    -----
-    Only bullet links starting with ``-``, ``*``, or ``+`` within the
-    ``## LLM Endpoints`` section are parsed. Any amount of whitespace may
-    follow the bullet before the link. The section heading is matched
-    case-insensitively, and optional trailing ``#`` characters are ignored
-    so ``## LLM Endpoints ##`` is treated the same as ``## LLM Endpoints``.
-    URL schemes are also matched case-insensitively so ``HTTPS`` and
-    ``https`` are treated the same. If the file does not exist an empty list
-    is returned instead of raising ``FileNotFoundError``.
-    """
+    """Return LLM endpoints listed in ``llms.txt``."""
 
     if path is None:
         llms_path = Path(__file__).with_name("llms.txt")
@@ -45,7 +23,6 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     except FileNotFoundError:
         return []
 
-    # Only parse bullet links in the "## LLM Endpoints" section.
     pattern = re.compile(
         r"^[-*+]\s*\[(?P<name>[^\]]+)\]\((?P<url>https?://[^)]+)\)",
         re.IGNORECASE,
@@ -76,6 +53,53 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
             endpoints.append((match.group("name"), match.group("url")))
             section_has_entry = True
     return endpoints
+
+
+def resolve_llm_endpoint(
+    name: str | None = None,
+    *,
+    path: str | Path | None = None,
+) -> Tuple[str, str]:
+    """Return a single LLM endpoint according to preference rules."""
+
+    endpoints = get_llm_endpoints(path)
+    if not endpoints:
+        raise RuntimeError("llms.txt does not define any LLM endpoints")
+
+    lookup: Dict[str, Tuple[str, str]] = {
+        display.casefold(): (display, url) for display, url in endpoints
+    }
+
+    def _format_available() -> str:
+        return ", ".join(display for display, _ in endpoints)
+
+    if name is not None:
+        candidate = lookup.get(name.casefold())
+        if candidate is not None:
+            return candidate
+        available = _format_available()
+        message = " ".join(
+            [
+                f"Unknown LLM endpoint '{name}'.",
+                f"Available endpoints: {available}",
+            ]
+        )
+        raise ValueError(message)
+
+    env_preference = os.getenv("SIGMA_DEFAULT_LLM")
+    if env_preference:
+        candidate = lookup.get(env_preference.casefold())
+        if candidate is not None:
+            return candidate
+        available = _format_available()
+        message = (
+            "Environment variable SIGMA_DEFAULT_LLM is set to "
+            f"{env_preference!r}, but no matching endpoint was found. "
+            f"Available endpoints: {available}"
+        )
+        raise RuntimeError(message)
+
+    return endpoints[0]
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:

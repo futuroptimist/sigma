@@ -149,6 +149,74 @@ def test_get_llm_endpoints_stops_at_top_level_heading(tmp_path):
     assert endpoints == [("Example", "https://example.com")]
 
 
+def test_resolve_llm_endpoint_defaults_to_first_entry():
+    expected = llms.get_llm_endpoints()[0]
+    assert llms.resolve_llm_endpoint() == expected
+
+
+def test_resolve_llm_endpoint_respects_explicit_name(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "## LLM Endpoints\n"
+            "- [Alpha](https://alpha.example.com)\n"
+            "- [Beta](https://beta.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    name, url = llms.resolve_llm_endpoint("beta", path=llms_file)
+    assert name == "Beta"
+    assert url == "https://beta.example.com"
+
+
+def test_resolve_llm_endpoint_respects_env_variable(tmp_path, monkeypatch):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "## LLM Endpoints\n"
+            "- [First](https://first.example.com)\n"
+            "- [Second](https://second.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("SIGMA_DEFAULT_LLM", "second")
+    assert llms.resolve_llm_endpoint(path=llms_file) == (
+        "Second",
+        "https://second.example.com",
+    )
+
+
+def test_resolve_llm_endpoint_unknown_name_raises(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Alpha](https://alpha.example.com)",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="Unknown LLM endpoint"):
+        llms.resolve_llm_endpoint("gamma", path=llms_file)
+
+
+def test_resolve_llm_endpoint_invalid_env_raises(tmp_path, monkeypatch):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Alpha](https://alpha.example.com)",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("SIGMA_DEFAULT_LLM", "missing")
+    with pytest.raises(RuntimeError, match="SIGMA_DEFAULT_LLM"):
+        llms.resolve_llm_endpoint(path=llms_file)
+
+
+def test_resolve_llm_endpoint_no_entries(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text("## LLM Endpoints\n", encoding="utf-8")
+    with pytest.raises(
+        RuntimeError,
+        match="does not define any LLM endpoints",
+    ):
+        llms.resolve_llm_endpoint(path=llms_file)
+
+
 def test_llms_cli_accepts_path_argument(tmp_path):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text(

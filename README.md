@@ -55,6 +55,18 @@ Bullet links may start with `-`, `*`, or `+`; spacing after the bullet is option
 Single-`#` comment lines are allowed before the list begins, but once endpoints appear a
 new single-`#` heading ends the section the same way any `##` heading does.
 
+Select a specific endpoint with `resolve_llm_endpoint`:
+
+```python
+from llms import resolve_llm_endpoint
+
+name, url = resolve_llm_endpoint()  # first entry by default
+name, url = resolve_llm_endpoint("OpenRouter")  # case-insensitive lookup
+```
+
+Set the `SIGMA_DEFAULT_LLM` environment variable to override the default without
+changing code; the resolver raises an error if the variable references an unknown entry.
+
 You can list the configured endpoints with:
 
 ```bash
