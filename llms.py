@@ -3,7 +3,9 @@ from __future__ import annotations
 import os
 import re
 from pathlib import Path
-from typing import List, Tuple
+from typing import Dict, List, Tuple
+
+__all__ = ["get_llm_endpoints", "resolve_llm_endpoint"]
 
 
 def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
@@ -74,6 +76,77 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
             endpoints.append((match.group("name"), match.group("url")))
             section_has_entry = True
     return endpoints
+
+
+def resolve_llm_endpoint(
+    name: str | None = None,
+    *,
+    path: str | Path | None = None,
+) -> Tuple[str, str]:
+    """Return a single LLM endpoint according to preference rules.
+
+    Parameters
+    ----------
+    name:
+        Optional display name of the endpoint to resolve. The lookup is
+        case-insensitive and raises :class:`ValueError` if no match exists.
+    path:
+        Optional override path for ``llms.txt``. Mirrors
+        :func:`get_llm_endpoints` and supports environment variables and
+        ``~`` expansion.
+
+    Returns
+    -------
+    Tuple[str, str]
+        ``(name, url)`` pair for the resolved endpoint.
+
+    Notes
+    -----
+    The resolver checks for an explicit ``name`` first. If omitted, it then
+    honours the ``SIGMA_DEFAULT_LLM`` environment variable before falling back
+    to the first configured endpoint. ``RuntimeError`` is raised when no
+    endpoints are configured or when ``SIGMA_DEFAULT_LLM`` references an
+    unknown endpoint.
+    """
+
+    endpoints = get_llm_endpoints(path)
+    if not endpoints:
+        raise RuntimeError("llms.txt does not define any LLM endpoints")
+
+    lookup: Dict[str, Tuple[str, str]] = {
+        display.casefold(): (display, url) for display, url in endpoints
+    }
+
+    def _format_available() -> str:
+        return ", ".join(display for display, _ in endpoints)
+
+    if name is not None:
+        candidate = lookup.get(name.casefold())
+        if candidate is not None:
+            return candidate
+        available = _format_available()
+        message = " ".join(
+            [
+                f"Unknown LLM endpoint '{name}'.",
+                f"Available endpoints: {available}",
+            ]
+        )
+        raise ValueError(message)
+
+    env_preference = os.getenv("SIGMA_DEFAULT_LLM")
+    if env_preference:
+        candidate = lookup.get(env_preference.casefold())
+        if candidate is not None:
+            return candidate
+        available = _format_available()
+        message = (
+            "Environment variable SIGMA_DEFAULT_LLM is set to "
+            f"{env_preference!r}, but no matching endpoint was found. "
+            f"Available endpoints: {available}"
+        )
+        raise RuntimeError(message)
+
+    return endpoints[0]
 
 
 if __name__ == "__main__":

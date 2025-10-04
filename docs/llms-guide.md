@@ -29,3 +29,18 @@ The helper resolves `llms.txt` relative to its own file, so it works from
 any working directory. The optional path argument expands environment
 variables (e.g. `$HOME`) before resolving `~` to your home directory and can
 be a `str` or `pathlib.Path`.
+
+## Selecting a Default Endpoint
+
+Use `resolve_llm_endpoint` to choose a specific entry:
+
+```python
+from llms import resolve_llm_endpoint
+
+name, url = resolve_llm_endpoint()  # defaults to the first configured entry
+name, url = resolve_llm_endpoint("OpenRouter")  # case-insensitive lookup
+```
+
+Set the `SIGMA_DEFAULT_LLM` environment variable to change the default without
+modifying code. The resolver raises an error if the variable references an
+unknown endpoint or if `llms.txt` does not list any entries.
