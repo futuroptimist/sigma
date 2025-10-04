@@ -1,3 +1,4 @@
+import subprocess
 import sys
 from pathlib import Path
 
@@ -214,3 +215,36 @@ def test_resolve_llm_endpoint_no_entries(tmp_path):
         match="does not define any LLM endpoints",
     ):
         llms.resolve_llm_endpoint(path=llms_file)
+
+
+def test_llms_cli_accepts_path_argument(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [CLI](https://cli.example.com)\n",
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [sys.executable, "-m", "llms", str(llms_file)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    lines = result.stdout.strip().splitlines()
+    assert lines == ["CLI: https://cli.example.com"]
+
+
+def test_llms_cli_expands_env_vars(tmp_path, monkeypatch):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Env](https://env.example.com)\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("SIGMA_LLM_FILE", str(llms_file))
+    result = subprocess.run(
+        [sys.executable, "-m", "llms", "$SIGMA_LLM_FILE"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    lines = result.stdout.strip().splitlines()
+    assert lines == ["Env: https://env.example.com"]

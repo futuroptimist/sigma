@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import argparse
 import os
 import re
+import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -9,31 +11,7 @@ __all__ = ["get_llm_endpoints", "resolve_llm_endpoint"]
 
 
 def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
-    """Return LLM endpoints listed in ``llms.txt``.
-
-    Parameters
-    ----------
-    path: str | Path | None, optional
-        Optional path to ``llms.txt``. Environment variables like ``$HOME``
-        are expanded, then ``~`` expands to the user home directory.
-        Defaults to the copy beside this module.
-
-    Returns
-    -------
-    List[Tuple[str, str]]
-        List of ``(name, url)`` tuples for each configured endpoint.
-
-    Notes
-    -----
-    Only bullet links starting with ``-``, ``*``, or ``+`` within the
-    ``## LLM Endpoints`` section are parsed. Any amount of whitespace may
-    follow the bullet before the link. The section heading is matched
-    case-insensitively, and optional trailing ``#`` characters are ignored
-    so ``## LLM Endpoints ##`` is treated the same as ``## LLM Endpoints``.
-    URL schemes are also matched case-insensitively so ``HTTPS`` and
-    ``https`` are treated the same. If the file does not exist an empty list
-    is returned instead of raising ``FileNotFoundError``.
-    """
+    """Return LLM endpoints listed in ``llms.txt``."""
 
     if path is None:
         llms_path = Path(__file__).with_name("llms.txt")
@@ -45,7 +23,6 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     except FileNotFoundError:
         return []
 
-    # Only parse bullet links in the "## LLM Endpoints" section.
     pattern = re.compile(
         r"^[-*+]\s*\[(?P<name>[^\]]+)\]\((?P<url>https?://[^)]+)\)",
         re.IGNORECASE,
@@ -83,31 +60,7 @@ def resolve_llm_endpoint(
     *,
     path: str | Path | None = None,
 ) -> Tuple[str, str]:
-    """Return a single LLM endpoint according to preference rules.
-
-    Parameters
-    ----------
-    name:
-        Optional display name of the endpoint to resolve. The lookup is
-        case-insensitive and raises :class:`ValueError` if no match exists.
-    path:
-        Optional override path for ``llms.txt``. Mirrors
-        :func:`get_llm_endpoints` and supports environment variables and
-        ``~`` expansion.
-
-    Returns
-    -------
-    Tuple[str, str]
-        ``(name, url)`` pair for the resolved endpoint.
-
-    Notes
-    -----
-    The resolver checks for an explicit ``name`` first. If omitted, it then
-    honours the ``SIGMA_DEFAULT_LLM`` environment variable before falling back
-    to the first configured endpoint. ``RuntimeError`` is raised when no
-    endpoints are configured or when ``SIGMA_DEFAULT_LLM`` references an
-    unknown endpoint.
-    """
+    """Return a single LLM endpoint according to preference rules."""
 
     endpoints = get_llm_endpoints(path)
     if not endpoints:
@@ -149,6 +102,33 @@ def resolve_llm_endpoint(
     return endpoints[0]
 
 
-if __name__ == "__main__":
-    for name, url in get_llm_endpoints():
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Return parsed CLI arguments for the ``llms`` helper."""
+
+    parser = argparse.ArgumentParser(
+        prog="python -m llms",
+        description="List configured LLM endpoints from llms.txt.",
+    )
+    parser.add_argument(
+        "path",
+        nargs="?",
+        help=(
+            "Optional path to llms.txt. Defaults to the copy shipped with the "
+            "module."
+        ),
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Entry point for ``python -m llms``."""
+
+    args = sys.argv[1:] if argv is None else argv
+    namespace = _parse_args(args)
+    for name, url in get_llm_endpoints(namespace.path):
         print(f"{name}: {url}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
