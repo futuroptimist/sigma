@@ -61,6 +61,13 @@ You can list the configured endpoints with:
 python -m llms
 ```
 
+Provide an optional path to load a different file. Environment variables and
+``~`` are expanded just like when calling ``get_llm_endpoints`` from Python:
+
+```bash
+python -m llms ~/custom-llms.txt
+```
+
 If `llms.txt` is missing the command prints nothing and exits without error. The helper
 locates `llms.txt` relative to its own file, so you can run it from any working
 directory. The optional path argument to ``llms.get_llm_endpoints`` expands environment

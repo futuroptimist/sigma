@@ -16,6 +16,13 @@ Run `python -m llms` to print configured endpoints:
 python -m llms
 ```
 
+Add an optional path to load a different file. The CLI expands environment
+variables and ``~`` in the same order as calling ``llms.get_llm_endpoints``:
+
+```bash
+python -m llms $HOME/custom-llms.txt
+```
+
 You can also import the helper in Python:
 
 ```python

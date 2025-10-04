@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import argparse
 import os
 import re
+import sys
 from pathlib import Path
 from typing import List, Tuple
 
@@ -76,6 +78,33 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     return endpoints
 
 
-if __name__ == "__main__":
-    for name, url in get_llm_endpoints():
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Return parsed CLI arguments for the ``llms`` helper."""
+
+    parser = argparse.ArgumentParser(
+        prog="python -m llms",
+        description="List configured LLM endpoints from llms.txt.",
+    )
+    parser.add_argument(
+        "path",
+        nargs="?",
+        help=(
+            "Optional path to llms.txt. Defaults to the copy shipped with the "
+            "module."
+        ),
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Entry point for ``python -m llms``."""
+
+    args = sys.argv[1:] if argv is None else argv
+    namespace = _parse_args(args)
+    for name, url in get_llm_endpoints(namespace.path):
         print(f"{name}: {url}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
