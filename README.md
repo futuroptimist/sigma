@@ -48,8 +48,9 @@ Helper scripts live in [`scripts/`](scripts/) and LLM helpers in [`llms.py`](llm
 Use the `llms.py` helper to manage language model endpoints.
 Configure LLM endpoints in [`llms.txt`](llms.txt), which the [`llms.py`](llms.py) helper parses.
 The parser matches the `## LLM Endpoints` heading case-insensitively,
-so `## llm endpoints` also works. Closing `#` characters are ignored,
-so `## LLM Endpoints ##` is treated the same way.
+so `## llm endpoints` also works. Closing `#` characters and an optional
+trailing colon are ignored, so `## LLM Endpoints ##` and
+`## LLM Endpoints:` are treated the same way.
 Bullet links may start with `-`, `*`, or `+`; spacing after the bullet is optional, so
 `-[Example](https://example.com)` and `-   [Example](https://example.com)` both work.
 URLs may include balanced parentheses in the link target and are preserved as written,
@@ -206,9 +207,9 @@ print(result.status)  # HTTP status code
 print(result.json())  # Full JSON payload when available
 ```
 
-The helper raises `RuntimeError` if the endpoint does not speak HTTP(S) or if a
-JSON reply lacks an obvious text field, making integration failures easier to
-spot.
+The helper raises `RuntimeError` if the endpoint does not speak HTTP(S), if a
+JSON reply is malformed or empty, or if it lacks an obvious text field, making
+integration failures easier to spot.
 
 ## Roadmap
 
