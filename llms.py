@@ -10,6 +10,41 @@ from typing import Dict, List, Tuple
 __all__ = ["get_llm_endpoints", "resolve_llm_endpoint"]
 
 
+def _parse_markdown_link(text: str) -> tuple[str, str] | None:
+    """Return the ``[text](url)`` tuple parsed from Markdown content."""
+
+    open_bracket = text.find("[")
+    if open_bracket == -1:
+        return None
+    close_bracket = text.find("]", open_bracket + 1)
+    if close_bracket == -1:
+        return None
+    name_start = open_bracket + 1
+    name = text[name_start:close_bracket]
+
+    index = close_bracket + 1
+    length = len(text)
+    while index < length and text[index].isspace():
+        index += 1
+    if index >= length or text[index] != "(":
+        return None
+
+    index += 1
+    depth = 1
+    url_start = index
+    while index < length:
+        char = text[index]
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth == 0:
+                url = text[url_start:index]
+                return name, url
+        index += 1
+    return None
+
+
 def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     """Return LLM endpoints listed in ``llms.txt``."""
 
@@ -23,10 +58,6 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     except FileNotFoundError:
         return []
 
-    pattern = re.compile(
-        r"^[-*+]\s*\[(?P<name>[^\]]+)\]\((?P<url>https?://[^)]+)\)",
-        re.IGNORECASE,
-    )
     endpoints: List[Tuple[str, str]] = []
     in_section = False
     section_has_entry = False
@@ -48,9 +79,17 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
             continue
         if not in_section:
             continue
-        match = pattern.match(stripped)
-        if match:
-            endpoints.append((match.group("name"), match.group("url")))
+        if not stripped or stripped[0] not in "-*+":
+            continue
+        content = stripped[1:].lstrip()
+        link = _parse_markdown_link(content)
+        if link is None:
+            continue
+        name, url = link
+        normalized_url = url.strip()
+        lowered = normalized_url.casefold()
+        if lowered.startswith("http://") or lowered.startswith("https://"):
+            endpoints.append((name, normalized_url))
             section_has_entry = True
     return endpoints
 
