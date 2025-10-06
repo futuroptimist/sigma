@@ -78,4 +78,5 @@ payload to the selected HTTP(S) endpoint. It accepts an optional
 `extra_payload` mapping for provider-specific parameters and extracts a reply
 from common response shapes (`response`, `text`, or the first
 `choices[].message.content`). Plain-text responses are returned unchanged, and a
-`RuntimeError` is raised if a JSON response cannot be interpreted.
+`RuntimeError` is raised if a JSON response is malformed, empty, or otherwise
+cannot be interpreted.

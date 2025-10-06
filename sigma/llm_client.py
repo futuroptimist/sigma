@@ -150,14 +150,18 @@ def query_llm(
             content_type = response.headers.get_content_type()
             text_body = raw.decode(encoding, errors="replace")
             parsed_json: Any | None = None
+            is_json_content = content_type in _JSON_CONTENT_TYPES
+            json_error: json.JSONDecodeError | None = None
             if raw:
                 stripped = text_body.lstrip()
                 json_like = stripped.startswith(("{", "["))
-                if content_type in _JSON_CONTENT_TYPES or json_like:
+                if is_json_content or json_like:
                     try:
                         parsed_json = json.loads(text_body)
-                    except json.JSONDecodeError:
+                    except json.JSONDecodeError as exc:
+                        json_error = exc
                         parsed_json = None
+
             if parsed_json is not None:
                 text_value = _extract_text(parsed_json)
                 if text_value is None:
@@ -167,6 +171,18 @@ def query_llm(
                         "text field"
                     )
             else:
+                should_raise = is_json_content
+                if should_raise:
+                    detail = "invalid JSON"
+                    if not raw:
+                        detail = "an empty JSON response"
+                    message = "LLM endpoint '{name}' returned {detail}".format(
+                        name=display_name,
+                        detail=detail,
+                    )
+                    if json_error is not None:
+                        raise RuntimeError(message) from json_error
+                    raise RuntimeError(message)
                 text_value = text_body
             return LLMResponse(
                 name=display_name,
