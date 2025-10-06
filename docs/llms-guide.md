@@ -32,6 +32,14 @@ variables and ``~`` in the same order as calling ``llms.get_llm_endpoints``:
 python -m llms $HOME/custom-llms.txt
 ```
 
+Resolve a single endpoint from the command line (respecting
+``SIGMA_DEFAULT_LLM`` unless ``--name`` is supplied):
+
+```bash
+python -m llms --resolve
+python -m llms --resolve --name OpenRouter
+```
+
 You can also import the helper in Python:
 
 ```python
