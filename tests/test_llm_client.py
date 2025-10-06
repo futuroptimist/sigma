@@ -225,9 +225,10 @@ def test_query_llm_supports_messages_only_payload(
         },
     )
 
-    request_payload = json.loads(_latest_request(handler)["body"].decode("utf-8"))
-    assert "prompt" not in request_payload
-    assert request_payload["messages"][0]["content"] == "Hi"
+    request_body = _latest_request(handler)["body"].decode("utf-8")
+    payload = json.loads(request_body)
+    assert "prompt" not in payload
+    assert payload["messages"][0]["content"] == "Hi"
 
 
 def test_query_llm_rejects_empty_payload(

@@ -74,7 +74,8 @@ def _prepare_payload(
 
     if not payload:
         raise ValueError(
-            "Payload must include at least one field; provide prompt or extra_payload"
+            "Payload must include at least one field; provide prompt or "
+            "extra_payload"
         )
     try:
         return json.dumps(payload, ensure_ascii=False).encode("utf-8")
