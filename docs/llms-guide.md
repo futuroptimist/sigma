@@ -77,5 +77,7 @@ The `sigma.query_llm` helper wraps `resolve_llm_endpoint` and submits a JSON
 payload to the selected HTTP(S) endpoint. It accepts an optional
 `extra_payload` mapping for provider-specific parameters and extracts a reply
 from common response shapes (`response`, `text`, or the first
-`choices[].message.content`). Plain-text responses are returned unchanged, and a
+`choices[].message.content`). If the message content is provided as a list of
+text fragments (as in the latest OpenAI APIs) the helper concatenates the
+segments for you. Plain-text responses are returned unchanged, and a
 `RuntimeError` is raised if a JSON response cannot be interpreted.
