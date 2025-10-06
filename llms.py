@@ -87,9 +87,11 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
             continue
         name, url = link
         normalized_url = url.strip()
+        if not normalized_url:
+            continue
         lowered = normalized_url.casefold()
-        if lowered.startswith("http://") or lowered.startswith("https://"):
-            endpoints.append((name, normalized_url))
+        if lowered.startswith(("http://", "https://")):
+            endpoints.append((name, url))
             section_has_entry = True
     return endpoints
 
