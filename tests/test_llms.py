@@ -314,3 +314,65 @@ def test_llms_cli_script_runs_from_any_directory(tmp_path):
     name, url = lines[0].split(": ", 1)
     assert name == "token.place"
     assert url == "https://github.com/futuroptimist/token.place"
+
+
+def test_llms_cli_resolve_defaults_to_first_entry():
+    result = subprocess.run(
+        [sys.executable, "-m", "llms", "--resolve"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    line = result.stdout.strip()
+    assert line.startswith("token.place: ")
+
+
+def test_llms_cli_resolve_with_name(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "## LLM Endpoints\n"
+            "- [Alpha](https://alpha.example.com)\n"
+            "- [Beta](https://beta.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "llms",
+            "--resolve",
+            "--name",
+            "beta",
+            str(llms_file),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert result.stdout.strip() == "Beta: https://beta.example.com"
+
+
+def test_llms_cli_resolve_unknown_name_exits_nonzero(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Alpha](https://alpha.example.com)\n",
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "llms",
+            "--resolve",
+            "--name",
+            "gamma",
+            str(llms_file),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 1
+    assert "Unknown LLM endpoint" in result.stderr

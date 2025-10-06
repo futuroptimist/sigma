@@ -75,6 +75,13 @@ You can list the configured endpoints with:
 python -m llms
 ```
 
+Resolve a single endpoint (respecting ``SIGMA_DEFAULT_LLM`` when set) with:
+
+```bash
+python -m llms --resolve
+python -m llms --resolve --name OpenRouter
+```
+
 When you're working outside the repository root, use the helper script which
 bootstraps ``PYTHONPATH`` before calling the module:
 

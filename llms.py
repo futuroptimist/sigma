@@ -152,7 +152,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(
         prog="python -m llms",
-        description="List configured LLM endpoints from llms.txt.",
+        description="List or resolve configured LLM endpoints from llms.txt.",
     )
     parser.add_argument(
         "path",
@@ -160,6 +160,23 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help=(
             "Optional path to llms.txt. Defaults to the copy shipped with the "
             "module."
+        ),
+    )
+    parser.add_argument(
+        "-r",
+        "--resolve",
+        action="store_true",
+        help=(
+            "Resolve a single endpoint instead of listing all endpoints. The "
+            "selection honours SIGMA_DEFAULT_LLM unless --name is provided."
+        ),
+    )
+    parser.add_argument(
+        "-n",
+        "--name",
+        help=(
+            "Explicit endpoint name to resolve (case-insensitive). Implies "
+            "--resolve."
         ),
     )
     return parser.parse_args(argv)
@@ -170,6 +187,21 @@ def main(argv: list[str] | None = None) -> int:
 
     args = sys.argv[1:] if argv is None else argv
     namespace = _parse_args(args)
+    if namespace.name and not namespace.resolve:
+        namespace.resolve = True
+
+    if namespace.resolve:
+        try:
+            name, url = resolve_llm_endpoint(
+                namespace.name,
+                path=namespace.path,
+            )
+        except (RuntimeError, ValueError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+        print(f"{name}: {url}")
+        return 0
+
     for name, url in get_llm_endpoints(namespace.path):
         print(f"{name}: {url}")
     return 0
