@@ -65,7 +65,8 @@ name, url = resolve_llm_endpoint("OpenRouter")  # case-insensitive lookup
 ```
 
 Set the `SIGMA_DEFAULT_LLM` environment variable to override the default without
-changing code; the resolver raises an error if the variable references an unknown entry.
+changing code; surrounding whitespace is ignored, and the resolver raises an error if the
+variable is empty or references an unknown entry.
 
 You can list the configured endpoints with:
 

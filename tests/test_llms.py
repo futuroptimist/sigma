@@ -207,6 +207,34 @@ def test_resolve_llm_endpoint_invalid_env_raises(tmp_path, monkeypatch):
         llms.resolve_llm_endpoint(path=llms_file)
 
 
+def test_resolve_llm_endpoint_env_strips_whitespace(tmp_path, monkeypatch):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "## LLM Endpoints\n"
+            "- [Alpha](https://alpha.example.com)\n"
+            "- [Beta](https://beta.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("SIGMA_DEFAULT_LLM", "  beta  ")
+    assert llms.resolve_llm_endpoint(path=llms_file) == (
+        "Beta",
+        "https://beta.example.com",
+    )
+
+
+def test_resolve_llm_endpoint_empty_env_raises(tmp_path, monkeypatch):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Alpha](https://alpha.example.com)",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("SIGMA_DEFAULT_LLM", "   ")
+    with pytest.raises(RuntimeError, match="set but empty"):
+        llms.resolve_llm_endpoint(path=llms_file)
+
+
 def test_resolve_llm_endpoint_no_entries(tmp_path):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text("## LLM Endpoints\n", encoding="utf-8")
