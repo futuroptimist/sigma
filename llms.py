@@ -116,16 +116,24 @@ def resolve_llm_endpoint(
         return ", ".join(display for display, _ in endpoints)
 
     if name is not None:
-        candidate = lookup.get(name.casefold())
+        normalized_name = name.strip()
+        if not normalized_name:
+            raise ValueError("Endpoint name must be a non-empty string")
+
+        candidate = lookup.get(normalized_name.casefold())
         if candidate is not None:
             return candidate
         available = _format_available()
-        message = " ".join(
-            [
-                f"Unknown LLM endpoint '{name}'.",
-                f"Available endpoints: {available}",
-            ]
-        )
+        if normalized_name == name:
+            detail = f"Unknown LLM endpoint '{name}'."
+        else:
+            detail = "".join(
+                [
+                    "Unknown LLM endpoint ",
+                    f"{name!r} (normalized to {normalized_name!r}).",
+                ]
+            )
+        message = " ".join([detail, f"Available endpoints: {available}"])
         raise ValueError(message)
 
     env_preference_raw = os.getenv("SIGMA_DEFAULT_LLM")

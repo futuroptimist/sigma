@@ -205,6 +205,31 @@ def test_resolve_llm_endpoint_respects_explicit_name(tmp_path):
     assert url == "https://beta.example.com"
 
 
+def test_resolve_llm_endpoint_strips_name_whitespace(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "## LLM Endpoints\n"
+            "- [Alpha](https://alpha.example.com)\n"
+            "- [Beta](https://beta.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    name, url = llms.resolve_llm_endpoint("  Beta  ", path=llms_file)
+    assert name == "Beta"
+    assert url == "https://beta.example.com"
+
+
+def test_resolve_llm_endpoint_rejects_blank_name(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Alpha](https://alpha.example.com)\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="non-empty"):
+        llms.resolve_llm_endpoint("   ", path=llms_file)
+
+
 def test_resolve_llm_endpoint_respects_env_variable(tmp_path, monkeypatch):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text(
@@ -365,6 +390,33 @@ def test_llms_cli_resolve_with_name(tmp_path):
             "--resolve",
             "--name",
             "beta",
+            str(llms_file),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert result.stdout.strip() == "Beta: https://beta.example.com"
+
+
+def test_llms_cli_resolve_name_strips_whitespace(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "## LLM Endpoints\n"
+            "- [Alpha](https://alpha.example.com)\n"
+            "- [Beta](https://beta.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "llms",
+            "--resolve",
+            "--name",
+            "  beta  ",
             str(llms_file),
         ],
         check=True,
