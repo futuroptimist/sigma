@@ -55,19 +55,27 @@ def _ensure_prompt(prompt: str) -> str:
 
 
 def _prepare_payload(
-    prompt: str,
+    prompt: str | None,
     extra_payload: Mapping[str, Any] | None,
 ) -> bytes:
     if extra_payload is not None:
         if not isinstance(extra_payload, Mapping):
             raise TypeError("extra_payload must be a mapping if provided")
-        if "prompt" in extra_payload:
-            message = "extra_payload must not override the prompt field"
-            raise ValueError(message)
-        payload: MutableMapping[str, Any] = {"prompt": prompt}
-        payload.update(extra_payload)
+        payload: MutableMapping[str, Any] = dict(extra_payload)
     else:
-        payload = {"prompt": prompt}
+        payload = {}
+
+    if prompt is not None:
+        prompt_value = _ensure_prompt(prompt)
+        payload.setdefault("prompt", prompt_value)
+
+    if "prompt" in payload:
+        payload["prompt"] = _ensure_prompt(payload["prompt"])
+
+    if not payload:
+        raise ValueError(
+            "Payload must include at least one field; provide prompt or extra_payload"
+        )
     try:
         return json.dumps(payload, ensure_ascii=False).encode("utf-8")
     except (TypeError, ValueError) as exc:
@@ -110,7 +118,7 @@ def _extract_text(data: Any) -> str | None:
 
 
 def query_llm(
-    prompt: str,
+    prompt: str | None,
     *,
     name: str | None = None,
     path: str | os.PathLike[str] | None = None,
@@ -119,7 +127,6 @@ def query_llm(
 ) -> LLMResponse:
     """Send *prompt* to an HTTP LLM endpoint and return the parsed response."""
 
-    prompt = _ensure_prompt(prompt)
     display_name, url = resolve_llm_endpoint(name, path=path)
     parsed = parse.urlparse(url)
     if parsed.scheme.lower() not in _SUPPORTED_SCHEMES:

@@ -177,7 +177,7 @@ def test_query_llm_rejects_empty_prompt(
         query_llm("   ", path=llms_file)
 
 
-def test_query_llm_rejects_prompt_override(
+def test_query_llm_allows_prompt_override(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
 ) -> None:
@@ -191,12 +191,54 @@ def test_query_llm_rejects_prompt_override(
     )
     llms_file = _write_llms_file(tmp_path, base_url)
 
-    with pytest.raises(ValueError):
-        query_llm(
-            "Hello",
-            path=llms_file,
-            extra_payload={"prompt": "Nope"},
+    query_llm(
+        "Hello",
+        path=llms_file,
+        extra_payload={"prompt": "Override"},
+    )
+
+    request_payload = _latest_request(handler)["body"].decode("utf-8")
+    payload = json.loads(request_payload)
+    assert payload["prompt"] == "Override"
+
+
+def test_query_llm_supports_messages_only_payload(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
         )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    query_llm(
+        None,
+        path=llms_file,
+        extra_payload={
+            "model": "gpt-4o-mini",
+            "messages": [{"role": "user", "content": "Hi"}],
+        },
+    )
+
+    request_payload = json.loads(_latest_request(handler)["body"].decode("utf-8"))
+    assert "prompt" not in request_payload
+    assert request_payload["messages"][0]["content"] == "Hi"
+
+
+def test_query_llm_rejects_empty_payload(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, _handler = llm_test_server
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    with pytest.raises(ValueError):
+        query_llm(None, path=llms_file)
 
 
 def test_query_llm_requires_http_scheme(tmp_path: Path) -> None:
