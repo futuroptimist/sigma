@@ -1,10 +1,12 @@
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
+REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(REPO_ROOT))
 
 import llms  # noqa: E402
 
@@ -248,3 +250,25 @@ def test_llms_cli_expands_env_vars(tmp_path, monkeypatch):
     )
     lines = result.stdout.strip().splitlines()
     assert lines == ["Env: https://env.example.com"]
+
+
+def test_llms_cli_script_runs_from_any_directory(tmp_path):
+    script = REPO_ROOT / "scripts" / "llms-cli.sh"
+    assert script.is_file()
+
+    env = os.environ.copy()
+    env["PYTHON_BIN"] = sys.executable
+
+    result = subprocess.run(
+        [str(script)],
+        check=True,
+        capture_output=True,
+        text=True,
+        cwd=tmp_path,
+        env=env,
+    )
+    lines = result.stdout.strip().splitlines()
+    assert lines
+    name, url = lines[0].split(": ", 1)
+    assert name == "token.place"
+    assert url == "https://github.com/futuroptimist/token.place"

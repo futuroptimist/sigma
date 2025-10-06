@@ -16,6 +16,13 @@ Run `python -m llms` to print configured endpoints:
 python -m llms
 ```
 
+The `scripts/llms-cli.sh` helper exports ``PYTHONPATH`` automatically so you can
+invoke the CLI from any directory:
+
+```bash
+./scripts/llms-cli.sh
+```
+
 Add an optional path to load a different file. The CLI expands environment
 variables and ``~`` in the same order as calling ``llms.get_llm_endpoints``:
 

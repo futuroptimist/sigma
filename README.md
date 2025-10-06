@@ -73,6 +73,13 @@ You can list the configured endpoints with:
 python -m llms
 ```
 
+When you're working outside the repository root, use the helper script which
+bootstraps ``PYTHONPATH`` before calling the module:
+
+```bash
+./scripts/llms-cli.sh
+```
+
 Provide an optional path to load a different file. Environment variables and
 ``~`` are expanded just like when calling ``get_llm_endpoints`` from Python:
 
