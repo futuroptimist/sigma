@@ -206,9 +206,9 @@ print(result.status)  # HTTP status code
 print(result.json())  # Full JSON payload when available
 ```
 
-The helper raises `RuntimeError` if the endpoint does not speak HTTP(S) or if a
-JSON reply lacks an obvious text field, making integration failures easier to
-spot.
+The helper raises `RuntimeError` if the endpoint does not speak HTTP(S), if a
+JSON reply is malformed or empty, or if it lacks an obvious text field, making
+integration failures easier to spot.
 
 ## Roadmap
 
