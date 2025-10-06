@@ -176,6 +176,39 @@ print(clamp(15, 0, 10))  # 10
 print(clamp(Decimal("1.5"), Decimal("0"), Decimal("2")))  # Decimal('1.5')
 ```
 
+### Querying an LLM
+
+Use `sigma.query_llm` to send a prompt to the currently configured LLM endpoint.
+The helper resolves the endpoint via `llms.resolve_llm_endpoint`, sends a JSON
+payload containing the prompt, and extracts a sensible reply from common JSON
+shapes (`{"response": ...}`, `{"text": ...}`, or OpenAI-style
+`{"choices": [{"message": {"content": ...}}]}`). Plain-text responses are
+returned as-is.
+
+```python
+from sigma import query_llm
+
+result = query_llm("Tell me a joke")
+print(result.text)
+```
+
+Supply `extra_payload` to add provider-specific options without clobbering the
+prompt, and pass `name=` to target a specific endpoint:
+
+```python
+result = query_llm(
+    "Summarise Sigma in one sentence.",
+    name="OpenRouter",
+    extra_payload={"temperature": 0.2},
+)
+print(result.status)  # HTTP status code
+print(result.json())  # Full JSON payload when available
+```
+
+The helper raises `RuntimeError` if the endpoint does not speak HTTP(S) or if a
+JSON reply lacks an obvious text field, making integration failures easier to
+spot.
+
 ## Roadmap
 
 - [ ] Breadboard MVP with a button toggling an LED

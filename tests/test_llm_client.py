@@ -1,0 +1,309 @@
+import json
+import sys
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
+import pytest
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.append(str(REPO_ROOT))
+
+from sigma.llm_client import LLMResponse, query_llm  # noqa: E402
+
+
+class _RecordingHandler(BaseHTTPRequestHandler):
+    responses: List[Tuple[int, Dict[str, str], bytes]] = []
+    requests: List[Dict[str, Any]] = []
+
+    def do_POST(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler naming
+        length = int(self.headers.get("Content-Length", "0"))
+        body = self.rfile.read(length)
+        type(self).requests.append(
+            {
+                "path": self.path,
+                "body": body,
+                "headers": {k.lower(): v for k, v in self.headers.items()},
+            }
+        )
+        if type(self).responses:
+            status, headers, payload = type(self).responses.pop(0)
+        else:
+            status, headers, payload = 500, {"Content-Type": "text/plain"}, b""
+        self.send_response(status)
+        for key, value in headers.items():
+            self.send_header(key, value)
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def log_message(self, *_args: Any, **_kwargs: Any) -> None:
+        return  # pragma: no cover
+
+
+@pytest.fixture
+def llm_test_server() -> Tuple[str, type[_RecordingHandler]]:
+    handler = _RecordingHandler
+    handler.responses = []
+    handler.requests = []
+    server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        host, port = server.server_address
+        yield f"http://{host}:{port}", handler
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+def _write_llms_file(tmp_path: Path, url: str) -> Path:
+    llms_file = tmp_path / "llms.txt"
+    llms_file.write_text(
+        f"## LLM Endpoints\n- [Local]({url})\n",
+        encoding="utf-8",
+    )
+    return llms_file
+
+
+def _latest_request(handler: type[_RecordingHandler]) -> Dict[str, Any]:
+    assert handler.requests, "no request captured"
+    return handler.requests[-1]
+
+
+def test_query_llm_returns_response_field(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"response": "Hello"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Hi there", path=llms_file)
+
+    assert isinstance(result, LLMResponse)
+    assert result.text == "Hello"
+    request_payload = _latest_request(handler)["body"].decode("utf-8")
+    payload = json.loads(request_payload)
+    assert payload == {"prompt": "Hi there"}
+
+
+def test_query_llm_handles_openai_message(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "choices": [
+                        {"message": {"content": "Sigma rocks!"}},
+                        {"message": {"content": "Ignored"}},
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Explain Sigma", path=llms_file)
+
+    assert result.text == "Sigma rocks!"
+
+
+def test_query_llm_handles_plain_text(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (200, {"Content-Type": "text/plain"}, b"plain text response")
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Plain please", path=llms_file)
+
+    assert result.text == "plain text response"
+    with pytest.raises(ValueError):
+        result.json()
+
+
+def test_query_llm_extra_payload_included(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ack"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    query_llm(
+        "Use extra payload",
+        path=llms_file,
+        extra_payload={"temperature": 0.3, "stream": False},
+    )
+
+    request_payload = _latest_request(handler)["body"].decode("utf-8")
+    payload = json.loads(request_payload)
+    assert payload == {
+        "prompt": "Use extra payload",
+        "temperature": 0.3,
+        "stream": False,
+    }
+
+
+def test_query_llm_rejects_empty_prompt(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, _handler = llm_test_server
+    llms_file = _write_llms_file(tmp_path, base_url)
+    with pytest.raises(ValueError):
+        query_llm("   ", path=llms_file)
+
+
+def test_query_llm_allows_prompt_override(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ignored"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    query_llm(
+        "Hello",
+        path=llms_file,
+        extra_payload={"prompt": "Override"},
+    )
+
+    request_payload = _latest_request(handler)["body"].decode("utf-8")
+    payload = json.loads(request_payload)
+    assert payload["prompt"] == "Override"
+
+
+def test_query_llm_supports_messages_only_payload(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    query_llm(
+        None,
+        path=llms_file,
+        extra_payload={
+            "model": "gpt-4o-mini",
+            "messages": [{"role": "user", "content": "Hi"}],
+        },
+    )
+
+    request_body = _latest_request(handler)["body"].decode("utf-8")
+    payload = json.loads(request_body)
+    assert "prompt" not in payload
+    assert payload["messages"][0]["content"] == "Hi"
+
+
+def test_query_llm_rejects_empty_payload(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, _handler = llm_test_server
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    with pytest.raises(ValueError):
+        query_llm(None, path=llms_file)
+
+
+def test_query_llm_requires_http_scheme(tmp_path: Path) -> None:
+    llms_file = tmp_path / "llms.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Invalid](ws://example.com)\n", encoding="utf-8"
+    )
+    with pytest.raises(RuntimeError):
+        query_llm("hello", path=llms_file)
+
+
+def test_query_llm_errors_on_unparseable_json(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"unexpected": "format"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    with pytest.raises(
+        RuntimeError,
+        match="without a recognised text field",
+    ):
+        query_llm("testing", path=llms_file)
+
+
+def test_query_llm_handles_choices_text(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"choices": [{"text": "Choice text"}]}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Pick a choice", path=llms_file)
+
+    assert result.text == "Choice text"
+
+
+def test_query_llm_http_error(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            503,
+            {"Content-Type": "text/plain"},
+            b"Service unavailable",
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    with pytest.raises(RuntimeError, match="HTTP status 503"):
+        query_llm("Are you there?", path=llms_file)
