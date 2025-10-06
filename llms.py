@@ -125,15 +125,21 @@ def resolve_llm_endpoint(
         )
         raise ValueError(message)
 
-    env_preference = os.getenv("SIGMA_DEFAULT_LLM")
-    if env_preference:
-        candidate = lookup.get(env_preference.casefold())
+    env_preference_raw = os.getenv("SIGMA_DEFAULT_LLM")
+    if env_preference_raw is not None:
+        normalized = env_preference_raw.strip()
+        if not normalized:
+            raise RuntimeError(
+                "Environment variable SIGMA_DEFAULT_LLM is set but empty."
+            )
+        candidate = lookup.get(normalized.casefold())
         if candidate is not None:
             return candidate
         available = _format_available()
         message = (
             "Environment variable SIGMA_DEFAULT_LLM is set to "
-            f"{env_preference!r}, but no matching endpoint was found. "
+            f"{env_preference_raw!r} (normalized to {normalized!r}), but no "
+            "matching endpoint was found. "
             f"Available endpoints: {available}"
         )
         raise RuntimeError(message)
