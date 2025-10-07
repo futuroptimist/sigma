@@ -49,8 +49,8 @@ Use the `llms.py` helper to manage language model endpoints.
 Configure LLM endpoints in [`llms.txt`](llms.txt), which the [`llms.py`](llms.py) helper parses.
 The parser matches the `## LLM Endpoints` heading case-insensitively,
 so `## llm endpoints` also works. Closing `#` characters and an optional
-trailing colon are ignored, so `## LLM Endpoints ##` and
-`## LLM Endpoints:` are treated the same way.
+trailing colon are ignored, so `## LLM Endpoints ##`, `## LLM Endpoints:`, and
+`## LLM Endpoints ##:` are treated the same way.
 Bullet links may start with `-`, `*`, or `+`; spacing after the bullet is optional, so
 `-[Example](https://example.com)` and `-   [Example](https://example.com)` both work.
 URLs may include balanced parentheses in the link target and are preserved as written,
