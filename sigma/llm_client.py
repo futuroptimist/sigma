@@ -43,6 +43,8 @@ class LLMResponse:
 
 _SUPPORTED_SCHEMES = {"http", "https"}
 _JSON_CONTENT_TYPES = {"application/json", "text/json"}
+_AUTH_TOKEN_ENV = "SIGMA_LLM_AUTH_TOKEN"
+_AUTH_SCHEME_ENV = "SIGMA_LLM_AUTH_SCHEME"
 
 
 def _join_text_parts(parts: Any) -> str | None:
@@ -144,6 +146,29 @@ def _prepare_payload(
         raise TypeError(message) from exc
 
 
+def _build_authorisation_header() -> Mapping[str, str]:
+    """Return optional ``Authorization`` header derived from environment."""
+
+    token_raw = os.getenv(_AUTH_TOKEN_ENV)
+    if token_raw is None:
+        return {}
+    token = token_raw.strip()
+    if not token:
+        message = (
+            f"Environment variable {_AUTH_TOKEN_ENV} is set "
+            "but empty after stripping."
+        )
+        raise RuntimeError(message)
+
+    scheme_raw = os.getenv(_AUTH_SCHEME_ENV)
+    scheme = scheme_raw.strip() if scheme_raw is not None else "Bearer"
+    if not scheme:
+        value = token
+    else:
+        value = f"{scheme} {token}"
+    return {"Authorization": value}
+
+
 def _extract_text(data: Any) -> str | None:
     if isinstance(data, str):
         return data
@@ -213,6 +238,7 @@ def query_llm(
         "Content-Type": "application/json; charset=utf-8",
         "Accept": "application/json, text/plain",
     }
+    headers.update(_build_authorisation_header())
     req = request.Request(url, data=body, headers=headers, method="POST")
     try:
         with request.urlopen(req, timeout=timeout) as response:

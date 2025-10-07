@@ -208,6 +208,13 @@ print(result.status)  # HTTP status code
 print(result.json())  # Full JSON payload when available
 ```
 
+Secure endpoints such as OpenRouter or the OpenAI API often require an
+`Authorization` header. Set `SIGMA_LLM_AUTH_TOKEN` to inject a bearer token into
+every request. The value is trimmed before use; if the variable is present but
+empty a `RuntimeError` is raised to surface misconfiguration quickly. Provide an
+optional `SIGMA_LLM_AUTH_SCHEME` to override the default `Bearer` prefix (set it
+to an empty string to send the raw token).
+
 The helper raises `RuntimeError` if the endpoint does not speak HTTP(S), if a
 JSON reply is malformed or empty, or if it lacks an obvious text field, making
 integration failures easier to spot.
