@@ -74,7 +74,7 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
             level = len(heading.group(1))
             if level <= 2:
                 title = heading.group(2).strip()
-                title = title.rstrip(":").strip()
+                title = title.rstrip("#:").strip()
                 in_section = title.casefold() == "llm endpoints"
                 section_has_entry = False
             continue

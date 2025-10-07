@@ -3,8 +3,8 @@
 `llms.py` parses `llms.txt` to discover available language model endpoints.
 The `llms.txt` file uses Markdown bullet lists under the `## LLM Endpoints`
 heading; entries can start with `-`, `*`, or `+`. Trailing `#` characters after
-the heading text and an optional colon are ignored, so `## LLM Endpoints ##`
-and `## LLM Endpoints:` are both recognised.
+the heading text and an optional colon are ignored, so `## LLM Endpoints ##`,
+`## LLM Endpoints:`, and `## LLM Endpoints ##:` are all recognised.
 URLs may include balanced parentheses inside the link target; the parser keeps
 them intact when returning entries, including any leading or trailing whitespace
 inside the parentheses.
