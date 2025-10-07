@@ -198,7 +198,9 @@ print(result.text)
 ```
 
 Supply `extra_payload` to add provider-specific options without clobbering the
-prompt, and pass `name=` to target a specific endpoint:
+prompt; when the `prompt` argument is provided any `prompt` key in
+`extra_payload` is ignored, so set `prompt=None` if you need to manage the
+field yourself. Pass `name=` to target a specific endpoint:
 
 ```python
 result = query_llm(
@@ -213,6 +215,19 @@ print(result.json())  # Full JSON payload when available
 The helper raises `RuntimeError` if the endpoint does not speak HTTP(S), if a
 JSON reply is malformed or empty, or if it lacks an obvious text field, making
 integration failures easier to spot.
+
+Send a prompt from the command line with the module's CLI:
+
+```bash
+python -m sigma.llm_client "Summarise Sigma in one sentence."
+python -m sigma.llm_client --name OpenRouter --show-json \
+    --extra '{"temperature": 0.2}' "Tell me a joke"
+```
+
+When the prompt argument is omitted the CLI reads from standard input, so you
+can pipe content directly into the helper. Use `--path` to point at an
+alternate `llms.txt` file and `--show-json` to display the parsed JSON payload
+alongside the extracted text.
 
 ## Roadmap
 
