@@ -164,7 +164,7 @@ def _extract_text(data: Any) -> str | None:
                     return choice_text
         data_field = data.get("data")
         if data_field is not None:
-            nested = _extract_text_value(data_field)
+            nested = _extract_text(data_field)
             if isinstance(nested, str):
                 return nested
     if isinstance(data, list):
