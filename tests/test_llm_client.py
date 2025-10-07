@@ -1,4 +1,5 @@
 import json
+import subprocess
 import sys
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -153,6 +154,38 @@ def test_query_llm_handles_openai_content_list(
     assert result.text == "Hello world"
 
 
+def test_query_llm_handles_openai_delta_segments(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "choices": [
+                        {
+                            "delta": {
+                                "content": [
+                                    {"type": "text", "text": "Hello"},
+                                    {"type": "text", "text": " world"},
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Streaming", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
 def test_query_llm_handles_plain_text(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
@@ -268,7 +301,7 @@ def test_query_llm_rejects_empty_prompt(
         query_llm("   ", path=llms_file)
 
 
-def test_query_llm_allows_prompt_override(
+def test_query_llm_extra_payload_prompt_ignored(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
 ) -> None:
@@ -277,7 +310,7 @@ def test_query_llm_allows_prompt_override(
         (
             200,
             {"Content-Type": "application/json"},
-            json.dumps({"text": "ignored"}).encode("utf-8"),
+            json.dumps({"text": "ok"}).encode("utf-8"),
         )
     )
     llms_file = _write_llms_file(tmp_path, base_url)
@@ -290,7 +323,7 @@ def test_query_llm_allows_prompt_override(
 
     request_payload = _latest_request(handler)["body"].decode("utf-8")
     payload = json.loads(request_payload)
-    assert payload["prompt"] == "Override"
+    assert payload["prompt"] == "Hello"
 
 
 def test_query_llm_supports_messages_only_payload(
@@ -320,6 +353,31 @@ def test_query_llm_supports_messages_only_payload(
     payload = json.loads(request_body)
     assert "prompt" not in payload
     assert payload["messages"][0]["content"] == "Hi"
+
+
+def test_query_llm_uses_payload_prompt_when_argument_missing(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    query_llm(
+        None,
+        path=llms_file,
+        extra_payload={"prompt": "Payload prompt"},
+    )
+
+    request_payload = _latest_request(handler)["body"].decode("utf-8")
+    payload = json.loads(request_payload)
+    assert payload["prompt"] == "Payload prompt"
 
 
 def test_query_llm_rejects_empty_payload(
@@ -448,3 +506,108 @@ def test_query_llm_http_error(
 
     with pytest.raises(RuntimeError, match="HTTP status 503"):
         query_llm("Are you there?", path=llms_file)
+
+
+def test_llm_client_cli_basic(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "CLI reply"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "sigma.llm_client",
+            "Hello from CLI",
+            "--path",
+            str(llms_file),
+            "--show-json",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    lines = result.stdout.splitlines()
+    stdout_lines = [line for line in lines if line.strip()]
+    assert stdout_lines[0] == "CLI reply"
+    parsed_json = json.loads("\n".join(stdout_lines[1:]))
+    assert parsed_json == {"text": "CLI reply"}
+
+    latest = json.loads(_latest_request(handler)["body"].decode("utf-8"))
+    assert latest["prompt"] == "Hello from CLI"
+
+
+def test_llm_client_cli_reads_stdin(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "Read stdin"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "sigma.llm_client",
+            "--path",
+            str(llms_file),
+        ],
+        input="Prompt from stdin\n",
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert result.stdout.strip() == "Read stdin"
+    latest = json.loads(_latest_request(handler)["body"].decode("utf-8"))
+    assert latest["prompt"] == "Prompt from stdin"
+
+
+def test_llm_client_cli_invalid_extra(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ignored"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "sigma.llm_client",
+            "Hello",
+            "--path",
+            str(llms_file),
+            "--extra",
+            "not-json",
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "Failed to parse --extra JSON" in result.stderr

@@ -77,15 +77,41 @@ trimming, so `resolve_llm_endpoint("  OpenRouter  ")` resolves successfully.
 
 The `sigma.query_llm` helper wraps `resolve_llm_endpoint` and submits a JSON
 payload to the selected HTTP(S) endpoint. It accepts an optional
-`extra_payload` mapping for provider-specific parameters and extracts a reply
-from common response shapes (`response`, `text`, or the first
-`choices[].message.content`). If the message content is provided as a list of
-text fragments (as in the latest OpenAI APIs) the helper concatenates the
-segments for you. Plain-text responses are returned unchanged, and a
-`RuntimeError` is raised if a JSON response cannot be interpreted.
+`extra_payload` mapping for provider-specific parameters and ignores any
+`prompt` field from that mapping when the function's `prompt` argument is
+present, ensuring helper callers retain control of the final prompt value. Pass
+`prompt=None` to supply the field yourself when needed. The helper extracts a reply
+from common response shapes (`response`, `text`, the first
+`choices[].message.content`, or streaming deltas in `choices[].delta.content`).
+If the message or delta content is provided as a list of text fragments (as in
+the latest OpenAI APIs) the helper concatenates the segments for you.
+Plain-text responses are returned unchanged, and a `RuntimeError` is raised if a
+JSON response cannot be interpreted.
 
 Most hosted providers also expect an `Authorization` header. Configure
 `SIGMA_LLM_AUTH_TOKEN` with your API key to add one automatically. The helper
 normalises the token by stripping whitespace and raises a `RuntimeError` if the
 variable is set but empty. Use `SIGMA_LLM_AUTH_SCHEME` to customise the prefix
 (`Bearer` by default, set it to an empty string to send the raw token).
+
+## Command-line Queries
+
+Invoke the helper directly from the command line to send a prompt without
+writing Python code:
+
+~~~bash
+python -m sigma.llm_client "Summarise Sigma"
+python -m sigma.llm_client --name OpenRouter --extra '{"temperature": 0.2}' \
+    --show-json "Tell me a joke"
+~~~
+
+The CLI reads the prompt from standard input when no positional argument is
+supplied, making it easy to pipe prompts into the tool:
+
+~~~bash
+echo "How windy is it today?" | python -m sigma.llm_client --path ~/custom-llms.txt
+~~~
+
+Use `--path` to target a different `llms.txt` file and `--show-json` to print
+the parsed JSON payload alongside the extracted text response. Provider-specific
+options can be supplied via `--extra` as a JSON object string.

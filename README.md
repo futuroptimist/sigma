@@ -182,11 +182,13 @@ print(clamp(Decimal("1.5"), Decimal("0"), Decimal("2")))  # Decimal('1.5')
 
 Use `sigma.query_llm` to send a prompt to the currently configured LLM endpoint.
 The helper resolves the endpoint via `llms.resolve_llm_endpoint`, sends a JSON
-payload containing the prompt, and extracts a sensible reply from common JSON
-shapes (`{"response": ...}`, `{"text": ...}`, or OpenAI-style
-`{"choices": [{"message": {"content": ...}}]}`). When `message.content`
-contains a list of text segments (as returned by newer OpenAI APIs) the helper
-concatenates the pieces automatically. Plain-text responses are returned as-is.
+ payload containing the prompt, and extracts a sensible reply from common JSON
+ shapes (`{"response": ...}`, `{"text": ...}`, OpenAI-style chat payloads
+ `{"choices": [{"message": {"content": ...}}]}`, or streaming-style
+ deltas `{"choices": [{"delta": {"content": ...}}]}`). When `message.content`
+ or `delta.content` contains a list of text segments (as returned by newer
+ OpenAI APIs) the helper concatenates the pieces automatically. Plain-text
+ responses are returned as-is.
 
 ```python
 from sigma import query_llm
@@ -196,7 +198,9 @@ print(result.text)
 ```
 
 Supply `extra_payload` to add provider-specific options without clobbering the
-prompt, and pass `name=` to target a specific endpoint:
+prompt; when the `prompt` argument is provided any `prompt` key in
+`extra_payload` is ignored, so set `prompt=None` if you need to manage the
+field yourself. Pass `name=` to target a specific endpoint:
 
 ```python
 result = query_llm(
@@ -218,6 +222,19 @@ to an empty string to send the raw token).
 The helper raises `RuntimeError` if the endpoint does not speak HTTP(S), if a
 JSON reply is malformed or empty, or if it lacks an obvious text field, making
 integration failures easier to spot.
+
+Send a prompt from the command line with the module's CLI:
+
+```bash
+python -m sigma.llm_client "Summarise Sigma in one sentence."
+python -m sigma.llm_client --name OpenRouter --show-json \
+    --extra '{"temperature": 0.2}' "Tell me a joke"
+```
+
+When the prompt argument is omitted the CLI reads from standard input, so you
+can pipe content directly into the helper. Use `--path` to point at an
+alternate `llms.txt` file and `--show-json` to display the parsed JSON payload
+alongside the extracted text.
 
 ## Roadmap
 
