@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
+import sys
 from dataclasses import dataclass
 from typing import Any, Mapping, MutableMapping
 from urllib import error, parse, request
@@ -274,3 +276,115 @@ def query_llm(
             reason=exc.reason,
         )
         raise RuntimeError(message) from exc
+
+
+def _parse_cli_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Return parsed CLI arguments for ``python -m sigma.llm_client``."""
+
+    # fmt: off
+    parser = argparse.ArgumentParser(
+        prog="python -m sigma.llm_client",
+        description=(
+            "Send a prompt to the configured LLM endpoint "
+            "and show the result."
+        ),
+    )
+    # fmt: on
+    parser.add_argument(
+        "prompt",
+        nargs="?",
+        help="Prompt to send. Reads from stdin when omitted.",
+    )
+    parser.add_argument(
+        "-n",
+        "--name",
+        help="Endpoint name (case-insensitive). Defaults to configured entry.",
+    )
+    parser.add_argument(
+        "-p",
+        "--path",
+        help="Optional llms.txt path. Expands environment variables and ~.",
+    )
+    parser.add_argument(
+        "-e",
+        "--extra",
+        help="JSON object merged into the request body for provider options.",
+    )
+    parser.add_argument(
+        "-t",
+        "--timeout",
+        type=float,
+        default=10.0,
+        help="Request timeout in seconds (default: 10).",
+    )
+    parser.add_argument(
+        "--show-json",
+        action="store_true",
+        help="Pretty-print the JSON response body when available.",
+    )
+    return parser.parse_args(argv)
+
+
+def _read_prompt(arg_value: str | None) -> str:
+    """Return the CLI prompt, reading from stdin when necessary."""
+
+    if arg_value is not None:
+        return arg_value
+
+    data = sys.stdin.read()
+    if not data:
+        raise RuntimeError("Prompt is required when standard input is empty.")
+    return data.rstrip("\n")
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI entry point for ``python -m sigma.llm_client``."""
+
+    try:
+        args = _parse_cli_args(argv)
+        prompt = _read_prompt(args.prompt)
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+    extra_payload: Mapping[str, Any] | None = None
+    if args.extra is not None:
+        try:
+            decoded = json.loads(args.extra)
+        except json.JSONDecodeError as exc:
+            print(f"Failed to parse --extra JSON: {exc}", file=sys.stderr)
+            return 1
+        if not isinstance(decoded, Mapping):
+            print("--extra JSON must decode to an object", file=sys.stderr)
+            return 1
+        extra_payload = decoded
+
+    try:
+        result = query_llm(
+            prompt,
+            name=args.name,
+            path=args.path,
+            timeout=args.timeout,
+            extra_payload=extra_payload,
+        )
+    except (RuntimeError, TypeError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+    print(result.text)
+    if args.show_json:
+        try:
+            payload = result.json()
+        except ValueError as exc:
+            print(f"Failed to decode JSON response: {exc}", file=sys.stderr)
+            return 1
+        if payload is None:
+            print("No JSON payload available.", file=sys.stderr)
+            return 1
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+
+    return 0
+
+
+if __name__ == "__main__":  # pragma: no cover - CLI entry point
+    raise SystemExit(main())
