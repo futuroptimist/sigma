@@ -209,7 +209,7 @@ def test_query_llm_rejects_empty_prompt(
         query_llm("   ", path=llms_file)
 
 
-def test_query_llm_allows_prompt_override(
+def test_query_llm_extra_payload_prompt_ignored(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
 ) -> None:
@@ -218,7 +218,7 @@ def test_query_llm_allows_prompt_override(
         (
             200,
             {"Content-Type": "application/json"},
-            json.dumps({"text": "ignored"}).encode("utf-8"),
+            json.dumps({"text": "ok"}).encode("utf-8"),
         )
     )
     llms_file = _write_llms_file(tmp_path, base_url)
@@ -231,7 +231,7 @@ def test_query_llm_allows_prompt_override(
 
     request_payload = _latest_request(handler)["body"].decode("utf-8")
     payload = json.loads(request_payload)
-    assert payload["prompt"] == "Override"
+    assert payload["prompt"] == "Hello"
 
 
 def test_query_llm_supports_messages_only_payload(
@@ -261,6 +261,31 @@ def test_query_llm_supports_messages_only_payload(
     payload = json.loads(request_body)
     assert "prompt" not in payload
     assert payload["messages"][0]["content"] == "Hi"
+
+
+def test_query_llm_uses_payload_prompt_when_argument_missing(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    query_llm(
+        None,
+        path=llms_file,
+        extra_payload={"prompt": "Payload prompt"},
+    )
+
+    request_payload = _latest_request(handler)["body"].decode("utf-8")
+    payload = json.loads(request_payload)
+    assert payload["prompt"] == "Payload prompt"
 
 
 def test_query_llm_rejects_empty_payload(

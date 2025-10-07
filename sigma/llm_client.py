@@ -126,10 +126,9 @@ def _prepare_payload(
         payload = {}
 
     if prompt is not None:
-        prompt_value = _ensure_prompt(prompt)
-        payload.setdefault("prompt", prompt_value)
-
-    if "prompt" in payload:
+        payload.pop("prompt", None)
+        payload["prompt"] = _ensure_prompt(prompt)
+    elif "prompt" in payload:
         payload["prompt"] = _ensure_prompt(payload["prompt"])
 
     if not payload:

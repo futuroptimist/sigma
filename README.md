@@ -196,7 +196,9 @@ print(result.text)
 ```
 
 Supply `extra_payload` to add provider-specific options without clobbering the
-prompt, and pass `name=` to target a specific endpoint:
+prompt; when the `prompt` argument is provided any `prompt` key in
+`extra_payload` is ignored, so set `prompt=None` if you need to manage the
+field yourself. Pass `name=` to target a specific endpoint:
 
 ```python
 result = query_llm(
