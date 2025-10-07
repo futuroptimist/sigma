@@ -214,6 +214,19 @@ The helper raises `RuntimeError` if the endpoint does not speak HTTP(S), if a
 JSON reply is malformed or empty, or if it lacks an obvious text field, making
 integration failures easier to spot.
 
+Send a prompt from the command line with the module's CLI:
+
+```bash
+python -m sigma.llm_client "Summarise Sigma in one sentence."
+python -m sigma.llm_client --name OpenRouter --show-json \
+    --extra '{"temperature": 0.2}' "Tell me a joke"
+```
+
+When the prompt argument is omitted the CLI reads from standard input, so you
+can pipe content directly into the helper. Use `--path` to point at an
+alternate `llms.txt` file and `--show-json` to display the parsed JSON payload
+alongside the extracted text.
+
 ## Roadmap
 
 - [ ] Breadboard MVP with a button toggling an LED

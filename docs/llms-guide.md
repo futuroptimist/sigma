@@ -86,3 +86,25 @@ from common response shapes (`response`, `text`, or the first
 text fragments (as in the latest OpenAI APIs) the helper concatenates the
 segments for you. Plain-text responses are returned unchanged, and a
 `RuntimeError` is raised if a JSON response cannot be interpreted.
+
+## Command-line Queries
+
+Invoke the helper directly from the command line to send a prompt without
+writing Python code:
+
+```bash
+python -m sigma.llm_client "Summarise Sigma"
+python -m sigma.llm_client --name OpenRouter --extra '{"temperature": 0.2}' \
+    --show-json "Tell me a joke"
+```
+
+The CLI reads the prompt from standard input when no positional argument is
+supplied, making it easy to pipe prompts into the tool:
+
+```bash
+echo "How windy is it today?" | python -m sigma.llm_client --path ~/custom-llms.txt
+```
+
+Use `--path` to target a different `llms.txt` file and `--show-json` to print
+the parsed JSON payload alongside the extracted text response. Provider-specific
+options can be supplied via `--extra` as a JSON object string.
