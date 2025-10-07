@@ -77,7 +77,10 @@ trimming, so `resolve_llm_endpoint("  OpenRouter  ")` resolves successfully.
 
 The `sigma.query_llm` helper wraps `resolve_llm_endpoint` and submits a JSON
 payload to the selected HTTP(S) endpoint. It accepts an optional
-`extra_payload` mapping for provider-specific parameters and extracts a reply
+`extra_payload` mapping for provider-specific parameters and ignores any
+`prompt` field from that mapping when the function's `prompt` argument is
+present, ensuring helper callers retain control of the final prompt value. Pass
+`prompt=None` to supply the field yourself when needed. The helper extracts a reply
 from common response shapes (`response`, `text`, or the first
 `choices[].message.content`). If the message content is provided as a list of
 text fragments (as in the latest OpenAI APIs) the helper concatenates the
