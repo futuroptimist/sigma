@@ -174,6 +174,11 @@ def _extract_text(data: Any) -> str | None:
                     content_text = _extract_text(message)
                     if isinstance(content_text, str):
                         return content_text
+                delta = choice.get("delta")
+                if delta is not None:
+                    delta_text = _extract_text(delta)
+                    if isinstance(delta_text, str):
+                        return delta_text
         data_field = data.get("data")
         if data_field is not None:
             nested = _extract_text(data_field)
