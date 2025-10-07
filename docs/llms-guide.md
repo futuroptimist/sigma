@@ -88,23 +88,29 @@ the latest OpenAI APIs) the helper concatenates the segments for you.
 Plain-text responses are returned unchanged, and a `RuntimeError` is raised if a
 JSON response cannot be interpreted.
 
+Most hosted providers also expect an `Authorization` header. Configure
+`SIGMA_LLM_AUTH_TOKEN` with your API key to add one automatically. The helper
+normalises the token by stripping whitespace and raises a `RuntimeError` if the
+variable is set but empty. Use `SIGMA_LLM_AUTH_SCHEME` to customise the prefix
+(`Bearer` by default, set it to an empty string to send the raw token).
+
 ## Command-line Queries
 
 Invoke the helper directly from the command line to send a prompt without
 writing Python code:
 
-```bash
+~~~bash
 python -m sigma.llm_client "Summarise Sigma"
 python -m sigma.llm_client --name OpenRouter --extra '{"temperature": 0.2}' \
     --show-json "Tell me a joke"
-```
+~~~
 
 The CLI reads the prompt from standard input when no positional argument is
 supplied, making it easy to pipe prompts into the tool:
 
-```bash
+~~~bash
 echo "How windy is it today?" | python -m sigma.llm_client --path ~/custom-llms.txt
-```
+~~~
 
 Use `--path` to target a different `llms.txt` file and `--show-json` to print
 the parsed JSON payload alongside the extracted text response. Provider-specific

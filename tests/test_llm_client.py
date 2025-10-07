@@ -232,6 +232,65 @@ def test_query_llm_extra_payload_included(
     }
 
 
+def test_query_llm_includes_authorisation_header(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    monkeypatch.setenv("SIGMA_LLM_AUTH_TOKEN", "secret-token")
+
+    query_llm("Auth please", path=llms_file)
+
+    headers = _latest_request(handler)["headers"]
+    assert headers.get("authorization") == "Bearer secret-token"
+
+
+def test_query_llm_customises_authorisation_scheme(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ack"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    monkeypatch.setenv("SIGMA_LLM_AUTH_TOKEN", "abc123")
+    monkeypatch.setenv("SIGMA_LLM_AUTH_SCHEME", "ApiKey")
+
+    query_llm("Custom scheme", path=llms_file)
+    headers = _latest_request(handler)["headers"]
+    assert headers.get("authorization") == "ApiKey abc123"
+
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ack"}).encode("utf-8"),
+        )
+    )
+    monkeypatch.setenv("SIGMA_LLM_AUTH_SCHEME", "   ")
+
+    query_llm("No scheme", path=llms_file)
+    headers = _latest_request(handler)["headers"]
+    assert headers.get("authorization") == "abc123"
+
+
 def test_query_llm_rejects_empty_prompt(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
@@ -330,6 +389,20 @@ def test_query_llm_rejects_empty_payload(
 
     with pytest.raises(ValueError):
         query_llm(None, path=llms_file)
+
+
+def test_query_llm_empty_authorisation_token_raises(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    base_url, _handler = llm_test_server
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    monkeypatch.setenv("SIGMA_LLM_AUTH_TOKEN", "   ")
+
+    with pytest.raises(RuntimeError, match="SIGMA_LLM_AUTH_TOKEN"):
+        query_llm("hello", path=llms_file)
 
 
 def test_query_llm_requires_http_scheme(tmp_path: Path) -> None:
