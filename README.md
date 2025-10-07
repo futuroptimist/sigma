@@ -187,7 +187,8 @@ The helper resolves the endpoint via `llms.resolve_llm_endpoint`, sends a JSON
  `{"choices": [{"message": {"content": ...}}]}`, or streaming-style
  deltas `{"choices": [{"delta": {"content": ...}}]}`). When `message.content`
  or `delta.content` contains a list of text segments (as returned by newer
- OpenAI APIs) the helper concatenates the pieces automatically. Plain-text
+ OpenAI APIs) the helper concatenates the pieces automatically, including
+ segments whose `text` field is an object with a `value` string. Plain-text
  responses are returned as-is.
 
 ```python

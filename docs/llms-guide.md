@@ -84,9 +84,10 @@ present, ensuring helper callers retain control of the final prompt value. Pass
 from common response shapes (`response`, `text`, the first
 `choices[].message.content`, or streaming deltas in `choices[].delta.content`).
 If the message or delta content is provided as a list of text fragments (as in
-the latest OpenAI APIs) the helper concatenates the segments for you.
-Plain-text responses are returned unchanged, and a `RuntimeError` is raised if a
-JSON response cannot be interpreted.
+the latest OpenAI APIs) the helper concatenates the segments for you, including
+cases where each fragment stores its text inside an object with a `value`
+string. Plain-text responses are returned unchanged, and a `RuntimeError` is
+raised if a JSON response cannot be interpreted.
 
 Most hosted providers also expect an `Authorization` header. Configure
 `SIGMA_LLM_AUTH_TOKEN` with your API key to add one automatically. The helper
