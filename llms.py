@@ -45,6 +45,15 @@ def _parse_markdown_link(text: str) -> tuple[str, str] | None:
     return None
 
 
+def _normalize_heading_title(raw: str) -> str:
+    """Return a normalized heading title without trailing markers."""
+
+    title = raw.strip()
+    while title.endswith(("#", ":")):
+        title = title[:-1].rstrip()
+    return " ".join(title.split())
+
+
 def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
     """Return LLM endpoints listed in ``llms.txt``."""
 
@@ -73,8 +82,7 @@ def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
         if heading:
             level = len(heading.group(1))
             if level <= 2:
-                title = heading.group(2).strip()
-                title = title.rstrip("#:").strip()
+                title = _normalize_heading_title(heading.group(2))
                 in_section = title.casefold() == "llm endpoints"
                 section_has_entry = False
             continue
