@@ -116,6 +116,8 @@ def resolve_llm_endpoint(
         return ", ".join(display for display, _ in endpoints)
 
     if name is not None:
+        if not isinstance(name, str):
+            raise TypeError("Endpoint name must be a string")
         normalized_name = name.strip()
         if not normalized_name:
             raise ValueError("Endpoint name must be a non-empty string")

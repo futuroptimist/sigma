@@ -72,6 +72,8 @@ modifying code. Leading and trailing whitespace is ignored, and the resolver
 raises an error if the variable is empty, references an unknown endpoint, or if
 `llms.txt` does not list any entries. Explicit `name` lookups receive the same
 trimming, so `resolve_llm_endpoint("  OpenRouter  ")` resolves successfully.
+The `name` parameter expects a string—passing any other type raises
+``TypeError`` so incorrect calls fail fast.
 
 ## Issuing a Request
 
