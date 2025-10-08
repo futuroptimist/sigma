@@ -182,7 +182,8 @@ def _extract_text(data: Any) -> str | None:
             if isinstance(output_text, str):
                 return output_text
 
-        # Recursively unwrap known nested response keys used by OpenAI, Anthropic, or custom APIs.
+        # Recursively unwrap nested response keys from OpenAI, Anthropic,
+        # or custom APIs.
         for key in (
             "data",
             "response",
