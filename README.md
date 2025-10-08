@@ -131,6 +131,18 @@ pre-commit run --all-files
 make test
 ```
 
+### Secret scanning
+
+Scan staged changes for accidentally committed credentials before creating a
+commit:
+
+```bash
+git diff --cached | ./scripts/scan-secrets.py
+```
+
+Lines that intentionally contain tokens can opt out with
+`# pragma: allowlist secret`.
+
 Playwright powers the end-to-end coverage for the enclosure viewer. Install its
 runtime once before running the tests locally:
 
@@ -182,15 +194,18 @@ print(clamp(Decimal("1.5"), Decimal("0"), Decimal("2")))  # Decimal('1.5')
 
 Use `sigma.query_llm` to send a prompt to the currently configured LLM endpoint.
 The helper resolves the endpoint via `llms.resolve_llm_endpoint`, sends a JSON
- payload containing the prompt, and extracts a sensible reply from common JSON
- shapes (`{"response": ...}`, `{"text": ...}`, OpenAI-style chat payloads
- `{"choices": [{"message": {"content": ...}}]}`, or streaming-style
- deltas `{"choices": [{"delta": {"content": ...}}]}`). When `message.content`
- or `delta.content` contains a list of text segments (as returned by newer
- OpenAI APIs) the helper concatenates the pieces automatically, including
- segments whose `text` field is an object with a `value` string or a nested
- `segments`/`parts` list of further fragments. Plain-text responses are
- returned as-is.
+payload containing the prompt, and extracts a sensible reply from common JSON
+shapes (`{"response": ...}`, `{"text": ...}`, OpenAI-style chat payloads
+`{"choices": [{"message": {"content": ...}}]}`, streaming-style
+deltas `{"choices": [{"delta": {"content": ...}}]}`, OpenAI Responses API
+payloads `{"output": [{"content": ...}]}`, or Anthropic-style
+collections such as `{"output": ...}` or `{"outputs": ...}`). Nested response
+objects (for example `{"response": {"choices": ...}}`) are unwrapped
+automatically. When `message.content`, `delta.content`, or `output[].content`
+contains a list of text segments (as returned by newer OpenAI APIs) the helper
+concatenates the pieces automatically, including segments whose `text` field is
+an object with a `value` string or a nested `segments`/`parts` list of further
+fragments. Plain-text responses are returned as-is.
 
 ```python
 from sigma import query_llm

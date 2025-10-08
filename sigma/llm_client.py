@@ -55,18 +55,27 @@ def _extract_text_value(value: Any) -> str | None:
     if isinstance(value, str):
         return value
     if isinstance(value, Mapping):
-        for key in (
+        # Merge both lists of primary keys for maximum API compatibility.
+        primary_keys = (
             "response",
             "text",
             "value",
             "content",
             "segments",
             "parts",
-        ):
+            "output",
+            "outputs",
+            "result",
+            "results",
+            "completion",
+            "completions",
+        )
+        for key in primary_keys:
             if key in value:
                 candidate = _extract_text_value(value[key])
                 if isinstance(candidate, str):
                     return candidate
+        # Also look inside common wrapper structures.
         for key in ("message", "delta", "data"):
             nested = value.get(key)
             if nested is not None:
@@ -162,6 +171,7 @@ def _extract_text(data: Any) -> str | None:
     direct = _extract_text_value(data)
     if isinstance(direct, str):
         return direct
+
     if isinstance(data, Mapping):
         choices = data.get("choices")
         if isinstance(choices, list):
@@ -169,11 +179,30 @@ def _extract_text(data: Any) -> str | None:
                 choice_text = _extract_text_value(choice)
                 if isinstance(choice_text, str):
                     return choice_text
-        data_field = data.get("data")
-        if data_field is not None:
-            nested = _extract_text(data_field)
-            if isinstance(nested, str):
-                return nested
+        # Handle common response containers in different API formats.
+        output = data.get("output")
+        if isinstance(output, list):
+            output_text = _extract_text_value(output)
+            if isinstance(output_text, str):
+                return output_text
+
+        # Recursively unwrap nested response keys from OpenAI, Anthropic,
+        # or custom APIs.
+        for key in (
+            "data",
+            "response",
+            "output",
+            "outputs",
+            "result",
+            "results",
+            "completion",
+            "completions",
+        ):
+            if key in data:
+                nested_value = data[key]
+                extracted = _extract_text(nested_value)
+                if isinstance(extracted, str):
+                    return extracted
     if isinstance(data, list):
         return _extract_text_value(data)
     return None

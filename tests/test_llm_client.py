@@ -192,6 +192,42 @@ def test_query_llm_handles_openai_content_value_objects(
     assert result.text == "Hello world"
 
 
+def test_query_llm_handles_responses_api_output(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "output": [
+                        {
+                            "content": [
+                                {
+                                    "type": "output_text",
+                                    "text": {"value": "Hello"},
+                                },
+                                {
+                                    "type": "output_text",
+                                    "text": {"value": " world"},
+                                },
+                            ]
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Responses API output", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
 def test_query_llm_handles_openai_delta_segments(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
@@ -228,6 +264,7 @@ def test_query_llm_handles_delta_value_segments(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
 ) -> None:
+    """Test that query_llm concatenates nested 'segments' inside delta content values."""
     base_url, handler = llm_test_server
     handler.responses.append(
         (
@@ -274,10 +311,116 @@ def test_query_llm_handles_delta_value_segments(
     assert result.text == "Hello world"
 
 
+def test_query_llm_handles_nested_response_payload(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    """Test that nested 'response' wrappers are automatically unwrapped."""
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "response": {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": {"value": "Nested"},
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Nested response", path=llms_file)
+
+    assert result.text == "Nested"
+
+
+def test_query_llm_handles_output_collection(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    """Test that query_llm parses OpenAI-style 'output[].content' arrays."""
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "output": [
+                        {
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": {"value": "Hello"},
+                                },
+                                {
+                                    "type": "text",
+                                    "text": {"value": " world"},
+                                },
+                            ]
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Output", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
+def test_query_llm_handles_outputs_array(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    """Test that query_llm supports Anthropic-style 'outputs' arrays."""
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "outputs": [
+                        {
+                            "content": [
+                                {"type": "text", "text": "Segment A"},
+                                {"type": "text", "text": " & Segment B"},
+                            ]
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Outputs", path=llms_file)
+
+    assert result.text == "Segment A & Segment B"
+
+
 def test_query_llm_handles_plain_text(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
 ) -> None:
+    """Test that plain-text responses are returned unchanged."""
     base_url, handler = llm_test_server
     handler.responses.append(
         (200, {"Content-Type": "text/plain"}, b"plain text response")
