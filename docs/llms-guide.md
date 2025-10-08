@@ -82,10 +82,12 @@ payload to the selected HTTP(S) endpoint. It accepts an optional
 present, ensuring helper callers retain control of the final prompt value. Pass
 `prompt=None` to supply the field yourself when needed. The helper extracts a reply
 from common response shapes (`response`, `text`, the first
-`choices[].message.content`, or streaming deltas in `choices[].delta.content`).
-If the message or delta content is provided as a list of text fragments (as in
-the latest OpenAI APIs) the helper concatenates the segments for you, including
-cases where each fragment stores its text inside an object with a `value`
+`choices[].message.content`, streaming deltas in `choices[].delta.content`, and
+Anthropic-style collections such as `output` or `outputs`). Nested `response`
+objects are handled recursively so wrappers like `{"response": {"choices": ...}}`
+resolve correctly. If the message or delta content is provided as a list of text
+fragments (as in the latest OpenAI APIs) the helper concatenates the segments for you,
+including cases where each fragment stores its text inside an object with a `value`
 string. Plain-text responses are returned unchanged, and a `RuntimeError` is
 raised if a JSON response cannot be interpreted.
 

@@ -184,12 +184,14 @@ Use `sigma.query_llm` to send a prompt to the currently configured LLM endpoint.
 The helper resolves the endpoint via `llms.resolve_llm_endpoint`, sends a JSON
  payload containing the prompt, and extracts a sensible reply from common JSON
  shapes (`{"response": ...}`, `{"text": ...}`, OpenAI-style chat payloads
- `{"choices": [{"message": {"content": ...}}]}`, or streaming-style
- deltas `{"choices": [{"delta": {"content": ...}}]}`). When `message.content`
- or `delta.content` contains a list of text segments (as returned by newer
- OpenAI APIs) the helper concatenates the pieces automatically, including
- segments whose `text` field is an object with a `value` string. Plain-text
- responses are returned as-is.
+ `{"choices": [{"message": {"content": ...}}]}`, streaming-style
+ deltas `{"choices": [{"delta": {"content": ...}}]}`, and Anthropic-style
+ collections such as `{"output": ...}` or `{"outputs": ...}`). Nested response
+ objects (for example `{"response": {"choices": ...}}`) are unwrapped
+ automatically. When `message.content` or `delta.content` contains a list of text
+ segments (as returned by newer OpenAI APIs) the helper concatenates the pieces
+ automatically, including segments whose `text` field is an object with a
+ `value` string. Plain-text responses are returned as-is.
 
 ```python
 from sigma import query_llm
