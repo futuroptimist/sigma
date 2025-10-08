@@ -131,6 +131,18 @@ pre-commit run --all-files
 make test
 ```
 
+### Secret scanning
+
+Scan staged changes for accidentally committed credentials before creating a
+commit:
+
+```bash
+git diff --cached | ./scripts/scan-secrets.py
+```
+
+Lines that intentionally contain tokens can opt out with
+`# pragma: allowlist secret`.
+
 Playwright powers the end-to-end coverage for the enclosure viewer. Install its
 runtime once before running the tests locally:
 
