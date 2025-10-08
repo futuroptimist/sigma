@@ -162,6 +162,11 @@ def _extract_text(data: Any) -> str | None:
                 choice_text = _extract_text_value(choice)
                 if isinstance(choice_text, str):
                     return choice_text
+        output = data.get("output")
+        if isinstance(output, list):
+            output_text = _extract_text_value(output)
+            if isinstance(output_text, str):
+                return output_text
         data_field = data.get("data")
         if data_field is not None:
             nested = _extract_text(data_field)
