@@ -55,7 +55,14 @@ def _extract_text_value(value: Any) -> str | None:
     if isinstance(value, str):
         return value
     if isinstance(value, Mapping):
-        for key in ("response", "text", "value", "content"):
+        for key in (
+            "response",
+            "text",
+            "value",
+            "content",
+            "segments",
+            "parts",
+        ):
             if key in value:
                 candidate = _extract_text_value(value[key])
                 if isinstance(candidate, str):

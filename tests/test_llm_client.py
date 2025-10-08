@@ -224,6 +224,56 @@ def test_query_llm_handles_openai_delta_segments(
     assert result.text == "Hello world"
 
 
+def test_query_llm_handles_delta_value_segments(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "choices": [
+                        {
+                            "delta": {
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": {
+                                            "value": {
+                                                "segments": [
+                                                    {"text": "Hello"},
+                                                ]
+                                            }
+                                        },
+                                    },
+                                    {
+                                        "type": "output_text",
+                                        "text": {
+                                            "value": {
+                                                "segments": [
+                                                    {"text": " world"},
+                                                ]
+                                            }
+                                        },
+                                    },
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Nested segments", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
 def test_query_llm_handles_plain_text(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
