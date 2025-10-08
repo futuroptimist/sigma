@@ -264,7 +264,7 @@ def test_query_llm_handles_delta_value_segments(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
 ) -> None:
-    """Test that query_llm concatenates nested 'segments' inside delta content values."""
+    """Test concatenating nested 'segments' inside delta content values."""
     base_url, handler = llm_test_server
     handler.responses.append(
         (
