@@ -83,8 +83,9 @@ present, ensuring helper callers retain control of the final prompt value. Pass
 `prompt=None` to supply the field yourself when needed. The helper extracts a reply
 from common response shapes (`response`, `text`, the first
 `choices[].message.content`, streaming deltas in `choices[].delta.content`,
-OpenAI Responses API payloads in `output[].content`, or Anthropic-style
-collections such as `output` or `outputs`). Nested `response` objects are handled
+OpenAI Responses API payloads in `output[].content`, Anthropic-style
+collections such as `output` or `outputs`, or Google Gemini payloads shaped like
+`candidates[].content.parts`). Nested `response` objects are handled
 recursively so wrappers like `{"response": {"choices": ...}}` resolve correctly.
 If the message, delta, or output content is provided as a list of text fragments
 (as in the latest OpenAI APIs) the helper concatenates the segments for you,
