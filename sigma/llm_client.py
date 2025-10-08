@@ -55,11 +55,14 @@ def _extract_text_value(value: Any) -> str | None:
     if isinstance(value, str):
         return value
     if isinstance(value, Mapping):
+        # Merge both lists of primary keys for maximum API compatibility.
         primary_keys = (
             "response",
             "text",
             "value",
             "content",
+            "segments",
+            "parts",
             "output",
             "outputs",
             "result",
@@ -72,6 +75,7 @@ def _extract_text_value(value: Any) -> str | None:
                 candidate = _extract_text_value(value[key])
                 if isinstance(candidate, str):
                     return candidate
+        # Also look inside common wrapper structures.
         for key in ("message", "delta", "data"):
             nested = value.get(key)
             if nested is not None:

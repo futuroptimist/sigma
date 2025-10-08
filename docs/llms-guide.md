@@ -89,8 +89,9 @@ recursively so wrappers like `{"response": {"choices": ...}}` resolve correctly.
 If the message, delta, or output content is provided as a list of text fragments
 (as in the latest OpenAI APIs) the helper concatenates the segments for you,
 including cases where each fragment stores its text inside an object with a
-`value` string. Plain-text responses are returned unchanged, and a `RuntimeError`
-is raised if a JSON response cannot be interpreted.
+`value` string or a nested `segments`/`parts` array. Plain-text responses are
+returned unchanged, and a `RuntimeError` is raised if a JSON response cannot be
+interpreted.
 
 Most hosted providers also expect an `Authorization` header. Configure
 `SIGMA_LLM_AUTH_TOKEN` with your API key to add one automatically. The helper
