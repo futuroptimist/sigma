@@ -175,7 +175,15 @@ def _extract_text(data: Any) -> str | None:
                 choice_text = _extract_text_value(choice)
                 if isinstance(choice_text, str):
                     return choice_text
+        # Handle common response containers in different API formats.
+        output = data.get("output")
+        if isinstance(output, list):
+            output_text = _extract_text_value(output)
+            if isinstance(output_text, str):
+                return output_text
 
+        # Recursively unwrap nested response keys from OpenAI, Anthropic,
+        # or custom APIs.
         for key in (
             "data",
             "response",
@@ -191,7 +199,6 @@ def _extract_text(data: Any) -> str | None:
                 extracted = _extract_text(nested_value)
                 if isinstance(extracted, str):
                     return extracted
-
     if isinstance(data, list):
         return _extract_text_value(data)
     return None
