@@ -69,6 +69,7 @@ def _extract_text_value(value: Any) -> str | None:
             "results",
             "completion",
             "completions",
+            "candidates",
         )
         for key in primary_keys:
             if key in value:
@@ -197,6 +198,7 @@ def _extract_text(data: Any) -> str | None:
             "results",
             "completion",
             "completions",
+            "candidates",
         ):
             if key in data:
                 nested_value = data[key]

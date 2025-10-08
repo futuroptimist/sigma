@@ -416,6 +416,86 @@ def test_query_llm_handles_outputs_array(
     assert result.text == "Segment A & Segment B"
 
 
+def test_query_llm_handles_gemini_candidates_parts(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    """Test parsing Gemini-style candidates with parts arrays."""
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "candidates": [
+                        {
+                            "content": {
+                                "role": "model",
+                                "parts": [
+                                    {"text": "Hello"},
+                                    {"text": " Gemini"},
+                                ],
+                            }
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Gemini", path=llms_file)
+
+    assert result.text == "Hello Gemini"
+
+
+def test_query_llm_handles_gemini_candidates_content_list(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    """Test Gemini candidates where content is a list of messages."""
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "candidates": [
+                        {
+                            "content": [
+                                {
+                                    "role": "model",
+                                    "parts": [
+                                        {"text": "Hello"},
+                                        {
+                                            "text": {
+                                                "value": {
+                                                    "segments": [
+                                                        {
+                                                            "text": " world",
+                                                        },
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                    ],
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Gemini list", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
 def test_query_llm_handles_plain_text(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],

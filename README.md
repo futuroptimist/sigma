@@ -198,8 +198,9 @@ payload containing the prompt, and extracts a sensible reply from common JSON
 shapes (`{"response": ...}`, `{"text": ...}`, OpenAI-style chat payloads
 `{"choices": [{"message": {"content": ...}}]}`, streaming-style
 deltas `{"choices": [{"delta": {"content": ...}}]}`, OpenAI Responses API
-payloads `{"output": [{"content": ...}]}`, or Anthropic-style
-collections such as `{"output": ...}` or `{"outputs": ...}`). Nested response
+payloads `{"output": [{"content": ...}]}`, Anthropic-style
+collections such as `{"output": ...}` or `{"outputs": ...}`, or Google Gemini
+payloads shaped like `{"candidates": [{"content": {"parts": ...}}]}`. Nested response
 objects (for example `{"response": {"choices": ...}}`) are unwrapped
 automatically. When `message.content`, `delta.content`, or `output[].content`
 contains a list of text segments (as returned by newer OpenAI APIs) the helper
