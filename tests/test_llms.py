@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -248,6 +249,16 @@ def test_resolve_llm_endpoint_rejects_blank_name(tmp_path):
     )
     with pytest.raises(ValueError, match="non-empty"):
         llms.resolve_llm_endpoint("   ", path=llms_file)
+
+
+def test_resolve_llm_endpoint_rejects_non_string_name(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Alpha](https://alpha.example.com)\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(TypeError, match="string"):
+        llms.resolve_llm_endpoint(cast(str, 123), path=llms_file)
 
 
 def test_resolve_llm_endpoint_respects_env_variable(tmp_path, monkeypatch):
