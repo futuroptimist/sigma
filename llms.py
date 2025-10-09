@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import sys
@@ -200,6 +201,14 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "--resolve."
         ),
     )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help=(
+            "Emit machine-readable JSON. Lists endpoints as an array and "
+            "--resolve outputs an object with name/url fields."
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -220,11 +229,20 @@ def main(argv: list[str] | None = None) -> int:
         except (RuntimeError, ValueError) as exc:
             print(str(exc), file=sys.stderr)
             return 1
-        print(f"{name}: {url}")
+        if namespace.json:
+            payload = {"name": name, "url": url}
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+        else:
+            print(f"{name}: {url}")
         return 0
 
-    for name, url in get_llm_endpoints(namespace.path):
-        print(f"{name}: {url}")
+    entries = get_llm_endpoints(namespace.path)
+    if namespace.json:
+        payload = [{"name": name, "url": url} for name, url in entries]
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+    else:
+        for name, url in entries:
+            print(f"{name}: {url}")
     return 0
 
 

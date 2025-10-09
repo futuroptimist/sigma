@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import sys
@@ -403,6 +404,32 @@ def test_llms_cli_resolve_defaults_to_first_entry():
     assert line.startswith("token.place: ")
 
 
+def test_llms_cli_json_lists_endpoints():
+    result = subprocess.run(
+        [sys.executable, "-m", "llms", "--json"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+    expected = []
+    for entry_name, entry_url in llms.get_llm_endpoints():
+        expected.append({"name": entry_name, "url": entry_url})
+    assert payload == expected
+
+
+def test_llms_cli_json_resolve_defaults():
+    result = subprocess.run(
+        [sys.executable, "-m", "llms", "--resolve", "--json"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+    expected_name, expected_url = llms.get_llm_endpoints()[0]
+    assert payload == {"name": expected_name, "url": expected_url}
+
+
 def test_llms_cli_resolve_with_name(tmp_path):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text(
@@ -428,6 +455,38 @@ def test_llms_cli_resolve_with_name(tmp_path):
         text=True,
     )
     assert result.stdout.strip() == "Beta: https://beta.example.com"
+
+
+def test_llms_cli_json_resolve_with_name(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "## LLM Endpoints\n"
+            "- [Alpha](https://alpha.example.com)\n"
+            "- [Beta](https://beta.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "llms",
+            "--resolve",
+            "--json",
+            "--name",
+            "beta",
+            str(llms_file),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+    assert payload == {
+        "name": "Beta",
+        "url": "https://beta.example.com",
+    }
 
 
 def test_llms_cli_resolve_name_strips_whitespace(tmp_path):
