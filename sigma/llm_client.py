@@ -222,7 +222,8 @@ def query_llm(
     """Send *prompt* to an HTTP LLM endpoint and return the parsed response."""
 
     display_name, url = resolve_llm_endpoint(name, path=path)
-    parsed = parse.urlparse(url)
+    normalized_url = url.strip()
+    parsed = parse.urlparse(normalized_url)
     if parsed.scheme.lower() not in _SUPPORTED_SCHEMES:
         message = (
             f"LLM endpoint '{display_name}' uses unsupported scheme "
@@ -236,7 +237,12 @@ def query_llm(
         "Accept": "application/json, text/plain",
     }
     headers.update(_build_authorisation_header())
-    req = request.Request(url, data=body, headers=headers, method="POST")
+    req = request.Request(
+        normalized_url,
+        data=body,
+        headers=headers,
+        method="POST",
+    )
     try:
         with request.urlopen(req, timeout=timeout) as response:
             raw = response.read()
@@ -280,7 +286,7 @@ def query_llm(
                 text_value = text_body
             return LLMResponse(
                 name=display_name,
-                url=url,
+                url=normalized_url,
                 text=text_value,
                 status=response.status,
                 headers=dict(response.headers.items()),
