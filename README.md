@@ -201,15 +201,16 @@ payload containing the prompt, and extracts a sensible reply from common JSON
 shapes (`{"response": ...}`, `{"text": ...}`, OpenAI-style chat payloads
 `{"choices": [{"message": {"content": ...}}]}`, streaming-style
 deltas `{"choices": [{"delta": {"content": ...}}]}`, OpenAI Responses API
-payloads `{"output": [{"content": ...}]}`, Anthropic-style
-collections such as `{"output": ...}` or `{"outputs": ...}`, or Google Gemini
-payloads shaped like `{"candidates": [{"content": {"parts": ...}}]}`. Nested response
-objects (for example `{"response": {"choices": ...}}`) are unwrapped
-automatically. When `message.content`, `delta.content`, or `output[].content`
-contains a list of text segments (as returned by newer OpenAI APIs) the helper
-concatenates the pieces automatically, including segments whose `text` field is
-an object with a `value` string or a nested `segments`/`parts` list of further
-fragments. Plain-text responses are returned as-is.
+payloads `{"output": [{"content": ...}]}` or `{"output_text": [...]}`,
+Anthropic-style collections such as `{"output": ...}` or `{"outputs": ...}`,
+or Google Gemini payloads shaped like `{"candidates": [{"content": {"parts": ...}}]}`.
+Nested response objects (for example `{"response": {"choices": ...}}`) are
+unwrapped automatically. When `message.content`, `delta.content`,
+`output[].content`, or `output_text` contains a list of text segments (as
+returned by newer OpenAI APIs) the helper concatenates the pieces automatically,
+including segments whose `text` field is an object with a `value` string or a
+nested `segments`/`parts` list of further fragments. Plain-text responses are
+returned as-is.
 
 ```python
 from sigma import query_llm
