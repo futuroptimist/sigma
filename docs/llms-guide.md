@@ -133,6 +133,6 @@ echo "How windy is it today?" | python -m sigma.llm_client --path ~/custom-llms.
 
 Use `--path` to target a different `llms.txt` file and `--show-json` to print
 the parsed JSON payload alongside the extracted text response. When the
-response lacks JSON the CLI still prints the text reply and writes a warning to
-standard error. Provider-specific options can be supplied via `--extra` as a
-JSON object string.
+response lacks JSON the CLI still prints the text reply and writes a
+`Warning:`-prefixed message to standard error. Provider-specific options can be
+supplied via `--extra` as a JSON object string.

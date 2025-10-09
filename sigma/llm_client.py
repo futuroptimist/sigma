@@ -404,12 +404,12 @@ def main(argv: list[str] | None = None) -> int:
             payload = result.json()
         except ValueError as exc:
             print(
-                f"Unable to display JSON payload: {exc}",
+                f"Warning: Unable to display JSON payload: {exc}",
                 file=sys.stderr,
             )
         else:
             if payload is None:
-                print("No JSON payload available.", file=sys.stderr)
+                print("Warning: No JSON payload available.", file=sys.stderr)
             else:
                 print(json.dumps(payload, indent=2, ensure_ascii=False))
 

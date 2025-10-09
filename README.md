@@ -265,8 +265,8 @@ python -m sigma.llm_client --name OpenRouter --show-json \
 When the prompt argument is omitted the CLI reads from standard input, so you
 can pipe content directly into the helper. Use `--path` to point at an
 alternate `llms.txt` file and `--show-json` to display the parsed JSON payload
-alongside the extracted text. When a response omits JSON the CLI still prints
-the text reply and logs a warning on standard error instead of failing.
+  alongside the extracted text. When a response omits JSON the CLI still prints
+  the text reply and logs a `Warning:`-prefixed message on standard error instead of failing.
 
 ## Roadmap
 
