@@ -238,10 +238,7 @@ def main(argv: list[str] | None = None) -> int:
 
     endpoints = get_llm_endpoints(namespace.path)
     if namespace.json:
-        payload = [
-            {"name": name, "url": url}
-            for name, url in endpoints
-        ]
+        payload = [{"name": name, "url": url} for name, url in endpoints]
         print(json.dumps(payload, ensure_ascii=False))
         return 0
 
