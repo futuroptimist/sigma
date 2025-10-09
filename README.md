@@ -59,6 +59,9 @@ including any leading or trailing whitespace inside the parentheses.
 Single-`#` comment lines are allowed before the list begins, but once endpoints appear a
 new single-`#` heading ends the section the same way any `##` heading does.
 
+`sigma.query_llm` trims surrounding whitespace from endpoint URLs before making a request, so
+padded entries still resolve even though `get_llm_endpoints` preserves the original text.
+
 Select a specific endpoint with `resolve_llm_endpoint`:
 
 ```python

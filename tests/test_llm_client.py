@@ -533,6 +533,31 @@ def test_query_llm_handles_plain_text(
         result.json()
 
 
+def test_query_llm_trims_whitespace_from_url(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
+        )
+    )
+    llms_file = tmp_path / "llms.txt"
+    llms_file.write_text(
+        f"## LLM Endpoints\n- [Local](   {base_url}   )\n",
+        encoding="utf-8",
+    )
+
+    result = query_llm("Whitespace", path=llms_file)
+
+    assert result.text == "ok"
+    assert result.url == base_url
+    assert handler.requests, "no request captured"
+
+
 def test_query_llm_extra_payload_included(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],

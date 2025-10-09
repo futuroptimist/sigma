@@ -13,6 +13,10 @@ Comments that start with a single `#` may appear before the list, but once an
 endpoint has been parsed another single-`#` heading terminates the section just
 like a `##` heading.
 
+When issuing a request, `sigma.query_llm` strips surrounding whitespace from the
+resolved URL before contacting the endpoint so padded entries still work even
+though the parser preserves their original formatting.
+
 ## Listing Endpoints
 
 Run `python -m llms` to print configured endpoints:
