@@ -19,6 +19,7 @@ Run `python -m llms` to print configured endpoints:
 
 ```bash
 python -m llms
+python -m llms --json  # list endpoints as JSON
 ```
 
 The `scripts/llms-cli.sh` helper exports ``PYTHONPATH`` automatically so you can
@@ -41,6 +42,7 @@ Resolve a single endpoint from the command line (respecting
 ```bash
 python -m llms --resolve
 python -m llms --resolve --name OpenRouter
+python -m llms --resolve --json  # returns {"name": ..., "url": ...}
 ```
 
 You can also import the helper in Python:
@@ -56,6 +58,10 @@ The helper resolves `llms.txt` relative to its own file, so it works from
 any working directory. The optional path argument expands environment
 variables (e.g. `$HOME`) before resolving `~` to your home directory and can
 be a `str` or `pathlib.Path`.
+
+Use ``--json`` for machine-readable output when integrating with other
+tooling. Listings return an array of ``{"name", "url"}`` objects and
+``--resolve`` emits a single object describing the selected endpoint.
 
 ## Selecting a Default Endpoint
 

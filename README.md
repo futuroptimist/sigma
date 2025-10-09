@@ -79,6 +79,7 @@ You can list the configured endpoints with:
 
 ```bash
 python -m llms
+python -m llms --json  # machine-readable output
 ```
 
 Resolve a single endpoint (respecting ``SIGMA_DEFAULT_LLM`` when set) with:
@@ -86,6 +87,7 @@ Resolve a single endpoint (respecting ``SIGMA_DEFAULT_LLM`` when set) with:
 ```bash
 python -m llms --resolve
 python -m llms --resolve --name OpenRouter
+python -m llms --resolve --json  # emit {"name", "url"}
 ```
 
 When you're working outside the repository root, use the helper script which
@@ -107,6 +109,10 @@ locates `llms.txt` relative to its own file, so you can run it from any working
 directory. The optional path argument to ``llms.get_llm_endpoints`` expands environment
 variables (e.g. ``$HOME``) before resolving ``~`` to the user's home, and accepts either
 string paths or ``pathlib.Path`` objects.
+
+Pass ``--json`` when you need machine-readable output: endpoint listings become an
+array of ``{"name", "url"}`` objects and ``--resolve`` emits a single object, making
+automation scripts easier to write.
 
 ## Firmware
 
