@@ -64,6 +64,7 @@ def _extract_text_value(value: Any) -> str | None:
             "segments",
             "parts",
             "output",
+            "output_text",
             "outputs",
             "result",
             "results",

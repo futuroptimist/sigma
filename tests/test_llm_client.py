@@ -228,6 +228,25 @@ def test_query_llm_handles_responses_api_output(
     assert result.text == "Hello world"
 
 
+def test_query_llm_handles_output_text_list(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"output_text": ["Hello world"]}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Responses API output_text", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
 def test_query_llm_handles_openai_delta_segments(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
