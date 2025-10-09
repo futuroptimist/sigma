@@ -858,6 +858,39 @@ def test_llm_client_cli_basic(
     assert latest["prompt"] == "Hello from CLI"
 
 
+def test_llm_client_cli_show_json_without_payload(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "text/plain"},
+            b"Plain CLI reply",
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "sigma.llm_client",
+            "Plain please",
+            "--path",
+            str(llms_file),
+            "--show-json",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.stdout.strip() == "Plain CLI reply"
+    assert "Unable to display JSON payload" in result.stderr
+
+
 def test_llm_client_cli_reads_stdin(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
