@@ -533,6 +533,31 @@ def test_query_llm_handles_plain_text(
         result.json()
 
 
+def test_query_llm_trims_whitespace_from_url(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
+        )
+    )
+    llms_file = tmp_path / "llms.txt"
+    llms_file.write_text(
+        f"## LLM Endpoints\n- [Local](   {base_url}   )\n",
+        encoding="utf-8",
+    )
+
+    result = query_llm("Whitespace", path=llms_file)
+
+    assert result.text == "ok"
+    assert result.url == base_url
+    assert handler.requests, "no request captured"
+
+
 def test_query_llm_extra_payload_included(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
@@ -907,7 +932,40 @@ def test_llm_client_cli_show_json_without_payload(
     )
 
     assert result.stdout.strip() == "Plain CLI reply"
-    assert "Unable to display JSON payload" in result.stderr
+    assert "Warning: Unable to display JSON payload" in result.stderr
+
+
+def test_llm_client_cli_show_json_empty_body_warns(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "text/plain"},
+            b"",
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "sigma.llm_client",
+            "Empty please",
+            "--path",
+            str(llms_file),
+            "--show-json",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.stdout.strip() == ""
+    assert "Warning: No JSON payload available." in result.stderr
 
 
 def test_llm_client_cli_reads_stdin(

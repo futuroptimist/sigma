@@ -59,6 +59,9 @@ including any leading or trailing whitespace inside the parentheses.
 Single-`#` comment lines are allowed before the list begins, but once endpoints appear a
 new single-`#` heading ends the section the same way any `##` heading does.
 
+`sigma.query_llm` trims surrounding whitespace from endpoint URLs before making a request, so
+padded entries still resolve even though `get_llm_endpoints` preserves the original text.
+
 Select a specific endpoint with `resolve_llm_endpoint`:
 
 ```python
@@ -79,6 +82,7 @@ You can list the configured endpoints with:
 
 ```bash
 python -m llms
+python -m llms --json  # machine-readable output
 ```
 
 Add `--json` to emit a machine-readable list of endpoints:
@@ -92,7 +96,7 @@ Resolve a single endpoint (respecting ``SIGMA_DEFAULT_LLM`` when set) with:
 ```bash
 python -m llms --resolve
 python -m llms --resolve --name OpenRouter
-python -m llms --resolve --name OpenRouter --json  # JSON object output
+python -m llms --resolve --name OpenRouter --json  # emit {"name", "url"}
 ```
 
 When you're working outside the repository root, use the helper script which
@@ -114,6 +118,10 @@ locates `llms.txt` relative to its own file, so you can run it from any working
 directory. The optional path argument to ``llms.get_llm_endpoints`` expands environment
 variables (e.g. ``$HOME``) before resolving ``~`` to the user's home, and accepts either
 string paths or ``pathlib.Path`` objects.
+
+Pass ``--json`` when you need machine-readable output: endpoint listings become an
+array of ``{"name", "url"}`` objects and ``--resolve`` emits a single object, making
+automation scripts easier to write.
 
 ## Firmware
 
@@ -263,8 +271,8 @@ python -m sigma.llm_client --name OpenRouter --show-json \
 When the prompt argument is omitted the CLI reads from standard input, so you
 can pipe content directly into the helper. Use `--path` to point at an
 alternate `llms.txt` file and `--show-json` to display the parsed JSON payload
-alongside the extracted text. When a response omits JSON the CLI still prints
-the text reply and logs a warning on standard error instead of failing.
+  alongside the extracted text. When a response omits JSON the CLI still prints
+  the text reply and logs a `Warning:`-prefixed message on standard error instead of failing.
 
 ## Roadmap
 

@@ -13,12 +13,17 @@ Comments that start with a single `#` may appear before the list, but once an
 endpoint has been parsed another single-`#` heading terminates the section just
 like a `##` heading.
 
+When issuing a request, `sigma.query_llm` strips surrounding whitespace from the
+resolved URL before contacting the endpoint so padded entries still work even
+though the parser preserves their original formatting.
+
 ## Listing Endpoints
 
 Run `python -m llms` to print configured endpoints:
 
 ```bash
 python -m llms
+python -m llms --json  # list endpoints as JSON
 ```
 
 Provide `--json` to return a machine-readable list of endpoints:
@@ -47,7 +52,7 @@ Resolve a single endpoint from the command line (respecting
 ```bash
 python -m llms --resolve
 python -m llms --resolve --name OpenRouter
-python -m llms --resolve --name OpenRouter --json  # JSON object output
+python -m llms --resolve --name OpenRouter --json  # returns {"name": ..., "url": ...}
 ```
 
 You can also import the helper in Python:
@@ -63,6 +68,10 @@ The helper resolves `llms.txt` relative to its own file, so it works from
 any working directory. The optional path argument expands environment
 variables (e.g. `$HOME`) before resolving `~` to your home directory and can
 be a `str` or `pathlib.Path`.
+
+Use ``--json`` for machine-readable output when integrating with other
+tooling. Listings return an array of ``{"name", "url"}`` objects and
+``--resolve`` emits a single object describing the selected endpoint.
 
 ## Selecting a Default Endpoint
 
@@ -130,6 +139,6 @@ echo "How windy is it today?" | python -m sigma.llm_client --path ~/custom-llms.
 
 Use `--path` to target a different `llms.txt` file and `--show-json` to print
 the parsed JSON payload alongside the extracted text response. When the
-response lacks JSON the CLI still prints the text reply and writes a warning to
-standard error. Provider-specific options can be supplied via `--extra` as a
-JSON object string.
+response lacks JSON the CLI still prints the text reply and writes a
+`Warning:`-prefixed message to standard error. Provider-specific options can be
+supplied via `--extra` as a JSON object string.

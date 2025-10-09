@@ -206,7 +206,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help=(
             "Emit machine-readable JSON instead of formatted text. Listing "
-            "produces an array; resolution yields a single object."
+            "produces an array; resolution yields a single object with "
+            "name/url fields."
         ),
     )
     return parser.parse_args(argv)
@@ -231,7 +232,7 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         if namespace.json:
             payload = {"name": name, "url": url}
-            print(json.dumps(payload, ensure_ascii=False))
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
         else:
             print(f"{name}: {url}")
         return 0
@@ -239,11 +240,10 @@ def main(argv: list[str] | None = None) -> int:
     endpoints = get_llm_endpoints(namespace.path)
     if namespace.json:
         payload = [{"name": name, "url": url} for name, url in endpoints]
-        print(json.dumps(payload, ensure_ascii=False))
-        return 0
-
-    for name, url in endpoints:
-        print(f"{name}: {url}")
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+    else:
+        for name, url in endpoints:
+            print(f"{name}: {url}")
     return 0
 
 
