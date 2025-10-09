@@ -397,12 +397,15 @@ def main(argv: list[str] | None = None) -> int:
         try:
             payload = result.json()
         except ValueError as exc:
-            print(f"Failed to decode JSON response: {exc}", file=sys.stderr)
-            return 1
-        if payload is None:
-            print("No JSON payload available.", file=sys.stderr)
-            return 1
-        print(json.dumps(payload, indent=2, ensure_ascii=False))
+            print(
+                f"Unable to display JSON payload: {exc}",
+                file=sys.stderr,
+            )
+        else:
+            if payload is None:
+                print("No JSON payload available.", file=sys.stderr)
+            else:
+                print(json.dumps(payload, indent=2, ensure_ascii=False))
 
     return 0
 
