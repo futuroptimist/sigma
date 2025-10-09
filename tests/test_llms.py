@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import sys
@@ -479,3 +480,60 @@ def test_llms_cli_resolve_unknown_name_exits_nonzero(tmp_path):
     )
     assert result.returncode == 1
     assert "Unknown LLM endpoint" in result.stderr
+
+
+def test_llms_cli_json_listing(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "## LLM Endpoints\n"
+            "- [One](https://one.example.com)\n"
+            "- [Two](https://two.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [sys.executable, "-m", "llms", str(llms_file), "--json"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload == [
+        {"name": "One", "url": "https://one.example.com"},
+        {"name": "Two", "url": "https://two.example.com"},
+    ]
+
+
+def test_llms_cli_json_resolve(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "## LLM Endpoints\n"
+            "- [Alpha](https://alpha.example.com)\n"
+            "- [Beta](https://beta.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "llms",
+            str(llms_file),
+            "--resolve",
+            "--name",
+            "beta",
+            "--json",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload == {
+        "name": "Beta",
+        "url": "https://beta.example.com",
+    }

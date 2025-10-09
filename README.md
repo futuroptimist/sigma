@@ -81,11 +81,18 @@ You can list the configured endpoints with:
 python -m llms
 ```
 
+Add `--json` to emit a machine-readable list of endpoints:
+
+```bash
+python -m llms --json
+```
+
 Resolve a single endpoint (respecting ``SIGMA_DEFAULT_LLM`` when set) with:
 
 ```bash
 python -m llms --resolve
 python -m llms --resolve --name OpenRouter
+python -m llms --resolve --name OpenRouter --json  # JSON object output
 ```
 
 When you're working outside the repository root, use the helper script which
