@@ -113,6 +113,10 @@ including cases where each fragment stores its text inside an object with a
 returned unchanged, and a `RuntimeError` is raised if a JSON response cannot be
 interpreted.
 
+When providers omit the aggregated `value` string but include `segments` or
+`parts`, the helper still combines those fragments so the final reply surfaces
+correctly.
+
 Most hosted providers also expect an `Authorization` header. Configure
 `SIGMA_LLM_AUTH_TOKEN` with your API key to add one automatically. The helper
 normalises the token by stripping whitespace and raises a `RuntimeError` if the

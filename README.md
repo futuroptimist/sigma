@@ -227,6 +227,10 @@ including segments whose `text` field is an object with a `value` string or a
 nested `segments`/`parts` list of further fragments. Plain-text responses are
 returned as-is.
 
+When an API leaves the aggregated `value` string empty but provides nested
+`segments` or `parts`, Sigma still stitches those fragments together so the
+reply is not lost.
+
 ```python
 from sigma import query_llm
 
