@@ -195,7 +195,8 @@ def _extract_text(data: Any) -> str | None:
                     if role is not None and role != "assistant":
                         continue
                     if "content" in message:
-                        message_text = _extract_message_content(message["content"])
+                        content_value = message["content"]
+                        message_text = _extract_message_content(content_value)
                     if message_text is None:
                         message_text = _extract_text_value(message)
                 else:
