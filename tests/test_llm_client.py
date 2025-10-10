@@ -255,6 +255,97 @@ def test_query_llm_handles_openai_content_value_objects(
     assert result.text == "Hello world"
 
 
+def test_query_llm_combines_value_and_segments(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    segments = [
+        {"text": " "},
+        {
+            "text": {
+                "value": "world",
+            }
+        },
+    ]
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": {
+                                            "value": "Hello",
+                                            "segments": segments,
+                                        },
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Segmented value", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
+def test_query_llm_combines_value_and_parts(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    nested_parts = [
+        {"text": " "},
+        {
+            "text": {
+                "value": "world",
+            }
+        },
+    ]
+    parts = [{"text": nested_parts}]
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": {
+                                            "value": "Hello",
+                                            "parts": parts,
+                                        },
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Parts value", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
 def test_query_llm_handles_responses_api_output(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
@@ -582,6 +673,7 @@ def test_query_llm_handles_messages_content(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
 ) -> None:
+    """Test parsing `messages[].content` arrays from multi-part responses."""
     base_url, handler = llm_test_server
     handler.responses.append(
         (
@@ -612,10 +704,83 @@ def test_query_llm_handles_messages_content(
     assert result.text == "Hello world"
 
 
+def test_query_llm_handles_generations_payload(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    """Test parsing Cohere-style `generations[].text` arrays."""
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "generations": [
+                        {"text": "Hello"},
+                        {"text": " world"},
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Cohere", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
+def test_query_llm_handles_generated_text_list(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    """Test parsing Hugging Face-style `generated_text` lists."""
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                [
+                    {"generated_text": "Hello"},
+                    {"generated_text": " world"},
+                ]
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("HuggingFace", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
+def test_query_llm_handles_generated_text_string(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    """Test parsing single `generated_text` strings."""
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"generated_text": "Standalone"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("HF string", path=llms_file)
+
+    assert result.text == "Standalone"
+
+
 def test_query_llm_handles_nested_response_messages(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
 ) -> None:
+    """Test parsing nested `response.messages[].content` arrays."""
     base_url, handler = llm_test_server
     handler.responses.append(
         (

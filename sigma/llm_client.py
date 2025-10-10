@@ -56,13 +56,16 @@ def _extract_text_value(value: Any) -> str | None:
         return value
     if isinstance(value, Mapping):
         # Merge both lists of primary keys for maximum API compatibility.
+        # When segment-like fields are present we aggregate all non-segment
+        # values first and then append the segments/parts so providers that
+        # leave the aggregated string empty still contribute fragments.
         primary_keys = (
             "response",
             "text",
-            "value",
             "content",
             "segments",
             "parts",
+            "value",
             "output",
             "outputs",
             "output_text",
@@ -71,12 +74,28 @@ def _extract_text_value(value: Any) -> str | None:
             "completion",
             "completions",
             "candidates",
+            "generations",
+            "generation",
+            "generated_text",
         )
+        has_segment_like = any(key in value for key in ("segments", "parts"))
+        fragments: list[str] = []
+        segment_fragments: list[str] = []
         for key in primary_keys:
             if key in value:
                 candidate = _extract_text_value(value[key])
-                if isinstance(candidate, str):
+                if not isinstance(candidate, str):
+                    continue
+                if not has_segment_like:
                     return candidate
+                if key in {"segments", "parts"}:
+                    segment_fragments.append(candidate)
+                else:
+                    fragments.append(candidate)
+        if has_segment_like and (fragments or segment_fragments):
+            return "".join(fragments + segment_fragments)
+        if fragments:
+            return "".join(fragments)
         # Also look inside common wrapper structures.
         for key in ("message", "messages", "delta", "data"):
             nested = value.get(key)
