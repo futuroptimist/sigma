@@ -218,7 +218,9 @@ shapes (`{"response": ...}`, `{"text": ...}`, OpenAI-style chat payloads
 deltas `{"choices": [{"delta": {"content": ...}}]}`, OpenAI Responses API
 payloads `{"output": [{"content": ...}]}` or `{"output_text": [...]}`,
 Anthropic-style collections such as `{"output": ...}` or `{"outputs": ...}`,
-or Google Gemini payloads shaped like `{"candidates": [{"content": {"parts": ...}}]}`.
+Cohere-style responses like `{"generations": [{"text": ...}]}`, Hugging Face
+replies shaped as `[{"generated_text": ...}]` or `{"generated_text": ...}`, or
+Google Gemini payloads shaped like `{"candidates": [{"content": {"parts": ...}}]}`.
 Nested response objects (for example `{"response": {"choices": ...}}`) are
 unwrapped automatically. When `message.content`, `delta.content`,
 `output[].content`, or `output_text` contains a list of text segments (as
@@ -230,6 +232,10 @@ When a provider supplies both a base `value` and additional `segments` or
 `parts`, the helper preserves the initial string and appends each nested
 fragment in order so streaming responses are reconstructed without missing
 tokens.
+
+When an API leaves the aggregated `value` string empty but provides nested
+`segments` or `parts`, Sigma still stitches those fragments together so the
+reply is not lost.
 
 ```python
 from sigma import query_llm
