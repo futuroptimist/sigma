@@ -171,7 +171,8 @@ def _build_authorisation_header() -> Mapping[str, str]:
 
 def _extract_text(data: Any) -> str | None:
     if isinstance(data, Mapping):
-        trimmed = {key: value for key, value in data.items() if key != "messages"}
+        trimmed = dict(data.items())
+        trimmed.pop("messages", None)
         direct = _extract_text_value(trimmed)
     else:
         direct = _extract_text_value(data)
