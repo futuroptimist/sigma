@@ -97,7 +97,7 @@ def _extract_text_value(value: Any) -> str | None:
         if fragments:
             return "".join(fragments)
         # Also look inside common wrapper structures.
-        for key in ("message", "delta", "data"):
+        for key in ("message", "messages", "delta", "data"):
             nested = value.get(key)
             if nested is not None:
                 candidate = _extract_text_value(nested)
@@ -189,7 +189,12 @@ def _build_authorisation_header() -> Mapping[str, str]:
 
 
 def _extract_text(data: Any) -> str | None:
-    direct = _extract_text_value(data)
+    if isinstance(data, Mapping):
+        trimmed = dict(data.items())
+        trimmed.pop("messages", None)
+        direct = _extract_text_value(trimmed)
+    else:
+        direct = _extract_text_value(data)
     if isinstance(direct, str):
         return direct
 
@@ -200,6 +205,29 @@ def _extract_text(data: Any) -> str | None:
                 choice_text = _extract_text_value(choice)
                 if isinstance(choice_text, str):
                     return choice_text
+        messages = data.get("messages")
+        if isinstance(messages, list):
+            assistant_fragments: list[str] = []
+            for message in messages:
+                message_text: str | None = None
+                if isinstance(message, Mapping):
+                    role = message.get("role")
+                    if role is not None and role != "assistant":
+                        continue
+                    if "content" in message:
+                        content_value = message["content"]
+                        message_text = _extract_message_content(content_value)
+                    if message_text is None:
+                        message_text = _extract_text_value(message)
+                else:
+                    message_text = _extract_text_value(message)
+                if isinstance(message_text, str):
+                    assistant_fragments.append(message_text)
+            if assistant_fragments:
+                return "".join(assistant_fragments)
+            message_text = _extract_text_value(messages)
+            if isinstance(message_text, str):
+                return message_text
         # Handle common response containers in different API formats.
         output = data.get("output")
         if isinstance(output, list):

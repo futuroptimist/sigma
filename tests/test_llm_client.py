@@ -122,6 +122,35 @@ def test_query_llm_handles_openai_message(
     assert result.text == "Sigma rocks!"
 
 
+def test_query_llm_prefers_choices_over_messages(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "choices": [
+                        {"message": {"content": "From choices"}},
+                    ],
+                    "messages": [
+                        {"role": "user", "content": "User question"},
+                        {"role": "assistant", "content": "From messages"},
+                    ],
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Explain Sigma", path=llms_file)
+
+    assert result.text == "From choices"
+
+
 def test_query_llm_handles_openai_content_list(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
@@ -152,6 +181,40 @@ def test_query_llm_handles_openai_content_list(
     result = query_llm("Segmented", path=llms_file)
 
     assert result.text == "Hello world"
+
+
+def test_query_llm_filters_non_assistant_messages(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "messages": [
+                        {"role": "system", "content": "You are helpful"},
+                        {"role": "user", "content": "Hi"},
+                        {"role": "assistant", "content": "Hello"},
+                        {
+                            "role": "assistant",
+                            "content": [
+                                {"type": "text", "text": " there"},
+                                {"type": "text", "text": "!"},
+                            ],
+                        },
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Hello?", path=llms_file)
+
+    assert result.text == "Hello there!"
 
 
 def test_query_llm_handles_openai_content_value_objects(
@@ -606,12 +669,46 @@ def test_query_llm_handles_gemini_candidates_content_list(
     assert result.text == "Hello world"
 
 
+def test_query_llm_handles_messages_content(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    """Test parsing `messages[].content` arrays from multi-part responses."""
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "messages": [
+                        {
+                            "role": "assistant",
+                            "content": [
+                                {"type": "text", "text": "Hello"},
+                                {
+                                    "type": "text",
+                                    "text": {"value": " world"},
+                                },
+                            ],
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Messages", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
 def test_query_llm_handles_generations_payload(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
 ) -> None:
-    """Test parsing Cohere-style ``generations`` arrays."""
-
+    """Test parsing Cohere-style `generations[].text` arrays."""
     base_url, handler = llm_test_server
     handler.responses.append(
         (
@@ -638,8 +735,7 @@ def test_query_llm_handles_generated_text_list(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
 ) -> None:
-    """Test parsing Hugging Face-style ``generated_text`` lists."""
-
+    """Test parsing Hugging Face-style `generated_text` lists."""
     base_url, handler = llm_test_server
     handler.responses.append(
         (
@@ -664,8 +760,7 @@ def test_query_llm_handles_generated_text_string(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
 ) -> None:
-    """Test parsing single ``generated_text`` strings."""
-
+    """Test parsing single `generated_text` strings."""
     base_url, handler = llm_test_server
     handler.responses.append(
         (
@@ -679,6 +774,53 @@ def test_query_llm_handles_generated_text_string(
     result = query_llm("HF string", path=llms_file)
 
     assert result.text == "Standalone"
+
+
+def test_query_llm_handles_nested_response_messages(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    """Test parsing nested `response.messages[].content` arrays."""
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "response": {
+                        "messages": [
+                            {
+                                "role": "assistant",
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": {
+                                            "value": {
+                                                "segments": [
+                                                    {"text": "Nested"},
+                                                    {
+                                                        "text": {
+                                                            "value": " reply",
+                                                        }
+                                                    },
+                                                ]
+                                            }
+                                        },
+                                    }
+                                ],
+                            }
+                        ]
+                    }
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Nested messages", path=llms_file)
+
+    assert result.text == "Nested reply"
 
 
 def test_query_llm_handles_plain_text(
