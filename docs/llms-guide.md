@@ -112,6 +112,9 @@ including cases where each fragment stores its text inside an object with a
 `value` string or a nested `segments`/`parts` array. Plain-text responses are
 returned unchanged, and a `RuntimeError` is raised if a JSON response cannot be
 interpreted.
+When providers send both a base `value` and additional `segments` or `parts`,
+the helper preserves the base text and appends the nested fragments in order so
+streaming completions remain intact.
 
 Most hosted providers also expect an `Authorization` header. Configure
 `SIGMA_LLM_AUTH_TOKEN` with your API key to add one automatically. The helper

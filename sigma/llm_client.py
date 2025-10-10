@@ -72,11 +72,19 @@ def _extract_text_value(value: Any) -> str | None:
             "completions",
             "candidates",
         )
+        has_segment_like = any(key in value for key in ("segments", "parts"))
+        fragments: list[str] = []
         for key in primary_keys:
             if key in value:
                 candidate = _extract_text_value(value[key])
-                if isinstance(candidate, str):
+                if not isinstance(candidate, str):
+                    continue
+                if has_segment_like:
+                    fragments.append(candidate)
+                else:
                     return candidate
+        if fragments:
+            return "".join(fragments)
         # Also look inside common wrapper structures.
         for key in ("message", "delta", "data"):
             nested = value.get(key)
