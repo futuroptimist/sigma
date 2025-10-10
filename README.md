@@ -284,6 +284,8 @@ can pipe content directly into the helper. Use `--path` to point at an
 alternate `llms.txt` file and `--show-json` to display the parsed JSON payload
   alongside the extracted text. When a response omits JSON the CLI still prints
   the text reply and logs a `Warning:`-prefixed message on standard error instead of failing.
+Trailing newline characters (including Windows-style `\r\n`) are stripped when
+reading from standard input so prompts arrive exactly as typed.
 
 ## Roadmap
 

@@ -408,7 +408,7 @@ def _read_prompt(arg_value: str | None) -> str:
     data = sys.stdin.read()
     if not data:
         raise RuntimeError("Prompt is required when standard input is empty.")
-    return data.rstrip("\n")
+    return data.rstrip("\r\n")
 
 
 def main(argv: list[str] | None = None) -> int:

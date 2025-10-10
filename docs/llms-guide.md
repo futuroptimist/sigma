@@ -146,6 +146,9 @@ supplied, making it easy to pipe prompts into the tool:
 echo "How windy is it today?" | python -m sigma.llm_client --path ~/custom-llms.txt
 ~~~
 
+Trailing newline characters—including Windows-style `\r\n` endings—are stripped
+when reading from standard input so the prompt text matches what you typed.
+
 Use `--path` to target a different `llms.txt` file and `--show-json` to print
 the parsed JSON payload alongside the extracted text response. When the
 response lacks JSON the CLI still prints the text reply and writes a

@@ -1210,6 +1210,41 @@ def test_llm_client_cli_basic(
     assert latest["prompt"] == "Hello from CLI"
 
 
+def test_llm_client_cli_reads_prompt_from_stdin(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "STDIN reply"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    prompt = "Hello from stdin"
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "sigma.llm_client",
+            "--path",
+            str(llms_file),
+        ],
+        input=f"{prompt}\r\n",
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.stdout.strip() == "STDIN reply"
+
+    latest = json.loads(_latest_request(handler)["body"].decode("utf-8"))
+    assert latest == {"prompt": prompt}
+
+
 def test_llm_client_cli_show_json_without_payload(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
