@@ -122,6 +122,35 @@ def test_query_llm_handles_openai_message(
     assert result.text == "Sigma rocks!"
 
 
+def test_query_llm_prefers_choices_over_messages(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "choices": [
+                        {"message": {"content": "From choices"}},
+                    ],
+                    "messages": [
+                        {"role": "user", "content": "User question"},
+                        {"role": "assistant", "content": "From messages"},
+                    ],
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Explain Sigma", path=llms_file)
+
+    assert result.text == "From choices"
+
+
 def test_query_llm_handles_openai_content_list(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
@@ -152,6 +181,40 @@ def test_query_llm_handles_openai_content_list(
     result = query_llm("Segmented", path=llms_file)
 
     assert result.text == "Hello world"
+
+
+def test_query_llm_filters_non_assistant_messages(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "messages": [
+                        {"role": "system", "content": "You are helpful"},
+                        {"role": "user", "content": "Hi"},
+                        {"role": "assistant", "content": "Hello"},
+                        {
+                            "role": "assistant",
+                            "content": [
+                                {"type": "text", "text": " there"},
+                                {"type": "text", "text": "!"},
+                            ],
+                        },
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Hello?", path=llms_file)
+
+    assert result.text == "Hello there!"
 
 
 def test_query_llm_handles_openai_content_value_objects(

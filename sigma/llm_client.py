@@ -71,7 +71,6 @@ def _extract_text_value(value: Any) -> str | None:
             "completion",
             "completions",
             "candidates",
-            "messages",
         )
         for key in primary_keys:
             if key in value:
@@ -171,7 +170,11 @@ def _build_authorisation_header() -> Mapping[str, str]:
 
 
 def _extract_text(data: Any) -> str | None:
-    direct = _extract_text_value(data)
+    if isinstance(data, Mapping):
+        trimmed = {key: value for key, value in data.items() if key != "messages"}
+        direct = _extract_text_value(trimmed)
+    else:
+        direct = _extract_text_value(data)
     if isinstance(direct, str):
         return direct
 
@@ -184,10 +187,26 @@ def _extract_text(data: Any) -> str | None:
                     return choice_text
         messages = data.get("messages")
         if isinstance(messages, list):
+            assistant_fragments: list[str] = []
             for message in messages:
-                message_text = _extract_text_value(message)
+                message_text: str | None = None
+                if isinstance(message, Mapping):
+                    role = message.get("role")
+                    if role is not None and role != "assistant":
+                        continue
+                    if "content" in message:
+                        message_text = _extract_message_content(message["content"])
+                    if message_text is None:
+                        message_text = _extract_text_value(message)
+                else:
+                    message_text = _extract_text_value(message)
                 if isinstance(message_text, str):
-                    return message_text
+                    assistant_fragments.append(message_text)
+            if assistant_fragments:
+                return "".join(assistant_fragments)
+            message_text = _extract_text_value(messages)
+            if isinstance(message_text, str):
+                return message_text
         # Handle common response containers in different API formats.
         output = data.get("output")
         if isinstance(output, list):
