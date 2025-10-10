@@ -515,6 +515,86 @@ def test_query_llm_handles_gemini_candidates_content_list(
     assert result.text == "Hello world"
 
 
+def test_query_llm_handles_messages_content(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "messages": [
+                        {
+                            "role": "assistant",
+                            "content": [
+                                {"type": "text", "text": "Hello"},
+                                {
+                                    "type": "text",
+                                    "text": {"value": " world"},
+                                },
+                            ],
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Messages", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
+def test_query_llm_handles_nested_response_messages(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "response": {
+                        "messages": [
+                            {
+                                "role": "assistant",
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": {
+                                            "value": {
+                                                "segments": [
+                                                    {"text": "Nested"},
+                                                    {
+                                                        "text": {
+                                                            "value": " reply",
+                                                        }
+                                                    },
+                                                ]
+                                            }
+                                        },
+                                    }
+                                ],
+                            }
+                        ]
+                    }
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Nested messages", path=llms_file)
+
+    assert result.text == "Nested reply"
+
+
 def test_query_llm_handles_plain_text(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],

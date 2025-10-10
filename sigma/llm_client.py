@@ -71,6 +71,7 @@ def _extract_text_value(value: Any) -> str | None:
             "completion",
             "completions",
             "candidates",
+            "messages",
         )
         for key in primary_keys:
             if key in value:
@@ -78,7 +79,7 @@ def _extract_text_value(value: Any) -> str | None:
                 if isinstance(candidate, str):
                     return candidate
         # Also look inside common wrapper structures.
-        for key in ("message", "delta", "data"):
+        for key in ("message", "messages", "delta", "data"):
             nested = value.get(key)
             if nested is not None:
                 candidate = _extract_text_value(nested)
@@ -181,6 +182,12 @@ def _extract_text(data: Any) -> str | None:
                 choice_text = _extract_text_value(choice)
                 if isinstance(choice_text, str):
                     return choice_text
+        messages = data.get("messages")
+        if isinstance(messages, list):
+            for message in messages:
+                message_text = _extract_text_value(message)
+                if isinstance(message_text, str):
+                    return message_text
         # Handle common response containers in different API formats.
         output = data.get("output")
         if isinstance(output, list):

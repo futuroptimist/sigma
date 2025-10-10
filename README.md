@@ -214,8 +214,9 @@ Use `sigma.query_llm` to send a prompt to the currently configured LLM endpoint.
 The helper resolves the endpoint via `llms.resolve_llm_endpoint`, sends a JSON
 payload containing the prompt, and extracts a sensible reply from common JSON
 shapes (`{"response": ...}`, `{"text": ...}`, OpenAI-style chat payloads
-`{"choices": [{"message": {"content": ...}}]}`, streaming-style
-deltas `{"choices": [{"delta": {"content": ...}}]}`, OpenAI Responses API
+`{"choices": [{"message": {"content": ...}}]}`, message arrays
+`{"messages": [{"content": ...}]}`, streaming-style deltas
+`{"choices": [{"delta": {"content": ...}}]}`, OpenAI Responses API
 payloads `{"output": [{"content": ...}]}` or `{"output_text": [...]}`,
 Anthropic-style collections such as `{"output": ...}` or `{"outputs": ...}`,
 or Google Gemini payloads shaped like `{"candidates": [{"content": {"parts": ...}}]}`.
