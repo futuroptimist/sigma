@@ -56,13 +56,15 @@ def _extract_text_value(value: Any) -> str | None:
         return value
     if isinstance(value, Mapping):
         # Merge both lists of primary keys for maximum API compatibility.
+        # Prefer "content"/"segments"/"parts" before "value" so providers
+        # that leave the aggregated string empty still contribute fragments.
         primary_keys = (
             "response",
             "text",
-            "value",
             "content",
             "segments",
             "parts",
+            "value",
             "output",
             "outputs",
             "output_text",
