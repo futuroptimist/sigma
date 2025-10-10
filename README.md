@@ -208,6 +208,26 @@ print(clamp(15, 0, 10))  # 10
 print(clamp(Decimal("1.5"), Decimal("0"), Decimal("2")))  # Decimal('1.5')
 ```
 
+### Text-to-Speech
+
+Sigma includes a tiny formant-based synthesiser so replies can be rendered to
+audio without external dependencies:
+
+```python
+from sigma import save_speech, synthesize_speech
+
+data = synthesize_speech("Sigma online and listening.")
+with open("reply.wav", "wb") as stream:
+    stream.write(data)
+
+# Convenience helper that writes the WAV file for you.
+save_speech("Button pressed, recording…", "status.wav")
+```
+
+The synthesiser outputs 16-bit mono WAV data (22,050 Hz by default) and accepts
+alphanumeric characters, punctuation, and whitespace. Provide a custom sample
+rate via the `sample_rate` keyword when you need a different playback speed.
+
 ### Querying an LLM
 
 Use `sigma.query_llm` to send a prompt to the currently configured LLM endpoint.
