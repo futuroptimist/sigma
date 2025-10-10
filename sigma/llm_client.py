@@ -71,6 +71,9 @@ def _extract_text_value(value: Any) -> str | None:
             "completion",
             "completions",
             "candidates",
+            "generations",
+            "generation",
+            "generated_text",
         )
         for key in primary_keys:
             if key in value:

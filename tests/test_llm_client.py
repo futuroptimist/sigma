@@ -515,6 +515,81 @@ def test_query_llm_handles_gemini_candidates_content_list(
     assert result.text == "Hello world"
 
 
+def test_query_llm_handles_generations_payload(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    """Test parsing Cohere-style ``generations`` arrays."""
+
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "generations": [
+                        {"text": "Hello"},
+                        {"text": " world"},
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Cohere", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
+def test_query_llm_handles_generated_text_list(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    """Test parsing Hugging Face-style ``generated_text`` lists."""
+
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                [
+                    {"generated_text": "Hello"},
+                    {"generated_text": " world"},
+                ]
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("HuggingFace", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
+def test_query_llm_handles_generated_text_string(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    """Test parsing single ``generated_text`` strings."""
+
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"generated_text": "Standalone"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("HF string", path=llms_file)
+
+    assert result.text == "Standalone"
+
+
 def test_query_llm_handles_plain_text(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
