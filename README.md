@@ -228,6 +228,10 @@ returned by newer OpenAI APIs) the helper concatenates the pieces automatically,
 including segments whose `text` field is an object with a `value` string or a
 nested `segments`/`parts` list of further fragments. Plain-text responses are
 returned as-is.
+When a provider supplies both a base `value` and additional `segments` or
+`parts`, the helper preserves the initial string and appends each nested
+fragment in order so streaming responses are reconstructed without missing
+tokens.
 
 When an API leaves the aggregated `value` string empty but provides nested
 `segments` or `parts`, Sigma still stitches those fragments together so the

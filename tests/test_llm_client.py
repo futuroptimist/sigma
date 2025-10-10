@@ -192,11 +192,19 @@ def test_query_llm_handles_openai_content_value_objects(
     assert result.text == "Hello world"
 
 
-def test_query_llm_prefers_segments_when_value_empty(
+def test_query_llm_combines_value_and_segments(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
 ) -> None:
     base_url, handler = llm_test_server
+    segments = [
+        {"text": " "},
+        {
+            "text": {
+                "value": "world",
+            }
+        },
+    ]
     handler.responses.append(
         (
             200,
@@ -208,13 +216,10 @@ def test_query_llm_prefers_segments_when_value_empty(
                             "message": {
                                 "content": [
                                     {
-                                        "type": "text",
+                                        "type": "output_text",
                                         "text": {
-                                            "value": "",
-                                            "segments": [
-                                                {"text": "Hello"},
-                                                {"text": " world"},
-                                            ],
+                                            "value": "Hello",
+                                            "segments": segments,
                                         },
                                     }
                                 ]
@@ -227,7 +232,53 @@ def test_query_llm_prefers_segments_when_value_empty(
     )
     llms_file = _write_llms_file(tmp_path, base_url)
 
-    result = query_llm("Segments", path=llms_file)
+    result = query_llm("Segmented value", path=llms_file)
+
+    assert result.text == "Hello world"
+
+
+def test_query_llm_combines_value_and_parts(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    nested_parts = [
+        {"text": " "},
+        {
+            "text": {
+                "value": "world",
+            }
+        },
+    ]
+    parts = [{"text": nested_parts}]
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": {
+                                            "value": "Hello",
+                                            "parts": parts,
+                                        },
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Parts value", path=llms_file)
 
     assert result.text == "Hello world"
 
