@@ -218,7 +218,9 @@ shapes (`{"response": ...}`, `{"text": ...}`, OpenAI-style chat payloads
 deltas `{"choices": [{"delta": {"content": ...}}]}`, OpenAI Responses API
 payloads `{"output": [{"content": ...}]}` or `{"output_text": [...]}`,
 Anthropic-style collections such as `{"output": ...}` or `{"outputs": ...}`,
-or Google Gemini payloads shaped like `{"candidates": [{"content": {"parts": ...}}]}`.
+Cohere-style responses like `{"generations": [{"text": ...}]}`, Hugging Face
+replies shaped as `[{"generated_text": ...}]` or `{"generated_text": ...}`, or
+Google Gemini payloads shaped like `{"candidates": [{"content": {"parts": ...}}]}`.
 Nested response objects (for example `{"response": {"choices": ...}}`) are
 unwrapped automatically. When `message.content`, `delta.content`,
 `output[].content`, or `output_text` contains a list of text segments (as

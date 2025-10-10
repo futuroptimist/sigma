@@ -103,8 +103,10 @@ present, ensuring helper callers retain control of the final prompt value. Pass
 from common response shapes (`response`, `text`, the first
 `choices[].message.content`, streaming deltas in `choices[].delta.content`,
 OpenAI Responses API payloads in `output[].content` or `output_text`,
-Anthropic-style collections such as `output` or `outputs`, or Google Gemini
-payloads shaped like `candidates[].content.parts`). Nested `response` objects are handled
+Anthropic-style collections such as `output` or `outputs`, Cohere-style
+responses like `generations[].text`, Hugging Face payloads in
+`generated_text` arrays or objects, or Google Gemini payloads shaped like
+`candidates[].content.parts`). Nested `response` objects are handled
 recursively so wrappers like `{"response": {"choices": ...}}` resolve correctly.
 If the message, delta, output content, or `output_text` is provided as a list of
 text fragments (as in the latest OpenAI APIs) the helper concatenates the segments for you,
