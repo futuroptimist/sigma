@@ -84,11 +84,10 @@ def _extract_text_value(value: Any) -> str | None:
             "generation",
         }
         has_segment_like = any(key in value for key in segment_keys)
-        prefix_candidates: list[tuple[str, str]] = []
+        text_candidates: list[tuple[str, str]] = []
         post_fragments: list[str] = []
         segment_fragments: list[str] = []
         value_fragment: str | None = None
-        deferred_trailing: list[str] = []
 
         for key in value:
             if key in segment_keys:
@@ -109,60 +108,83 @@ def _extract_text_value(value: Any) -> str | None:
                 candidate = _extract_text_value(value[key])
                 if not isinstance(candidate, str):
                     continue
-                if not has_segment_like:
-                    if (
-                        key in trailing_only_keys
-                        and "value" in value
-                    ):
-                        deferred_trailing.append(candidate)
-                        continue
-                    if value_fragment is not None:
-                        post_fragments.append(candidate)
-                        continue
-                    return candidate
-                if value_fragment is None:
-                    prefix_candidates.append((key, candidate))
-                else:
-                    post_fragments.append(candidate)
+                text_candidates.append((key, candidate))
+
+        def _pop_primary(candidates: list[tuple[str, str]]) -> str | None:
+            for index, (
+                candidate_key,
+                _candidate_text,
+            ) in enumerate(candidates):
+                if candidate_key not in trailing_only_keys:
+                    return candidates.pop(index)[1]
+            if candidates:
+                return candidates.pop(0)[1]
+            return None
 
         if not has_segment_like:
-            if value_fragment is not None:
-                ordered = [value_fragment]
-                if post_fragments:
-                    ordered.extend(post_fragments)
-                if deferred_trailing:
-                    ordered.extend(deferred_trailing)
+            ordered: list[str] = []
+            trailing: list[str] = []
+            base_fragment = (
+                value_fragment
+                if value_fragment is not None
+                else _pop_primary(text_candidates)
+            )
+            if base_fragment is not None:
+                ordered.append(base_fragment)
+            if text_candidates:
+                non_trailing: list[str] = []
+                trailing_only: list[str] = []
+                for candidate_key, candidate_text in text_candidates:
+                    if candidate_key in trailing_only_keys:
+                        trailing_only.append(candidate_text)
+                    else:
+                        non_trailing.append(candidate_text)
+                trailing.extend(non_trailing)
+                trailing.extend(trailing_only)
+            if post_fragments:
+                trailing.extend(post_fragments)
+            if trailing:
+                ordered.extend(trailing)
+            if ordered:
                 return "".join(ordered)
-            if prefix_candidates:
-                return "".join(text for _, text in prefix_candidates)
-            if deferred_trailing:
-                return "".join(deferred_trailing)
+            if text_candidates:
+                joined_candidates_parts: list[str] = []
+                for _candidate_key, candidate_text in text_candidates:
+                    joined_candidates_parts.append(candidate_text)
+                return "".join(joined_candidates_parts)
         if has_segment_like:
             ordered_fragments: list[str] = []
             trailing_fragments: list[str] = []
-            if value_fragment is None and prefix_candidates:
-                selected_index: int | None = None
-                for index, (candidate_key, _candidate_text) in enumerate(prefix_candidates):
-                    if candidate_key not in trailing_only_keys:
-                        selected_index = index
-                        break
-                if selected_index is None:
-                    selected_index = len(prefix_candidates) - 1
-                value_fragment = prefix_candidates.pop(selected_index)[1]
-            if value_fragment is not None:
-                ordered_fragments.append(value_fragment)
+            base_fragment = (
+                value_fragment
+                if value_fragment is not None
+                else _pop_primary(text_candidates)
+            )
+            if base_fragment is not None:
+                ordered_fragments.append(base_fragment)
             if segment_fragments:
                 ordered_fragments.extend(segment_fragments)
-            if prefix_candidates:
-                trailing_fragments.extend(text for _, text in prefix_candidates)
+            if text_candidates:
+                non_trailing: list[str] = []
+                trailing_only: list[str] = []
+                for candidate_key, candidate_text in text_candidates:
+                    if candidate_key in trailing_only_keys:
+                        trailing_only.append(candidate_text)
+                    else:
+                        non_trailing.append(candidate_text)
+                trailing_fragments.extend(non_trailing)
+                trailing_fragments.extend(trailing_only)
             if post_fragments:
                 trailing_fragments.extend(post_fragments)
             if trailing_fragments:
                 ordered_fragments.extend(trailing_fragments)
             if ordered_fragments:
                 return "".join(ordered_fragments)
-        if prefix_candidates:
-            return "".join(text for _, text in prefix_candidates)
+        if text_candidates:
+            joined_candidates_parts: list[str] = []
+            for _candidate_key, candidate_text in text_candidates:
+                joined_candidates_parts.append(candidate_text)
+            return "".join(joined_candidates_parts)
         # Also look inside common wrapper structures.
         for key in ("message", "messages", "delta", "data"):
             nested = value.get(key)
