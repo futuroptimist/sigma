@@ -331,6 +331,34 @@ alternate `llms.txt` file and `--show-json` to display the parsed JSON payload
   alongside the extracted text. When a response omits JSON the CLI still prints
   the text reply and logs a `Warning:`-prefixed message on standard error instead of failing.
 
+### Orchestrating a conversation
+
+When you want to stitch Whisper, the LLM client, and text-to-speech into a
+single round trip, call `sigma.conversation.run_conversation`. The helper
+transcribes your audio clip, forwards the transcript (or a formatted prompt) to
+the configured LLM, and returns a synthesized WAV response:
+
+```python
+from sigma.conversation import run_conversation
+
+result = run_conversation(
+    "mic-input.wav",
+    whisper_model="base.en",
+    llm_name="OpenRouter",
+    prompt_template="Answer briefly: {transcript}",
+    output_path="reply.wav",
+)
+
+print(result.transcript.text)
+print(result.llm.text)
+```
+
+Set `prompt_template=None` when your `llm_extra_payload` already supplies a
+structured body (such as chat `messages`), or pass an explicit `prompt` string
+to override the transcript entirely. The template receives the recognised
+transcript and detected language (`{transcript}` and `{language}`) so you can add
+context before querying the model.
+
 ## Roadmap
 
 - [ ] Breadboard MVP with a button toggling an LED

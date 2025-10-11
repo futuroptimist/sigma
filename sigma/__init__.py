@@ -1,5 +1,6 @@
 """Sigma utility package."""
 
+from .conversation import ConversationResult, run_conversation
 from .llm_client import LLMResponse, query_llm
 from .tts import save_speech, synthesize_speech
 from .utils import average_percentile, clamp, percentile_rank
@@ -15,4 +16,6 @@ __all__ = [
     "WhisperResult",
     "synthesize_speech",
     "save_speech",
+    "run_conversation",
+    "ConversationResult",
 ]
