@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import json
+import math
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -149,7 +150,15 @@ def transcribe_audio(
             raise TypeError("language must be a string when provided")
         payload["language"] = language
     if temperature is not None:
-        payload["temperature"] = temperature
+        if isinstance(temperature, bool):
+            raise TypeError("temperature must be a finite number")
+        try:
+            numeric_temperature = float(temperature)
+        except (TypeError, ValueError) as exc:
+            raise TypeError("temperature must be a finite number") from exc
+        if not math.isfinite(numeric_temperature):
+            raise ValueError("temperature must be a finite number")
+        payload["temperature"] = numeric_temperature
     if extra_params is not None:
         if not isinstance(extra_params, Mapping):
             message = "extra_params must be a mapping if provided"
