@@ -55,17 +55,11 @@ def _extract_text_value(value: Any) -> str | None:
     if isinstance(value, str):
         return value
     if isinstance(value, Mapping):
-        # Merge both lists of primary keys for maximum API compatibility.
-        # When segment-like fields are present we aggregate all non-segment
-        # values first and then append the segments/parts so providers that
-        # leave the aggregated string empty still contribute fragments.
-        primary_keys = (
+        segment_keys = ("segments", "parts")
+        text_keys = (
             "response",
             "text",
             "content",
-            "segments",
-            "parts",
-            "value",
             "output",
             "outputs",
             "output_text",
@@ -78,24 +72,119 @@ def _extract_text_value(value: Any) -> str | None:
             "generation",
             "generated_text",
         )
-        has_segment_like = any(key in value for key in ("segments", "parts"))
-        fragments: list[str] = []
+        trailing_only_keys = {
+            "output",
+            "outputs",
+            "result",
+            "results",
+            "completion",
+            "completions",
+            "candidates",
+            "generations",
+            "generation",
+        }
+        has_segment_like = any(key in value for key in segment_keys)
+        text_candidates: list[tuple[str, str]] = []
+        post_fragments: list[str] = []
         segment_fragments: list[str] = []
-        for key in primary_keys:
-            if key in value:
+        value_fragment: str | None = None
+
+        for key in value:
+            if key in segment_keys:
+                candidate = _extract_text_value(value[key])
+                if isinstance(candidate, str):
+                    segment_fragments.append(candidate)
+                continue
+            if key == "value":
                 candidate = _extract_text_value(value[key])
                 if not isinstance(candidate, str):
                     continue
-                if not has_segment_like:
-                    return candidate
-                if key in {"segments", "parts"}:
-                    segment_fragments.append(candidate)
+                if value_fragment is None:
+                    value_fragment = candidate
                 else:
-                    fragments.append(candidate)
-        if has_segment_like and (fragments or segment_fragments):
-            return "".join(fragments + segment_fragments)
-        if fragments:
-            return "".join(fragments)
+                    post_fragments.append(candidate)
+                continue
+            if key in text_keys:
+                candidate = _extract_text_value(value[key])
+                if not isinstance(candidate, str):
+                    continue
+                text_candidates.append((key, candidate))
+
+        def _pop_primary(candidates: list[tuple[str, str]]) -> str | None:
+            for index, (
+                candidate_key,
+                _candidate_text,
+            ) in enumerate(candidates):
+                if candidate_key not in trailing_only_keys:
+                    return candidates.pop(index)[1]
+            if candidates:
+                return candidates.pop(0)[1]
+            return None
+
+        if not has_segment_like:
+            ordered: list[str] = []
+            trailing: list[str] = []
+            base_fragment = (
+                value_fragment
+                if value_fragment is not None
+                else _pop_primary(text_candidates)
+            )
+            if base_fragment is not None:
+                ordered.append(base_fragment)
+            if text_candidates:
+                non_trailing: list[str] = []
+                trailing_only: list[str] = []
+                for candidate_key, candidate_text in text_candidates:
+                    if candidate_key in trailing_only_keys:
+                        trailing_only.append(candidate_text)
+                    else:
+                        non_trailing.append(candidate_text)
+                trailing.extend(non_trailing)
+                trailing.extend(trailing_only)
+            if post_fragments:
+                trailing.extend(post_fragments)
+            if trailing:
+                ordered.extend(trailing)
+            if ordered:
+                return "".join(ordered)
+            if text_candidates:
+                joined_candidates_parts: list[str] = []
+                for _candidate_key, candidate_text in text_candidates:
+                    joined_candidates_parts.append(candidate_text)
+                return "".join(joined_candidates_parts)
+        if has_segment_like:
+            ordered_fragments: list[str] = []
+            trailing_fragments: list[str] = []
+            base_fragment = (
+                value_fragment
+                if value_fragment is not None
+                else _pop_primary(text_candidates)
+            )
+            if base_fragment is not None:
+                ordered_fragments.append(base_fragment)
+            if segment_fragments:
+                ordered_fragments.extend(segment_fragments)
+            if text_candidates:
+                non_trailing: list[str] = []
+                trailing_only: list[str] = []
+                for candidate_key, candidate_text in text_candidates:
+                    if candidate_key in trailing_only_keys:
+                        trailing_only.append(candidate_text)
+                    else:
+                        non_trailing.append(candidate_text)
+                trailing_fragments.extend(non_trailing)
+                trailing_fragments.extend(trailing_only)
+            if post_fragments:
+                trailing_fragments.extend(post_fragments)
+            if trailing_fragments:
+                ordered_fragments.extend(trailing_fragments)
+            if ordered_fragments:
+                return "".join(ordered_fragments)
+        if text_candidates:
+            joined_candidates_parts: list[str] = []
+            for _candidate_key, candidate_text in text_candidates:
+                joined_candidates_parts.append(candidate_text)
+            return "".join(joined_candidates_parts)
         # Also look inside common wrapper structures.
         for key in ("message", "messages", "delta", "data"):
             nested = value.get(key)

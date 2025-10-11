@@ -276,6 +276,10 @@ When a provider supplies both a base `value` and additional `segments` or
 fragment in order so streaming responses are reconstructed without missing
 tokens.
 
+Additional response fields (such as trailing `outputs` arrays) are appended
+after the reconstructed base-and-segment text so the streamed content remains
+contiguous before any provider-specific extras.
+
 When an API leaves the aggregated `value` string empty but provides nested
 `segments` or `parts`, Sigma still stitches those fragments together so the
 reply is not lost.

@@ -300,6 +300,168 @@ def test_query_llm_combines_value_and_segments(
     assert result.text == "Hello world"
 
 
+def test_query_llm_appends_segments_before_trailing_fields(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": {
+                                            "segments": [
+                                                {"text": " world"},
+                                            ],
+                                            "value": "Hello",
+                                            "outputs": [
+                                                {"text": "!"},
+                                            ],
+                                        },
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Segment ordering", path=llms_file)
+
+    assert result.text == "Hello world!"
+
+
+def test_query_llm_keeps_extras_after_value_even_if_listed_first(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": {
+                                            "outputs": [
+                                                {"text": "!"},
+                                            ],
+                                            "value": "Hello",
+                                            "segments": [
+                                                {"text": " world"},
+                                            ],
+                                        },
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Segment ordering", path=llms_file)
+
+    assert result.text == "Hello world!"
+
+
+def test_query_llm_keeps_extras_after_value_without_segments(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": {
+                                            "outputs": [
+                                                {"text": "!"},
+                                            ],
+                                            "value": "Hello",
+                                        },
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Segment ordering", path=llms_file)
+
+    assert result.text == "Hello!"
+
+
+def test_query_llm_keeps_extras_after_text_without_value(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": {
+                                            "outputs": [
+                                                {"text": "!"},
+                                            ],
+                                            "text": "Hello",
+                                        },
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Segment ordering", path=llms_file)
+
+    assert result.text == "Hello!"
+
+
 def test_query_llm_combines_value_and_parts(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
