@@ -153,3 +153,13 @@ the parsed JSON payload alongside the extracted text response. When the
 response lacks JSON the CLI still prints the text reply and writes a
 `Warning:`-prefixed message to standard error. Provider-specific options can be
 supplied via `--extra` as a JSON object string.
+
+## Full Conversation Helper
+
+Call `sigma.conversation.run_conversation` when you want a single helper to
+transcribe an audio clip, query the configured LLM, and synthesise the reply.
+The helper accepts the same Whisper and LLM configuration parameters you would
+pass to `transcribe_audio` and `query_llm`, plus a `prompt_template` so you can
+decorate the transcript before it reaches the model. Provide `output_path` to
+write the generated WAV bytes to disk while still receiving them as part of the
+returned `ConversationResult` dataclass.
