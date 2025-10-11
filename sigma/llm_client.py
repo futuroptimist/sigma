@@ -72,11 +72,23 @@ def _extract_text_value(value: Any) -> str | None:
             "generation",
             "generated_text",
         )
+        trailing_only_keys = {
+            "output",
+            "outputs",
+            "result",
+            "results",
+            "completion",
+            "completions",
+            "candidates",
+            "generations",
+            "generation",
+        }
         has_segment_like = any(key in value for key in segment_keys)
         prefix_candidates: list[tuple[str, str]] = []
         post_fragments: list[str] = []
         segment_fragments: list[str] = []
         value_fragment: str | None = None
+        deferred_trailing: list[str] = []
 
         for key in value:
             if key in segment_keys:
@@ -88,8 +100,6 @@ def _extract_text_value(value: Any) -> str | None:
                 candidate = _extract_text_value(value[key])
                 if not isinstance(candidate, str):
                     continue
-                if not has_segment_like:
-                    return candidate
                 if value_fragment is None:
                     value_fragment = candidate
                 else:
@@ -100,27 +110,37 @@ def _extract_text_value(value: Any) -> str | None:
                 if not isinstance(candidate, str):
                     continue
                 if not has_segment_like:
+                    if (
+                        key in trailing_only_keys
+                        and "value" in value
+                    ):
+                        deferred_trailing.append(candidate)
+                        continue
+                    if value_fragment is not None:
+                        post_fragments.append(candidate)
+                        continue
                     return candidate
                 if value_fragment is None:
                     prefix_candidates.append((key, candidate))
                 else:
                     post_fragments.append(candidate)
 
+        if not has_segment_like:
+            if value_fragment is not None:
+                ordered = [value_fragment]
+                if post_fragments:
+                    ordered.extend(post_fragments)
+                if deferred_trailing:
+                    ordered.extend(deferred_trailing)
+                return "".join(ordered)
+            if prefix_candidates:
+                return "".join(text for _, text in prefix_candidates)
+            if deferred_trailing:
+                return "".join(deferred_trailing)
         if has_segment_like:
             ordered_fragments: list[str] = []
             trailing_fragments: list[str] = []
             if value_fragment is None and prefix_candidates:
-                trailing_only_keys = {
-                    "output",
-                    "outputs",
-                    "result",
-                    "results",
-                    "completion",
-                    "completions",
-                    "candidates",
-                    "generations",
-                    "generation",
-                }
                 selected_index: int | None = None
                 for index, (candidate_key, _candidate_text) in enumerate(prefix_candidates):
                     if candidate_key not in trailing_only_keys:
