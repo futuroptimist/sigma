@@ -208,6 +208,28 @@ print(clamp(15, 0, 10))  # 10
 print(clamp(Decimal("1.5"), Decimal("0"), Decimal("2")))  # Decimal('1.5')
 ```
 
+### Speech recognition
+
+Sigma ships a helper for sending audio clips to a local
+[`whisper.cpp`](https://github.com/ggerganov/whisper.cpp) server. The
+`transcribe_audio` function accepts raw bytes, file paths, or file-like objects
+and posts the clip as base64-encoded JSON to
+`http://127.0.0.1:8080/inference` (override the URL to match your deployment).
+It returns a `WhisperResult` containing the decoded text, response metadata,
+and an optional language hint reported by the server:
+
+```python
+from sigma import transcribe_audio
+
+result = transcribe_audio("/tmp/clip.wav", model="base.en", language="en")
+print(result.text)
+print(result.language)
+```
+
+Pass `extra_params={...}` to forward provider-specific arguments to the
+service—any values you include are merged into the JSON body alongside the
+encoded audio.
+
 ### Querying an LLM
 
 Use `sigma.query_llm` to send a prompt to the currently configured LLM endpoint.
