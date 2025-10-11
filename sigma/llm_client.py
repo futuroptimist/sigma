@@ -73,7 +73,7 @@ def _extract_text_value(value: Any) -> str | None:
             "generated_text",
         )
         has_segment_like = any(key in value for key in segment_keys)
-        prefix_fragments: list[str] = []
+        prefix_candidates: list[tuple[str, str]] = []
         post_fragments: list[str] = []
         segment_fragments: list[str] = []
         value_fragment: str | None = None
@@ -102,24 +102,47 @@ def _extract_text_value(value: Any) -> str | None:
                 if not has_segment_like:
                     return candidate
                 if value_fragment is None:
-                    prefix_fragments.append(candidate)
+                    prefix_candidates.append((key, candidate))
                 else:
                     post_fragments.append(candidate)
 
         if has_segment_like:
             ordered_fragments: list[str] = []
-            if prefix_fragments:
-                ordered_fragments.extend(prefix_fragments)
+            trailing_fragments: list[str] = []
+            if value_fragment is None and prefix_candidates:
+                trailing_only_keys = {
+                    "output",
+                    "outputs",
+                    "result",
+                    "results",
+                    "completion",
+                    "completions",
+                    "candidates",
+                    "generations",
+                    "generation",
+                }
+                selected_index: int | None = None
+                for index, (candidate_key, _candidate_text) in enumerate(prefix_candidates):
+                    if candidate_key not in trailing_only_keys:
+                        selected_index = index
+                        break
+                if selected_index is None:
+                    selected_index = len(prefix_candidates) - 1
+                value_fragment = prefix_candidates.pop(selected_index)[1]
             if value_fragment is not None:
                 ordered_fragments.append(value_fragment)
             if segment_fragments:
                 ordered_fragments.extend(segment_fragments)
+            if prefix_candidates:
+                trailing_fragments.extend(text for _, text in prefix_candidates)
             if post_fragments:
-                ordered_fragments.extend(post_fragments)
+                trailing_fragments.extend(post_fragments)
+            if trailing_fragments:
+                ordered_fragments.extend(trailing_fragments)
             if ordered_fragments:
                 return "".join(ordered_fragments)
-        if prefix_fragments:
-            return "".join(prefix_fragments)
+        if prefix_candidates:
+            return "".join(text for _, text in prefix_candidates)
         # Also look inside common wrapper structures.
         for key in ("message", "messages", "delta", "data"):
             nested = value.get(key)
