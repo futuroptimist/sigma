@@ -228,7 +228,9 @@ print(result.language)
 
 Pass `extra_params={...}` to forward provider-specific arguments to the
 service—any values you include are merged into the JSON body alongside the
-encoded audio.
+encoded audio. String paths expand environment variables and `~`, so
+`transcribe_audio("~/clips/status.wav")` reads from your home directory without
+extra path handling.
 
 ### Text-to-Speech
 

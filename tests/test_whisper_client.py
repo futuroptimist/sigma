@@ -126,6 +126,51 @@ def test_transcribe_audio_accepts_path(
     assert base64.b64decode(payload["audio"]) == b"audio-bytes"
 
 
+def test_transcribe_audio_expands_path(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    whisper_test_server: ServerFixture,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.extend(
+        [
+            (
+                200,
+                {"Content-Type": "application/json"},
+                json.dumps({"text": "first"}).encode("utf-8"),
+            ),
+            (
+                200,
+                {"Content-Type": "application/json"},
+                json.dumps({"text": "second"}).encode("utf-8"),
+            ),
+        ]
+    )
+
+    audio_path = tmp_path / "clip.raw"
+    audio_path.write_bytes(b"bytes")
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("SIGMA_AUDIO_DIR", str(tmp_path))
+
+    first = transcribe_audio(
+        "~/clip.raw",
+        url=f"{base_url}/inference",
+    )
+    second = transcribe_audio(
+        "$SIGMA_AUDIO_DIR/clip.raw",
+        url=f"{base_url}/inference",
+    )
+
+    assert first.text == "first"
+    assert second.text == "second"
+
+    assert len(handler.requests) == 2
+    payload_one = json.loads(handler.requests[0]["body"].decode("utf-8"))
+    payload_two = json.loads(handler.requests[1]["body"].decode("utf-8"))
+    assert base64.b64decode(payload_one["audio"]) == b"bytes"
+    assert base64.b64decode(payload_two["audio"]) == b"bytes"
+
+
 def test_transcribe_audio_accepts_file_object(
     whisper_test_server: ServerFixture,
 ) -> None:

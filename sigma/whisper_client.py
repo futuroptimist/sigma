@@ -50,7 +50,8 @@ def _coerce_audio_bytes(audio: Any) -> bytes:
     if isinstance(audio, (bytes, bytearray, memoryview)):
         data = bytes(audio)
     elif isinstance(audio, (str, os.PathLike)):
-        data = Path(audio).read_bytes()
+        expanded = Path(os.path.expandvars(os.fspath(audio))).expanduser()
+        data = expanded.read_bytes()
     else:
         if not hasattr(audio, "read"):
             message = "audio must be bytes, a path, or a binary file object"
