@@ -230,6 +230,12 @@ Pass `extra_params={...}` to forward provider-specific arguments to the
 service—any values you include are merged into the JSON body alongside the
 encoded audio.
 
+Secure Whisper deployments often expect an `Authorization` header. Set
+`SIGMA_WHISPER_AUTH_TOKEN` to inject one automatically; the value is trimmed
+before use, and a `RuntimeError` is raised if the variable is present but
+empty. Provide an optional `SIGMA_WHISPER_AUTH_SCHEME` to override the default
+`Bearer` prefix (set it to an empty string to send the raw token).
+
 ### Text-to-Speech
 
 Sigma includes a tiny formant-based synthesiser so replies can be rendered to

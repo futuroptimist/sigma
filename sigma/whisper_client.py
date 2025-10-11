@@ -42,6 +42,8 @@ class WhisperResult:
 
 _DEFAULT_WHISPER_URL = "http://127.0.0.1:8080/inference"
 _ERR_NO_TRANSCRIPT = "Whisper server response did not include a transcription"
+_AUTH_TOKEN_ENV = "SIGMA_WHISPER_AUTH_TOKEN"
+_AUTH_SCHEME_ENV = "SIGMA_WHISPER_AUTH_SCHEME"
 
 
 def _coerce_audio_bytes(audio: Any) -> bytes:
@@ -124,6 +126,29 @@ def _extract_transcript(value: Any) -> tuple[str | None, str | None]:
     return None, None
 
 
+def _build_authorisation_header() -> dict[str, str]:
+    """Return optional ``Authorization`` header derived from environment."""
+
+    token_raw = os.getenv(_AUTH_TOKEN_ENV)
+    if token_raw is None:
+        return {}
+    token = token_raw.strip()
+    if not token:
+        message = (
+            f"Environment variable {_AUTH_TOKEN_ENV} is set "
+            "but empty after stripping."
+        )
+        raise RuntimeError(message)
+
+    scheme_raw = os.getenv(_AUTH_SCHEME_ENV)
+    scheme = scheme_raw.strip() if scheme_raw is not None else "Bearer"
+    if not scheme:
+        value = token
+    else:
+        value = f"{scheme} {token}"
+    return {"Authorization": value}
+
+
 def transcribe_audio(
     audio: bytes | bytearray | memoryview | str | os.PathLike[str] | BinaryIO,
     *,
@@ -164,6 +189,7 @@ def transcribe_audio(
         "Content-Type": "application/json; charset=utf-8",
         "Accept": "application/json, text/plain",
     }
+    headers.update(_build_authorisation_header())
 
     req = request.Request(url, data=body, headers=headers, method="POST")
 
