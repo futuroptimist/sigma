@@ -234,3 +234,76 @@ def test_transcribe_audio_http_error(
 
     with pytest.raises(RuntimeError, match="HTTP status 400"):
         transcribe_audio(b"bytes", url=f"{base_url}/inference")
+
+
+def test_transcribe_audio_includes_authorisation_header(
+    whisper_test_server: ServerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
+        )
+    )
+    monkeypatch.setenv("SIGMA_WHISPER_AUTH_TOKEN", "secret-token")
+
+    transcribe_audio(b"auth", url=f"{base_url}/inference")
+
+    headers = _latest_request(handler)["headers"]
+    assert headers.get("authorization") == "Bearer secret-token"
+
+
+def test_transcribe_audio_customises_authorisation_scheme(
+    whisper_test_server: ServerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
+        )
+    )
+    monkeypatch.setenv("SIGMA_WHISPER_AUTH_TOKEN", "abc123")
+    monkeypatch.setenv("SIGMA_WHISPER_AUTH_SCHEME", "ApiKey")
+
+    transcribe_audio(b"first", url=f"{base_url}/inference")
+
+    first_headers = _latest_request(handler)["headers"].copy()
+    assert first_headers.get("authorization") == "ApiKey abc123"
+
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
+        )
+    )
+    monkeypatch.setenv("SIGMA_WHISPER_AUTH_SCHEME", "   ")
+
+    transcribe_audio(b"second", url=f"{base_url}/inference")
+
+    second_headers = _latest_request(handler)["headers"]
+    assert second_headers.get("authorization") == "abc123"
+
+
+def test_transcribe_audio_empty_authorisation_token_raises(
+    whisper_test_server: ServerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
+        )
+    )
+    monkeypatch.setenv("SIGMA_WHISPER_AUTH_TOKEN", "   ")
+
+    with pytest.raises(RuntimeError, match="SIGMA_WHISPER_AUTH_TOKEN"):
+        transcribe_audio(b"bytes", url=f"{base_url}/inference")
