@@ -116,7 +116,9 @@ array. Plain-text responses are returned unchanged, and a `RuntimeError` is
 raised if a JSON response cannot be interpreted. When providers send both a base
 `value` and additional `segments` or `parts`, the helper preserves the base text
 and appends the nested fragments in order so streaming completions remain
-intact.
+intact. Provider-specific extras (for example trailing `outputs` collections)
+are appended after the reconstructed base text and its segments so streamed
+fragments stay contiguous.
 
 When providers omit the aggregated `value` string but include `segments` or
 `parts`, the helper still combines those fragments so the final reply surfaces
