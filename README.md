@@ -232,7 +232,9 @@ are non-numeric, boolean, `NaN`, or infinite so misconfigured requests fail fast
 
 Pass `extra_params={...}` to forward provider-specific arguments to the
 service—any values you include are merged into the JSON body alongside the
-encoded audio.
+encoded audio. String paths expand environment variables and `~`, so
+`transcribe_audio("~/clips/status.wav")` reads from your home directory without
+extra path handling.
 
 Secure Whisper deployments often expect an `Authorization` header. Set
 `SIGMA_WHISPER_AUTH_TOKEN` to inject one automatically; the value is trimmed
