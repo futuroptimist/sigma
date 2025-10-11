@@ -226,6 +226,10 @@ print(result.text)
 print(result.language)
 ```
 
+Set `temperature=` to control sampling when your deployment supports it. The helper accepts
+any real number convertible to a float (for example `Decimal("0.3")`) and rejects values that
+are non-numeric, boolean, `NaN`, or infinite so misconfigured requests fail fast.
+
 Pass `extra_params={...}` to forward provider-specific arguments to the
 service—any values you include are merged into the JSON body alongside the
 encoded audio.

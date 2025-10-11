@@ -3,7 +3,9 @@ from __future__ import annotations
 import base64
 import io
 import json
+import math
 import threading
+from decimal import Decimal
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Dict, Iterator, Tuple
@@ -11,6 +13,8 @@ from typing import Any, Dict, Iterator, Tuple
 import pytest
 
 from sigma.whisper_client import WhisperResult, transcribe_audio
+
+_TEMPERATURE_ERROR = "temperature must be a finite number"
 
 
 class _RecordingHandler(BaseHTTPRequestHandler):
@@ -99,6 +103,49 @@ def test_transcribe_audio_with_bytes(
     assert request_payload["language"] == "en"
     assert request_payload["temperature"] == 0.0
     assert base64.b64decode(request_payload["audio"]) == b"\x01\x02"
+
+
+def test_transcribe_audio_coerces_numeric_temperature(
+    whisper_test_server: ServerFixture,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
+        )
+    )
+
+    transcribe_audio(
+        b"\x01",
+        url=f"{base_url}/inference",
+        temperature=Decimal("0.25"),
+    )
+
+    latest = _latest_request(handler)
+    payload = json.loads(latest["body"].decode("utf-8"))
+    assert math.isclose(
+        payload["temperature"],
+        0.25,
+        rel_tol=1e-9,
+    )
+
+
+def test_transcribe_audio_rejects_non_numeric_temperature() -> None:
+    with pytest.raises(TypeError, match=_TEMPERATURE_ERROR):
+        transcribe_audio(b"\x01", temperature="warm")
+
+
+def test_transcribe_audio_rejects_boolean_temperature() -> None:
+    with pytest.raises(TypeError, match=_TEMPERATURE_ERROR):
+        transcribe_audio(b"\x01", temperature=True)
+
+
+def test_transcribe_audio_rejects_non_finite_temperature() -> None:
+    for value in (math.nan, math.inf, -math.inf):
+        with pytest.raises(ValueError, match=_TEMPERATURE_ERROR):
+            transcribe_audio(b"\x01", temperature=value)
 
 
 def test_transcribe_audio_accepts_path(
