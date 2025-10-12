@@ -110,6 +110,14 @@ def _extract_text_value(value: Any) -> str | None:
                 text_candidates.append((key, candidate))
 
         def _pop_primary(candidates: list[tuple[str, str]]) -> str | None:
+            priority_keys = ("output",)
+            for priority_key in priority_keys:
+                for index, (
+                    candidate_key,
+                    _candidate_text,
+                ) in enumerate(candidates):
+                    if candidate_key == priority_key:
+                        return candidates.pop(index)[1]
             for index, (
                 candidate_key,
                 _candidate_text,
