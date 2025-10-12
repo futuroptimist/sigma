@@ -85,6 +85,10 @@ python -m llms
 python -m llms --json  # machine-readable output
 ```
 
+Plain-text listings append ``[default]`` to the entry that
+``resolve_llm_endpoint`` would select so you can spot the active endpoint at a
+glance.
+
 Add `--json` to emit a machine-readable list of endpoints:
 
 ```bash

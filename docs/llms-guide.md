@@ -26,6 +26,9 @@ python -m llms
 python -m llms --json  # list endpoints as JSON
 ```
 
+Plain-text listings annotate the active endpoint with ``[default]`` so you can
+see which entry ``resolve_llm_endpoint`` will return.
+
 Provide `--json` to return a machine-readable list of endpoints:
 
 ```bash
