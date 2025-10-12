@@ -300,6 +300,10 @@ contiguous before any provider-specific extras. When providers return
 top-level `outputs` collections alongside `choices`, Sigma appends those
 extras after the primary completion instead of replacing it.
 
+When both structured `output[].content` data and aggregated `output_text`
+strings are present, Sigma prioritises the structured stream and appends the
+aggregated text afterwards so the original generation order is preserved.
+
 When an API leaves the aggregated `value` string empty but provides nested
 `segments` or `parts`, Sigma still stitches those fragments together so the
 reply is not lost.

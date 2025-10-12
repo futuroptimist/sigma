@@ -591,6 +591,43 @@ def test_query_llm_handles_responses_output_text(
     assert result.text == "Hello world"
 
 
+def test_query_llm_prefers_structured_output_before_output_text(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "output": [
+                        {
+                            "content": [
+                                {
+                                    "text": {
+                                        "value": "Hello",
+                                        "segments": [
+                                            {"text": " world"},
+                                        ],
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "output_text": ["!"],
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Responses API mixed", path=llms_file)
+
+    assert result.text == "Hello world!"
+
+
 def test_query_llm_handles_openai_delta_segments(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
