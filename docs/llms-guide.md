@@ -118,7 +118,9 @@ raised if a JSON response cannot be interpreted. When providers send both a base
 and appends the nested fragments in order so streaming completions remain
 intact. Provider-specific extras (for example trailing `outputs` collections)
 are appended after the reconstructed base text and its segments so streamed
-fragments stay contiguous.
+fragments stay contiguous. When a response includes top-level `outputs`
+alongside `choices`, the helper appends those extras after the main completion
+instead of replacing it.
 
 When providers omit the aggregated `value` string but include `segments` or
 `parts`, the helper still combines those fragments so the final reply surfaces
