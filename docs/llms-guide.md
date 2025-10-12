@@ -120,6 +120,10 @@ intact. Provider-specific extras (for example trailing `outputs` collections)
 are appended after the reconstructed base text and its segments so streamed
 fragments stay contiguous.
 
+When responses include both structured `output[].content` data and aggregated
+`output_text` strings, Sigma emits the structured stream first and appends the
+aggregated text afterwards so the original generation order is preserved.
+
 When providers omit the aggregated `value` string but include `segments` or
 `parts`, the helper still combines those fragments so the final reply surfaces
 correctly.

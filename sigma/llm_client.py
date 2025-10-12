@@ -73,7 +73,6 @@ def _extract_text_value(value: Any) -> str | None:
             "generated_text",
         )
         trailing_only_keys = {
-            "output",
             "outputs",
             "result",
             "results",
