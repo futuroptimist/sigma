@@ -13,7 +13,9 @@ sys.path.append(str(REPO_ROOT))
 import llms  # noqa: E402
 
 
-def _run_llms_cli(args: list[str], env: dict[str, str]) -> subprocess.CompletedProcess[str]:
+def _run_llms_cli(
+    args: list[str], env: dict[str, str]
+) -> subprocess.CompletedProcess[str]:
     command = [sys.executable, "-m", "llms", *args]
     return subprocess.run(
         command,
