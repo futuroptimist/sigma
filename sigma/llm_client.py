@@ -48,7 +48,6 @@ _JSON_CONTENT_TYPES = {"application/json", "text/json"}
 _AUTH_TOKEN_ENV = "SIGMA_LLM_AUTH_TOKEN"
 _AUTH_SCHEME_ENV = "SIGMA_LLM_AUTH_SCHEME"
 _TRAILING_ONLY_KEYS = {
-    "output",
     "outputs",
     "result",
     "results",
@@ -57,6 +56,7 @@ _TRAILING_ONLY_KEYS = {
     "candidates",
     "generations",
     "generation",
+    "output_text",
 }
 
 
@@ -83,16 +83,6 @@ def _extract_text_value(value: Any) -> str | None:
             "generation",
             "generated_text",
         )
-        trailing_only_keys = {
-            "outputs",
-            "result",
-            "results",
-            "completion",
-            "completions",
-            "candidates",
-            "generations",
-            "generation",
-        }
         has_segment_like = any(key in value for key in segment_keys)
         text_candidates: list[tuple[str, str]] = []
         post_fragments: list[str] = []
