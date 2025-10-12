@@ -85,6 +85,10 @@ python -m llms
 python -m llms --json  # machine-readable output
 ```
 
+Plain-text listings append ``[default]`` to the entry that
+``resolve_llm_endpoint`` would select so you can spot the active endpoint at a
+glance.
+
 Add `--json` to emit a machine-readable list of endpoints:
 
 ```bash
@@ -215,6 +219,8 @@ Sigma ships a helper for sending audio clips to a local
 `transcribe_audio` function accepts raw bytes, file paths, or file-like objects
 and posts the clip as base64-encoded JSON to
 `http://127.0.0.1:8080/inference` (override the URL to match your deployment).
+The payload is encoded with Python's `base64` module so the `audio` field is a
+pure ASCII string suitable for JSON APIs.
 It returns a `WhisperResult` containing the decoded text, response metadata,
 and an optional language hint reported by the server:
 
@@ -290,7 +296,9 @@ tokens.
 
 Additional response fields (such as trailing `outputs` arrays) are appended
 after the reconstructed base-and-segment text so the streamed content remains
-contiguous before any provider-specific extras.
+contiguous before any provider-specific extras. When providers return
+top-level `outputs` collections alongside `choices`, Sigma appends those
+extras after the primary completion instead of replacing it.
 
 When both structured `output[].content` data and aggregated `output_text`
 strings are present, Sigma prioritises the structured stream and appends the

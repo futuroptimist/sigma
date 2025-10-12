@@ -26,6 +26,9 @@ python -m llms
 python -m llms --json  # list endpoints as JSON
 ```
 
+Plain-text listings annotate the active endpoint with ``[default]`` so you can
+see which entry ``resolve_llm_endpoint`` will return.
+
 Provide `--json` to return a machine-readable list of endpoints:
 
 ```bash
@@ -118,7 +121,9 @@ raised if a JSON response cannot be interpreted. When providers send both a base
 and appends the nested fragments in order so streaming completions remain
 intact. Provider-specific extras (for example trailing `outputs` collections)
 are appended after the reconstructed base text and its segments so streamed
-fragments stay contiguous.
+fragments stay contiguous. When a response includes top-level `outputs`
+alongside `choices`, the helper appends those extras after the main completion
+instead of replacing it.
 
 When responses include both structured `output[].content` data and aggregated
 `output_text` strings, Sigma emits the structured stream first and appends the

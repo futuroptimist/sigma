@@ -13,6 +13,19 @@ sys.path.append(str(REPO_ROOT))
 import llms  # noqa: E402
 
 
+def _run_llms_cli(
+    args: list[str], env: dict[str, str]
+) -> subprocess.CompletedProcess[str]:
+    command = [sys.executable, "-m", "llms", *args]
+    return subprocess.run(
+        command,
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+
+
 def test_get_llm_endpoints_parses_file():
     endpoints = dict(llms.get_llm_endpoints())
     assert "token.place" in endpoints
@@ -351,7 +364,7 @@ def test_llms_cli_accepts_path_argument(tmp_path):
         text=True,
     )
     lines = result.stdout.strip().splitlines()
-    assert lines == ["CLI: https://cli.example.com"]
+    assert lines == ["CLI: https://cli.example.com [default]"]
 
 
 def test_llms_cli_expands_env_vars(tmp_path, monkeypatch):
@@ -368,7 +381,7 @@ def test_llms_cli_expands_env_vars(tmp_path, monkeypatch):
         text=True,
     )
     lines = result.stdout.strip().splitlines()
-    assert lines == ["Env: https://env.example.com"]
+    assert lines == ["Env: https://env.example.com [default]"]
 
 
 def test_llms_cli_script_runs_from_any_directory(tmp_path):
@@ -388,7 +401,10 @@ def test_llms_cli_script_runs_from_any_directory(tmp_path):
     )
     lines = result.stdout.strip().splitlines()
     assert lines
-    name, url = lines[0].split(": ", 1)
+    output = lines[0]
+    if output.endswith(" [default]"):
+        output = output[: -len(" [default]")]
+    name, url = output.split(": ", 1)
     assert name == "token.place"
     assert url == "https://github.com/futuroptimist/token.place"
 
@@ -561,6 +577,54 @@ def test_llms_cli_json_listing(tmp_path):
     assert payload == [
         {"name": "One", "url": "https://one.example.com"},
         {"name": "Two", "url": "https://two.example.com"},
+    ]
+
+
+def test_llms_cli_marks_default_entry(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "## LLM Endpoints\n"
+            "- [First](https://first.example.com)\n"
+            "- [Second](https://second.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    env = os.environ.copy()
+    env.pop("SIGMA_DEFAULT_LLM", None)
+
+    result = _run_llms_cli([str(llms_file)], env)
+
+    assert result.returncode == 0
+    assert not result.stderr
+    lines = [line.strip() for line in result.stdout.strip().splitlines()]
+    assert lines == [
+        "First: https://first.example.com [default]",
+        "Second: https://second.example.com",
+    ]
+
+
+def test_llms_cli_marks_env_override(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "## LLM Endpoints\n"
+            "- [Primary](https://primary.example.com)\n"
+            "- [Secondary](https://secondary.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    env = os.environ.copy()
+    env["SIGMA_DEFAULT_LLM"] = "secondary"
+
+    result = _run_llms_cli([str(llms_file)], env)
+
+    assert result.returncode == 0
+    assert not result.stderr
+    lines = [line.strip() for line in result.stdout.strip().splitlines()]
+    assert lines == [
+        "Primary: https://primary.example.com",
+        "Secondary: https://secondary.example.com [default]",
     ]
 
 

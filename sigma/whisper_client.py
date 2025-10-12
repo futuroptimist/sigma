@@ -164,8 +164,12 @@ def transcribe_audio(
     """Send *audio* to a Whisper server and return the transcription result."""
 
     audio_bytes = _coerce_audio_bytes(audio)
+    audio_payload = base64.b64encode(audio_bytes).decode("ascii")
+    if not audio_payload.isascii():  # pragma: no cover - defensive guard
+        raise RuntimeError("Encoded audio payload must be ASCII")
+
     payload: dict[str, Any] = {
-        "audio": base64.b64encode(audio_bytes).decode("ascii"),
+        "audio": audio_payload,
     }
     if model is not None:
         if not isinstance(model, str):

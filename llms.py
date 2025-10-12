@@ -242,8 +242,18 @@ def main(argv: list[str] | None = None) -> int:
         payload = [{"name": name, "url": url} for name, url in endpoints]
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:
+        default_entry: tuple[str, str] | None = None
+        if endpoints:
+            try:
+                default_entry = resolve_llm_endpoint(path=namespace.path)
+            except RuntimeError:
+                default_entry = None
+
         for name, url in endpoints:
-            print(f"{name}: {url}")
+            suffix = ""
+            if default_entry is not None and (name, url) == default_entry:
+                suffix = " [default]"
+            print(f"{name}: {url}{suffix}")
     return 0
 
 
