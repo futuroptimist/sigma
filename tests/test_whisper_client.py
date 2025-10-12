@@ -102,7 +102,10 @@ def test_transcribe_audio_with_bytes(
     assert request_payload["model"] == "base.en"
     assert request_payload["language"] == "en"
     assert request_payload["temperature"] == 0.0
-    assert base64.b64decode(request_payload["audio"]) == b"\x01\x02"
+    audio_payload = request_payload["audio"]
+    assert isinstance(audio_payload, str)
+    assert audio_payload.isascii()
+    assert base64.b64decode(audio_payload) == b"\x01\x02"
 
 
 def test_transcribe_audio_coerces_numeric_temperature(
