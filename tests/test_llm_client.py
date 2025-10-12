@@ -462,6 +462,34 @@ def test_query_llm_keeps_extras_after_text_without_value(
     assert result.text == "Hello!"
 
 
+def test_query_llm_combines_choices_with_top_level_outputs(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps(
+                {
+                    "choices": [
+                        {"message": {"content": "Primary"}},
+                    ],
+                    "outputs": [
+                        {"text": " extra"},
+                    ],
+                }
+            ).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    result = query_llm("Combine", path=llms_file)
+
+    assert result.text == "Primary extra"
+
+
 def test_query_llm_combines_value_and_parts(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],

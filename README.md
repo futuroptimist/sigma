@@ -290,7 +290,9 @@ tokens.
 
 Additional response fields (such as trailing `outputs` arrays) are appended
 after the reconstructed base-and-segment text so the streamed content remains
-contiguous before any provider-specific extras.
+contiguous before any provider-specific extras. When providers return
+top-level `outputs` collections alongside `choices`, Sigma appends those
+extras after the primary completion instead of replacing it.
 
 When an API leaves the aggregated `value` string empty but provides nested
 `segments` or `parts`, Sigma still stitches those fragments together so the

@@ -47,6 +47,17 @@ _SUPPORTED_SCHEMES = {"http", "https"}
 _JSON_CONTENT_TYPES = {"application/json", "text/json"}
 _AUTH_TOKEN_ENV = "SIGMA_LLM_AUTH_TOKEN"
 _AUTH_SCHEME_ENV = "SIGMA_LLM_AUTH_SCHEME"
+_TRAILING_ONLY_KEYS = {
+    "output",
+    "outputs",
+    "result",
+    "results",
+    "completion",
+    "completions",
+    "candidates",
+    "generations",
+    "generation",
+}
 
 
 def _extract_text_value(value: Any) -> str | None:
@@ -72,17 +83,6 @@ def _extract_text_value(value: Any) -> str | None:
             "generation",
             "generated_text",
         )
-        trailing_only_keys = {
-            "output",
-            "outputs",
-            "result",
-            "results",
-            "completion",
-            "completions",
-            "candidates",
-            "generations",
-            "generation",
-        }
         has_segment_like = any(key in value for key in segment_keys)
         text_candidates: list[tuple[str, str]] = []
         post_fragments: list[str] = []
@@ -115,7 +115,7 @@ def _extract_text_value(value: Any) -> str | None:
                 candidate_key,
                 _candidate_text,
             ) in enumerate(candidates):
-                if candidate_key not in trailing_only_keys:
+                if candidate_key not in _TRAILING_ONLY_KEYS:
                     return candidates.pop(index)[1]
             if candidates:
                 return candidates.pop(0)[1]
@@ -135,7 +135,7 @@ def _extract_text_value(value: Any) -> str | None:
                 non_trailing: list[str] = []
                 trailing_only: list[str] = []
                 for candidate_key, candidate_text in text_candidates:
-                    if candidate_key in trailing_only_keys:
+                    if candidate_key in _TRAILING_ONLY_KEYS:
                         trailing_only.append(candidate_text)
                     else:
                         non_trailing.append(candidate_text)
@@ -168,7 +168,7 @@ def _extract_text_value(value: Any) -> str | None:
                 non_trailing: list[str] = []
                 trailing_only: list[str] = []
                 for candidate_key, candidate_text in text_candidates:
-                    if candidate_key in trailing_only_keys:
+                    if candidate_key in _TRAILING_ONLY_KEYS:
                         trailing_only.append(candidate_text)
                     else:
                         non_trailing.append(candidate_text)
@@ -278,19 +278,57 @@ def _build_authorisation_header() -> Mapping[str, str]:
 
 
 def _extract_text(data: Any) -> str | None:
+    choices: Any | None = None
     if isinstance(data, Mapping):
         trimmed = dict(data.items())
+        choices = trimmed.pop("choices", None)
         trimmed.pop("messages", None)
+        trailing_extras: dict[str, Any] = {}
+        for key in list(trimmed.keys()):
+            if key in _TRAILING_ONLY_KEYS:
+                trailing_extras[key] = trimmed.pop(key)
         direct = _extract_text_value(trimmed)
+        if trailing_extras:
+            extras_text = _extract_text_value(trailing_extras)
+        else:
+            extras_text = None
+        primary_choice: str | None = None
+        if isinstance(choices, list):
+            for choice in choices:
+                text_value = _extract_text_value(choice)
+                if isinstance(text_value, str):
+                    primary_choice = text_value
+                    break
+        base_text = direct if isinstance(direct, str) and direct else None
+        if (
+            base_text is not None
+            or primary_choice is not None
+            or extras_text is not None
+        ):
+            fragments: list[str] = []
+            if base_text is not None:
+                fragments.append(base_text)
+            elif primary_choice is not None:
+                fragments.append(primary_choice)
+            if extras_text:
+                fragments.append(extras_text)
+            if fragments:
+                return "".join(fragments)
     else:
         direct = _extract_text_value(data)
+        extras_text = None
+        primary_choice = None
+
     if isinstance(direct, str):
         return direct
 
     if isinstance(data, Mapping):
-        choices = data.get("choices")
-        if isinstance(choices, list):
-            for choice in choices:
+        if choices is not None:
+            choices_to_check = choices
+        else:
+            choices_to_check = data.get("choices")
+        if isinstance(choices_to_check, list):
+            for choice in choices_to_check:
                 choice_text = _extract_text_value(choice)
                 if isinstance(choice_text, str):
                     return choice_text
