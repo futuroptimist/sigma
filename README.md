@@ -198,9 +198,11 @@ print(percentile_rank(2, [1, 2, 3]))  # 50.0
 
 Both `average_percentile` and `percentile_rank` accept any iterable, so generators work too.
 The helpers handle `decimal.Decimal` and `fractions.Fraction` values in addition to ints and
-floats, provided every number is finite.
+floats, provided every number is finite. Boolean inputs raise `ValueError` so `True`/`False`
+aren't silently treated as `1`/`0`.
 
-Use `clamp` to bound a value to an inclusive range:
+Use `clamp` to bound a value to an inclusive range; booleans are rejected for the value and
+bounds so logical flags do not masquerade as numbers:
 
 ```python
 from decimal import Decimal

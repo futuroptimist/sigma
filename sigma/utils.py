@@ -13,7 +13,7 @@ def _is_finite_number(value: Any) -> bool:
     if isinstance(value, (str, bytes, bytearray)):
         return False
     if isinstance(value, bool):
-        return True
+        return False
     if isinstance(value, int):
         return True
     if isinstance(value, Decimal):
@@ -68,8 +68,9 @@ def percentile_rank(value: float, values: Iterable[float]) -> float:
     ``int``, ``float``, :class:`decimal.Decimal`, and
     :class:`fractions.Fraction` inputs. Raises ``ValueError`` if ``values`` is
     empty or if ``value`` or any element of ``values`` is non-numeric or
-    non-finite. ``values`` may be any iterable and is materialized internally,
-    so generators are consumed only once.
+    non-finite. Boolean inputs are rejected so ``True``/``False`` are not
+    silently coerced to ``1``/``0``. ``values`` may be any iterable and is
+    materialized internally, so generators are consumed only once.
     """
     vals = list(values)
     if not vals:
@@ -91,9 +92,11 @@ def average_percentile(values: Iterable[float]) -> float:
     avoids skewing the result when duplicates are present. The function returns
     the mean of these percentiles and raises ``ValueError`` if *values* is
     empty or contains non-numeric or non-finite numbers such as ``NaN`` or
-    ``inf``. Supports ``int``, ``float``, :class:`decimal.Decimal`, and
-    :class:`fractions.Fraction` inputs. ``values`` may be any iterable and is
-    materialized internally, so generators are consumed only once.
+    ``inf``. Boolean inputs are rejected so ``True``/``False`` are not silently
+    coerced to ``1``/``0``. Supports ``int``, ``float``,
+    :class:`decimal.Decimal`, and :class:`fractions.Fraction` inputs.
+    ``values`` may be any iterable and is materialized internally, so
+    generators are consumed only once.
     """
     vals = list(values)
     if not vals:
@@ -114,9 +117,10 @@ def clamp(value: float, lower: float, upper: float) -> float:
     """Return ``value`` clamped to the inclusive range [``lower``, ``upper``].
 
     Raises ``ValueError`` if the bounds are invalid or any argument is
-    non-numeric or non-finite. Supports ``int``, ``float``,
-    :class:`decimal.Decimal`, and :class:`fractions.Fraction` inputs. ``lower``
-    may equal ``upper``.
+    non-numeric or non-finite. Boolean inputs are rejected so truthy values are
+    not treated as ``1``/``0``. Supports ``int``, ``float``,
+    :class:`decimal.Decimal`, and :class:`fractions.Fraction` inputs.
+    ``lower`` may equal ``upper``.
     """
 
     _ensure_finite_numbers(

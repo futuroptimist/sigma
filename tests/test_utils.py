@@ -39,6 +39,11 @@ def test_average_percentile_non_numeric_raises():
         average_percentile([1.0, "a"])
 
 
+def test_average_percentile_boolean_raises():
+    with pytest.raises(ValueError):
+        average_percentile([True, 2])
+
+
 def test_average_percentile_accepts_generators():
     def gen():
         for v in [1.0, 2.0, 3.0]:
@@ -85,6 +90,16 @@ def test_percentile_rank_non_numeric_value_raises():
 def test_percentile_rank_non_numeric_in_values_raises():
     with pytest.raises(ValueError):
         percentile_rank(1.0, [1.0, "a"])
+
+
+def test_percentile_rank_boolean_value_raises():
+    with pytest.raises(ValueError):
+        percentile_rank(True, [1.0])
+
+
+def test_percentile_rank_boolean_in_values_raises():
+    with pytest.raises(ValueError):
+        percentile_rank(1.0, [True, 2.0])
 
 
 def test_percentile_rank_accepts_generators():

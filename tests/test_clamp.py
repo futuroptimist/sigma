@@ -38,6 +38,13 @@ def test_clamp_non_numeric_raises():
         clamp("a", 0, 1)
 
 
+def test_clamp_boolean_inputs_raise():
+    with pytest.raises(ValueError):
+        clamp(True, 0, 1)
+    with pytest.raises(ValueError):
+        clamp(1, False, 2)
+
+
 def test_clamp_equal_bounds():
     assert clamp(5, 10, 10) == 10
     assert clamp(15, 10, 10) == 10
