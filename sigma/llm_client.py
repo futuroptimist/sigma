@@ -300,24 +300,33 @@ def _extract_text(data: Any) -> str | None:
             extras_text = _extract_text_value(trailing_extras)
         else:
             extras_text = None
-        primary_choice: str | None = None
+        combined_choice: str | None = None
         if isinstance(choices, list):
+            delta_fragments: list[str] = []
+            non_delta_fragments: list[str] = []
             for choice in choices:
                 text_value = _extract_text_value(choice)
-                if isinstance(text_value, str):
-                    primary_choice = text_value
-                    break
+                if not isinstance(text_value, str):
+                    continue
+                if isinstance(choice, Mapping) and "delta" in choice:
+                    delta_fragments.append(text_value)
+                else:
+                    non_delta_fragments.append(text_value)
+            if delta_fragments:
+                combined_choice = "".join(delta_fragments)
+            elif non_delta_fragments:
+                combined_choice = non_delta_fragments[0]
         base_text = direct if isinstance(direct, str) and direct else None
         if (
             base_text is not None
-            or primary_choice is not None
+            or combined_choice is not None
             or extras_text is not None
         ):
             fragments: list[str] = []
             if base_text is not None:
                 fragments.append(base_text)
-            elif primary_choice is not None:
-                fragments.append(primary_choice)
+            elif combined_choice is not None:
+                fragments.append(combined_choice)
             if extras_text:
                 fragments.append(extras_text)
             if fragments:
@@ -325,7 +334,6 @@ def _extract_text(data: Any) -> str | None:
     else:
         direct = _extract_text_value(data)
         extras_text = None
-        primary_choice = None
 
     if isinstance(direct, str):
         return direct
@@ -336,10 +344,20 @@ def _extract_text(data: Any) -> str | None:
         else:
             choices_to_check = data.get("choices")
         if isinstance(choices_to_check, list):
+            delta_fragments: list[str] = []
+            non_delta_fragments: list[str] = []
             for choice in choices_to_check:
                 choice_text = _extract_text_value(choice)
-                if isinstance(choice_text, str):
-                    return choice_text
+                if not isinstance(choice_text, str):
+                    continue
+                if isinstance(choice, Mapping) and "delta" in choice:
+                    delta_fragments.append(choice_text)
+                else:
+                    non_delta_fragments.append(choice_text)
+            if delta_fragments:
+                return "".join(delta_fragments)
+            if non_delta_fragments:
+                return non_delta_fragments[0]
         messages = data.get("messages")
         if isinstance(messages, list):
             assistant_fragments: list[str] = []
