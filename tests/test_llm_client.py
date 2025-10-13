@@ -1376,6 +1376,24 @@ def test_query_llm_errors_on_invalid_json(
         query_llm("Hello?", path=llms_file)
 
 
+def test_query_llm_errors_on_json_like_text_response(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "text/plain"},
+            b"{invalid",
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    with pytest.raises(RuntimeError, match="invalid JSON"):
+        query_llm("Hello?", path=llms_file)
+
+
 def test_query_llm_errors_on_empty_json(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],

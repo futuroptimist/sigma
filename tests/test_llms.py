@@ -671,6 +671,22 @@ def test_llms_cli_marks_env_override(tmp_path):
     ]
 
 
+def test_llms_cli_reports_invalid_env(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Only](https://only.example.com)\n",
+        encoding="utf-8",
+    )
+    env = os.environ.copy()
+    env["SIGMA_DEFAULT_LLM"] = "missing"
+
+    result = _run_llms_cli([str(llms_file)], env)
+
+    assert result.returncode == 1
+    assert "SIGMA_DEFAULT_LLM" in result.stderr
+    assert not result.stdout.strip()
+
+
 def test_llms_cli_json_resolve(tmp_path):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text(

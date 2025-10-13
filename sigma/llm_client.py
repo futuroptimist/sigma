@@ -451,16 +451,15 @@ def query_llm(
             text_body = raw.decode(encoding, errors="replace")
             parsed_json: Any | None = None
             is_json_content = content_type in _JSON_CONTENT_TYPES
+            stripped = text_body.lstrip()
+            json_like = stripped.startswith(("{", "["))
             json_error: json.JSONDecodeError | None = None
-            if raw:
-                stripped = text_body.lstrip()
-                json_like = stripped.startswith(("{", "["))
-                if is_json_content or json_like:
-                    try:
-                        parsed_json = json.loads(text_body)
-                    except json.JSONDecodeError as exc:
-                        json_error = exc
-                        parsed_json = None
+            if raw and (is_json_content or json_like):
+                try:
+                    parsed_json = json.loads(text_body)
+                except json.JSONDecodeError as exc:
+                    json_error = exc
+                    parsed_json = None
 
             if parsed_json is not None:
                 text_value = _extract_text(parsed_json)
@@ -471,11 +470,15 @@ def query_llm(
                         "text field"
                     )
             else:
-                should_raise = is_json_content
-                if should_raise:
-                    detail = "invalid JSON"
-                    if not raw:
+                empty_json = is_json_content and not raw
+                json_indicates_invalid = is_json_content or json_like
+                has_json_error = json_error is not None
+                invalid_json = json_indicates_invalid and has_json_error
+                if empty_json or invalid_json:
+                    if empty_json:
                         detail = "an empty JSON response"
+                    else:
+                        detail = "invalid JSON"
                     message = "LLM endpoint '{name}' returned {detail}".format(
                         name=display_name,
                         detail=detail,

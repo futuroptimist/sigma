@@ -88,6 +88,9 @@ python -m llms --json  # machine-readable output
 Plain-text listings append ``[default]`` to the entry that
 ``resolve_llm_endpoint`` would select so you can spot the active endpoint at a
 glance.
+If ``SIGMA_DEFAULT_LLM`` points at an unknown entry or trims down to an empty
+string the CLI now exits with an error so misconfigurations are surfaced
+immediately.
 
 Add `--json` to emit a machine-readable list of endpoints. Each object includes
 `name`, `url`, and an `is_default` flag that mirrors the plain-text `[default]`
