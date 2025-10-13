@@ -207,7 +207,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help=(
             "Emit machine-readable JSON instead of formatted text. Listing "
             "produces an array; resolution yields a single object with "
-            "name/url fields."
+            "name/url/is_default fields."
         ),
     )
     return parser.parse_args(argv)
@@ -230,25 +230,47 @@ def main(argv: list[str] | None = None) -> int:
         except (RuntimeError, ValueError) as exc:
             print(str(exc), file=sys.stderr)
             return 1
+        is_default = False
+        try:
+            default_candidate = resolve_llm_endpoint(path=namespace.path)
+        except RuntimeError:
+            default_candidate = None
+        else:
+            default_name, default_url = default_candidate
+            is_default = (name, url) == (default_name, default_url)
         if namespace.json:
-            payload = {"name": name, "url": url}
+            payload = {
+                "name": name,
+                "url": url,
+                "is_default": is_default,
+            }
             print(json.dumps(payload, ensure_ascii=False, indent=2))
         else:
-            print(f"{name}: {url}")
+            suffix = " [default]" if is_default else ""
+            print(f"{name}: {url}{suffix}")
         return 0
 
     endpoints = get_llm_endpoints(namespace.path)
+    default_entry: tuple[str, str] | None = None
+    if endpoints:
+        try:
+            default_entry = resolve_llm_endpoint(path=namespace.path)
+        except RuntimeError:
+            default_entry = None
     if namespace.json:
-        payload = [{"name": name, "url": url} for name, url in endpoints]
+        payload = []
+        for name, url in endpoints:
+            is_default = False
+            if default_entry is not None:
+                is_default = (name, url) == default_entry
+            entry = {
+                "name": name,
+                "url": url,
+                "is_default": is_default,
+            }
+            payload.append(entry)
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:
-        default_entry: tuple[str, str] | None = None
-        if endpoints:
-            try:
-                default_entry = resolve_llm_endpoint(path=namespace.path)
-            except RuntimeError:
-                default_entry = None
-
         for name, url in endpoints:
             suffix = ""
             if default_entry is not None and (name, url) == default_entry:

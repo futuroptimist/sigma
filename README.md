@@ -89,7 +89,9 @@ Plain-text listings append ``[default]`` to the entry that
 ``resolve_llm_endpoint`` would select so you can spot the active endpoint at a
 glance.
 
-Add `--json` to emit a machine-readable list of endpoints:
+Add `--json` to emit a machine-readable list of endpoints. Each object includes
+`name`, `url`, and an `is_default` flag that mirrors the plain-text `[default]`
+marker:
 
 ```bash
 python -m llms --json
@@ -100,7 +102,7 @@ Resolve a single endpoint (respecting ``SIGMA_DEFAULT_LLM`` when set) with:
 ```bash
 python -m llms --resolve
 python -m llms --resolve --name OpenRouter
-python -m llms --resolve --name OpenRouter --json  # emit {"name", "url"}
+python -m llms --resolve --name OpenRouter --json  # emits {"name", "url", "is_default"}
 ```
 
 When you're working outside the repository root, use the helper script which
@@ -124,8 +126,8 @@ variables (e.g. ``$HOME``) before resolving ``~`` to the user's home, and accept
 string paths or ``pathlib.Path`` objects.
 
 Pass ``--json`` when you need machine-readable output: endpoint listings become an
-array of ``{"name", "url"}`` objects and ``--resolve`` emits a single object, making
-automation scripts easier to write.
+array of ``{"name", "url", "is_default"}`` objects and ``--resolve`` emits a single
+object with the same fields, making automation scripts easier to write.
 
 ## Firmware
 
