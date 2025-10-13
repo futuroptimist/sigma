@@ -119,7 +119,9 @@ provided as a list of text fragments (as in the latest OpenAI APIs) the helper
 concatenates the segments for you, including cases where each fragment stores
 its text inside an object with a `value` string or a nested `segments`/`parts`
 array. Plain-text responses are returned unchanged, and a `RuntimeError` is
-raised if a JSON response cannot be interpreted. When providers send both a base
+raised if a JSON response cannot be interpreted. Bodies that look like JSON are
+parsed even when the server advertises `text/plain`, ensuring malformed payloads
+surface as errors instead of falling back to plain text. When providers send both a base
 `value` and additional `segments` or `parts`, the helper preserves the base text
 and appends the nested fragments in order so streaming completions remain
 intact. Provider-specific extras (for example trailing `outputs` collections)
