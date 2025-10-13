@@ -255,8 +255,9 @@ def main(argv: list[str] | None = None) -> int:
     if endpoints:
         try:
             default_entry = resolve_llm_endpoint(path=namespace.path)
-        except RuntimeError:
-            default_entry = None
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
     if namespace.json:
         payload = []
         for name, url in endpoints:
