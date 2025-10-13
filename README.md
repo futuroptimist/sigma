@@ -297,9 +297,9 @@ unwrapped automatically. When `message.content`, `delta.content`,
 returned by newer OpenAI APIs) the helper concatenates the pieces automatically,
 including segments whose `text` field is an object with a `value` string or a
 nested `segments`/`parts` list of further fragments. Plain-text responses are
-returned as-is. Bodies that look like JSON are parsed even when the server labels
-them `text/plain` so malformed payloads still raise errors instead of slipping
-through as text.
+returned as-is. When providers emit multiple `choices[].delta` fragments in a
+single payload, Sigma stitches them together in order so streaming responses stay
+contiguous even when batched.
 When a provider supplies both a base `value` and additional `segments` or
 `parts`, the helper preserves the initial string and appends each nested
 fragment in order so streaming responses are reconstructed without missing

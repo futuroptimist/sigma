@@ -122,16 +122,16 @@ provided as a list of text fragments (as in the latest OpenAI APIs) the helper
 concatenates the segments for you, including cases where each fragment stores
 its text inside an object with a `value` string or a nested `segments`/`parts`
 array. Plain-text responses are returned unchanged, and a `RuntimeError` is
-raised if a JSON response cannot be interpreted. Bodies that look like JSON are
-parsed even when the server advertises `text/plain`, ensuring malformed payloads
-surface as errors instead of falling back to plain text. When providers send both a base
-`value` and additional `segments` or `parts`, the helper preserves the base text
-and appends the nested fragments in order so streaming completions remain
-intact. Provider-specific extras (for example trailing `outputs` collections)
-are appended after the reconstructed base text and its segments so streamed
-fragments stay contiguous. When a response includes top-level `outputs`
-alongside `choices`, the helper appends those extras after the main completion
-instead of replacing it.
+raised if a JSON response cannot be interpreted. When providers send multiple
+`choices[].delta` fragments in one payload, Sigma joins them in order so
+streaming completions aggregated into a single response stay contiguous. When
+providers send both a base `value` and additional `segments` or `parts`, the
+helper preserves the base text and appends the nested fragments in order so
+streaming completions remain intact. Provider-specific extras (for example
+trailing `outputs` collections) are appended after the reconstructed base text
+and its segments so streamed fragments stay contiguous. When a response includes
+top-level `outputs` alongside `choices`, the helper appends those extras after
+the main completion instead of replacing it.
 
 When responses include both structured `output[].content` data and aggregated
 `output_text` strings, Sigma emits the structured stream first and appends the
