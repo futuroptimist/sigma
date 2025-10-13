@@ -17,6 +17,7 @@ speaker_d = 10;       // overall speaker area
 speaker_holes = 7;    // number of speaker vents
 lanyard_d = 10;        // diameter of lanyard hole (standard straps)
 lanyard_offset = 6;   // distance from left edge
+lanyard_height = height - thickness - lanyard_d/2;  // drop below top shell
 usb_w = 14;           // width of USB-C cutout (extra cable clearance)
 usb_h = 4;            // height of USB-C cutout
 usb_z = 10;           // distance from bottom to cutout
@@ -49,8 +50,9 @@ module speaker_grill() {
 }
 
 module lanyard_hole() {
-    translate([lanyard_offset, depth/2, height - thickness/2])
-        cylinder(d=lanyard_d, h=thickness+1, center=true);
+    translate([lanyard_offset, depth/2, lanyard_height])
+        rotate([90,0,0])
+            cylinder(d=lanyard_d, h=depth + 2*thickness, center=true);
 }
 
 module usb_cutout() {
