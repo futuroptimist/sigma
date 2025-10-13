@@ -29,7 +29,9 @@ python -m llms --json  # list endpoints as JSON
 Plain-text listings annotate the active endpoint with ``[default]`` so you can
 see which entry ``resolve_llm_endpoint`` will return.
 
-Provide `--json` to return a machine-readable list of endpoints:
+Provide `--json` to return a machine-readable list of endpoints. Entries contain
+`name`, `url`, and an `is_default` flag mirroring the plain-text `[default]`
+marker:
 
 ```bash
 python -m llms --json
@@ -55,7 +57,7 @@ Resolve a single endpoint from the command line (respecting
 ```bash
 python -m llms --resolve
 python -m llms --resolve --name OpenRouter
-python -m llms --resolve --name OpenRouter --json  # returns {"name": ..., "url": ...}
+python -m llms --resolve --name OpenRouter --json  # returns {"name", "url", "is_default"}
 ```
 
 You can also import the helper in Python:
@@ -73,8 +75,9 @@ variables (e.g. `$HOME`) before resolving `~` to your home directory and can
 be a `str` or `pathlib.Path`.
 
 Use ``--json`` for machine-readable output when integrating with other
-tooling. Listings return an array of ``{"name", "url"}`` objects and
-``--resolve`` emits a single object describing the selected endpoint.
+tooling. Listings return an array of ``{"name", "url", "is_default"}``
+objects and ``--resolve`` emits a single object describing the selected
+endpoint along with an `is_default` indicator.
 
 ## Selecting a Default Endpoint
 

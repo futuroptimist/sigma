@@ -429,8 +429,26 @@ def test_llms_cli_json_lists_endpoints():
     )
     payload = json.loads(result.stdout)
     expected = []
+    try:
+        default_entry = llms.resolve_llm_endpoint()
+    except RuntimeError:
+        default_entry = None
     for entry_name, entry_url in llms.get_llm_endpoints():
-        expected.append({"name": entry_name, "url": entry_url})
+        is_default = (
+            default_entry is not None
+            and (
+                entry_name,
+                entry_url,
+            )
+            == default_entry
+        )
+        expected.append(
+            {
+                "name": entry_name,
+                "url": entry_url,
+                "is_default": is_default,
+            }
+        )
     assert payload == expected
 
 
@@ -443,7 +461,11 @@ def test_llms_cli_json_resolve_defaults():
     )
     payload = json.loads(result.stdout)
     expected_name, expected_url = llms.get_llm_endpoints()[0]
-    assert payload == {"name": expected_name, "url": expected_url}
+    assert payload == {
+        "name": expected_name,
+        "url": expected_url,
+        "is_default": True,
+    }
 
 
 def test_llms_cli_resolve_with_name(tmp_path):
@@ -502,6 +524,7 @@ def test_llms_cli_json_resolve_with_name(tmp_path):
     assert payload == {
         "name": "Beta",
         "url": "https://beta.example.com",
+        "is_default": False,
     }
 
 
@@ -575,9 +598,29 @@ def test_llms_cli_json_listing(tmp_path):
 
     payload = json.loads(result.stdout)
     assert payload == [
-        {"name": "One", "url": "https://one.example.com"},
-        {"name": "Two", "url": "https://two.example.com"},
+        {
+            "name": "One",
+            "url": "https://one.example.com",
+            "is_default": True,
+        },
+        {
+            "name": "Two",
+            "url": "https://two.example.com",
+            "is_default": False,
+        },
     ]
+
+
+def test_llms_cli_help_mentions_is_default():
+    result = subprocess.run(
+        [sys.executable, "-m", "llms", "--help"],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0
+    assert "name/url/is_default" in result.stdout
 
 
 def test_llms_cli_marks_default_entry(tmp_path):
@@ -658,4 +701,5 @@ def test_llms_cli_json_resolve(tmp_path):
     assert payload == {
         "name": "Beta",
         "url": "https://beta.example.com",
+        "is_default": False,
     }
