@@ -267,6 +267,8 @@ save_speech("Button pressed, recording…", "status.wav")
 The synthesiser outputs 16-bit mono WAV data (22,050 Hz by default) and accepts
 alphanumeric characters, punctuation, and whitespace. Provide a custom sample
 rate via the `sample_rate` keyword when you need a different playback speed.
+The helper is completely self-contained, relying only on Python's standard
+library, so you can drop it into standalone scripts without extra setup.
 
 ### Querying an LLM
 
