@@ -5,6 +5,8 @@ from typing import Any, Dict
 
 import pytest
 
+from sigma.audio.interfaces import ConversationAudio
+from sigma.audio.ptt import PassthroughPushToTalk
 from sigma.conversation import ConversationResult, run_conversation
 from sigma.llm_client import LLMResponse
 from sigma.whisper_client import WhisperResult
@@ -40,9 +42,10 @@ def test_run_conversation_basic_flow(monkeypatch: pytest.MonkeyPatch) -> None:
     llm_response = _llm_result()
 
     def fake_transcribe(
+        self,
         audio: Any,
         *,
-        url: str,
+        url: str | None,
         model: str | None,
         language: str | None,
         temperature: float | None,
@@ -61,11 +64,12 @@ def test_run_conversation_basic_flow(monkeypatch: pytest.MonkeyPatch) -> None:
         return whisper_response
 
     def fake_query(
+        self,
         prompt: str | None,
         *,
         name: str | None,
-        path: str | Path | None,
-        timeout: float,
+        path: str | None,
+        timeout: float | None,
         extra_payload: Dict[str, Any] | None,
     ) -> LLMResponse:
         recorded["query"] = {
@@ -77,17 +81,23 @@ def test_run_conversation_basic_flow(monkeypatch: pytest.MonkeyPatch) -> None:
         }
         return llm_response
 
-    def fake_synthesize(text: str, *, sample_rate: int) -> bytes:
+    def fake_synthesize(self, text: str, *, sample_rate: int) -> bytes:
         recorded["synthesize"] = {
             "text": text,
             "sample_rate": sample_rate,
         }
         return b"audio-bytes"
 
-    monkeypatch.setattr("sigma.conversation.transcribe_audio", fake_transcribe)
-    monkeypatch.setattr("sigma.conversation.query_llm", fake_query)
     monkeypatch.setattr(
-        "sigma.conversation.synthesize_speech",
+        "sigma.whisper_client.WhisperSpeechToText.transcribe",
+        fake_transcribe,
+    )
+    monkeypatch.setattr(
+        "sigma.llm_client.ConfiguredLLMRouter.query",
+        fake_query,
+    )
+    monkeypatch.setattr(
+        "sigma.tts.FormantTextToSpeech.synthesize",
         fake_synthesize,
     )
 
@@ -148,22 +158,22 @@ def test_run_conversation_writes_audio(
     llm_response = _llm_result()
 
     monkeypatch.setattr(
-        "sigma.conversation.transcribe_audio",
-        lambda *args, **_: whisper_response,
+        "sigma.whisper_client.WhisperSpeechToText.transcribe",
+        lambda self, *args, **kwargs: whisper_response,
     )
     monkeypatch.setattr(
-        "sigma.conversation.query_llm",
-        lambda *args, **_: llm_response,
+        "sigma.llm_client.ConfiguredLLMRouter.query",
+        lambda self, *args, **kwargs: llm_response,
     )
 
     synth_calls: list[Dict[str, Any]] = []
 
-    def fake_synthesize(text: str, *, sample_rate: int) -> bytes:
+    def fake_synthesize(self, text: str, *, sample_rate: int) -> bytes:
         synth_calls.append({"text": text, "sample_rate": sample_rate})
         return b"wav-data"
 
     monkeypatch.setattr(
-        "sigma.conversation.synthesize_speech",
+        "sigma.tts.FormantTextToSpeech.synthesize",
         fake_synthesize,
     )
 
@@ -190,18 +200,19 @@ def test_run_conversation_supports_promptless_requests(
     llm_response = _llm_result()
 
     monkeypatch.setattr(
-        "sigma.conversation.transcribe_audio",
-        lambda *args, **_: whisper_response,
+        "sigma.whisper_client.WhisperSpeechToText.transcribe",
+        lambda self, *args, **_: whisper_response,
     )
 
     recorded: Dict[str, Dict[str, Any]] = {}
 
     def fake_query(
+        self,
         prompt: str | None,
         *,
         name: str | None,
-        path: str | Path | None,
-        timeout: float,
+        path: str | None,
+        timeout: float | None,
         extra_payload: Dict[str, Any] | None,
     ) -> LLMResponse:
         recorded["query"] = {
@@ -210,10 +221,13 @@ def test_run_conversation_supports_promptless_requests(
         }
         return llm_response
 
-    monkeypatch.setattr("sigma.conversation.query_llm", fake_query)
     monkeypatch.setattr(
-        "sigma.conversation.synthesize_speech",
-        lambda *_args, **_kwargs: b"spoken",
+        "sigma.llm_client.ConfiguredLLMRouter.query",
+        fake_query,
+    )
+    monkeypatch.setattr(
+        "sigma.tts.FormantTextToSpeech.synthesize",
+        lambda self, *_args, **_kwargs: b"spoken",
     )
 
     payload = {"messages": [{"role": "user", "content": "Hi"}]}
@@ -228,3 +242,41 @@ def test_run_conversation_supports_promptless_requests(
         "prompt": None,
         "extra_payload": payload,
     }
+
+
+def test_run_conversation_with_push_to_talk(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    whisper_response = _whisper_result()
+    llm_response = _llm_result()
+
+    class StubSTT:
+        def transcribe(self, audio, **_: Any) -> WhisperResult:
+            assert audio == b"capture"
+            return whisper_response
+
+    class StubRouter:
+        def query(self, prompt, **_: Any) -> LLMResponse:
+            assert prompt == whisper_response.text
+            return llm_response
+
+    class StubTTS:
+        def synthesize(self, text: str, *, sample_rate: int = 22_050) -> bytes:
+            assert sample_rate == 22_050
+            assert text == llm_response.text
+            return b"stub-audio"
+
+    payload = ConversationAudio(data=b"capture")
+    ptt = PassthroughPushToTalk(payload)
+
+    result = run_conversation(
+        None,
+        push_to_talk=ptt,
+        speech_to_text=StubSTT(),
+        llm_router=StubRouter(),
+        tts_engine=StubTTS(),
+    )
+
+    assert result.audio == b"stub-audio"
+    assert result.transcript is whisper_response
+    assert result.llm is llm_response

@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-SCAD_PATH = Path("hardware/cad/sigma-s1-enclosure.scad")
+SCAD_PATH = Path("hardware/scad/sigma-s1-enclosure.scad")
 
 
 def _read_scad() -> str:

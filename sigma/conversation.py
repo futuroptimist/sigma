@@ -5,11 +5,20 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, BinaryIO, Mapping
+from typing import Any, Mapping
 
-from .llm_client import LLMResponse, query_llm
-from .tts import synthesize_speech
-from .whisper_client import WhisperResult, transcribe_audio
+# fmt: off
+# isort: off
+from sigma.audio.interfaces import (AudioInput, ConversationAudio,
+                                    LLMRouterInterface, PushToTalkInterface,
+                                    SpeechToTextInterface,
+                                    TextToSpeechInterface)
+# isort: on
+# fmt: on
+
+from .llm_client import ConfiguredLLMRouter, LLMResponse
+from .tts import FormantTextToSpeech
+from .whisper_client import WhisperResult, WhisperSpeechToText
 
 __all__ = ["ConversationResult", "run_conversation"]
 
@@ -26,7 +35,7 @@ class ConversationResult:
 
 
 def run_conversation(
-    audio: bytes | bytearray | memoryview | str | os.PathLike[str] | BinaryIO,
+    audio: AudioInput | None,
     *,
     prompt: str | None = None,
     prompt_template: str | None = "{transcript}",
@@ -42,6 +51,10 @@ def run_conversation(
     llm_extra_payload: Mapping[str, Any] | None = None,
     tts_sample_rate: int = 22_050,
     output_path: str | os.PathLike[str] | None = None,
+    push_to_talk: PushToTalkInterface | None = None,
+    speech_to_text: SpeechToTextInterface | None = None,
+    llm_router: LLMRouterInterface | None = None,
+    tts_engine: TextToSpeechInterface | None = None,
 ) -> ConversationResult:
     """Transcribe *audio*, query an LLM, and synthesise a spoken reply.
 
@@ -62,6 +75,16 @@ def run_conversation(
     exposed on the returned :class:`ConversationResult`.
     """
 
+    if audio is None:
+        if push_to_talk is None:
+            message = "audio must be provided when push_to_talk is not set"
+            raise ValueError(message)
+        captured: ConversationAudio = push_to_talk.capture()
+        audio_payload: bytes | bytearray | memoryview = captured.data
+    else:
+        audio_payload = audio
+
+    stt = speech_to_text or WhisperSpeechToText(default_url=whisper_url)
     transcribe_kwargs: dict[str, Any] = {"timeout": whisper_timeout}
     if whisper_url is not None:
         transcribe_kwargs["url"] = whisper_url
@@ -74,7 +97,7 @@ def run_conversation(
     if whisper_extra_params is not None:
         transcribe_kwargs["extra_params"] = whisper_extra_params
 
-    transcript = transcribe_audio(audio, **transcribe_kwargs)
+    transcript = stt.transcribe(audio_payload, **transcribe_kwargs)
 
     if prompt is not None:
         resolved_prompt = prompt
@@ -96,15 +119,22 @@ def run_conversation(
             )
             raise ValueError(message) from exc
 
-    llm_response = query_llm(
+    router = llm_router or ConfiguredLLMRouter(
+        default_name=llm_name,
+        default_path=llm_path,
+        default_timeout=llm_timeout,
+    )
+    llm_response = router.query(
         resolved_prompt,
         name=llm_name,
-        path=llm_path,
+        path=os.fspath(llm_path) if llm_path is not None else None,
         timeout=llm_timeout,
         extra_payload=llm_extra_payload,
     )
 
-    audio_bytes = synthesize_speech(
+    default_tts = FormantTextToSpeech(default_sample_rate=tts_sample_rate)
+    tts = tts_engine or default_tts
+    audio_bytes = tts.synthesize(
         llm_response.text,
         sample_rate=tts_sample_rate,
     )

@@ -179,4 +179,7 @@ The helper accepts the same Whisper and LLM configuration parameters you would
 pass to `transcribe_audio` and `query_llm`, plus a `prompt_template` so you can
 decorate the transcript before it reaches the model. Provide `output_path` to
 write the generated WAV bytes to disk while still receiving them as part of the
-returned `ConversationResult` dataclass.
+returned `ConversationResult` dataclass. You can also inject custom
+implementations for push-to-talk capture, speech-to-text, LLM routing, and
+text-to-speech via the new interface objects exposed in `sigma.audio` if you
+need to swap in alternative transports.

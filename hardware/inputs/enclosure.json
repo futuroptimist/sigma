@@ -1,0 +1,19 @@
+{
+  "thickness": 2,
+  "width": 60,
+  "height": 80,
+  "depth": 30,
+  "battery_length": 52,
+  "button_d": 8,
+  "mic_d": 3,
+  "speaker_d": 10,
+  "speaker_holes": 7,
+  "lanyard_d": 10,
+  "lanyard_offset": 6,
+  "usb_w": 14,
+  "usb_h": 4,
+  "usb_z": 10,
+  "led_d": 5,
+  "led_offset": 10,
+  "led_z": 50
+}

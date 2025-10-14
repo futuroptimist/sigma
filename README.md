@@ -8,9 +8,10 @@
 
 Sigma is an open-source ESP32 "AI pin" that lets you talk to a language model via a push‑to‑talk button. Audio is captured and sent to Whisper for speech recognition, routed through the LLM of your choice, then played back with low‑latency text‑to‑speech in a 3D‑printed OpenSCAD case.
 
-Hardware models for the enclosure live in [`hardware/cad`](hardware/cad) with
-STL exports in [`hardware/stl`](hardware/stl). A GitHub Actions workflow
-automatically regenerates the STL files whenever the SCAD sources change.
+Hardware models for the enclosure live in [`hardware/scad`](hardware/scad) with
+STL exports and checksum manifests in [`hardware/stl`](hardware/stl). A GitHub
+Actions workflow automatically regenerates the STL files whenever the SCAD
+sources change.
 The primary OpenSCAD file exposes a `thickness` parameter so you can tweak the
 wall thickness before exporting a print.
 Regenerate STLs locally with:
@@ -19,9 +20,9 @@ Regenerate STLs locally with:
 bash scripts/build_stl.sh
 ```
 
-Preview the enclosure in 3D by serving the repo locally (for example,
-`python -m http.server`) and opening
-[`docs/sigma-s1-viewer.html`](docs/sigma-s1-viewer.html) in a browser.
+Preview the enclosure in 3D via the lightweight server in [`viewer/`](viewer)
+(`cd viewer && npm run dev`) or by opening
+[`docs/sigma-s1-viewer.html`](docs/sigma-s1-viewer.html) directly in a browser.
 
 Assembly instructions live in [`docs/sigma-s1-assembly.md`](docs/sigma-s1-assembly.md).
 
@@ -32,7 +33,7 @@ Assembly instructions live in [`docs/sigma-s1-assembly.md`](docs/sigma-s1-assemb
 3. Build the firmware:
 
 ```bash
-cd firmware
+cd apps/firmware
 pio run
 ```
 
@@ -134,18 +135,16 @@ object with the same fields, making automation scripts easier to write.
 
 ## Firmware
 
-The [`firmware/`](firmware) directory contains a PlatformIO project targeting the
-`esp32dev` board with the Arduino framework. By default the build flags expose
-three macros:
-
-- `SIGMA_FIRMWARE_VERSION` – firmware version string printed on boot.
-- `SIGMA_STATUS_LED` – GPIO driving the status LED (defaults to `GPIO2`).
-- `SIGMA_BUTTON_PIN` – GPIO assigned to the push-to-talk button (defaults to `GPIO0`).
+The [`apps/firmware`](apps/firmware) directory contains a PlatformIO project
+targeting the `esp32dev` board with the Arduino framework. Hardware mappings
+and safety thresholds (SPL guard rails, microphone bias voltage, battery
+cut-offs) live in [`apps/firmware/include/config.h`](apps/firmware/include/config.h)
+so you can adjust them without editing sources.  Optional secrets belong in
+`config.secrets.h`, derived from the provided example template.
 
 When flashed to an ESP32 the firmware mirrors the button state to the status LED
-and reports transitions over the serial console at 115200 baud. Adjust the GPIO
-mappings by overriding the macros via PlatformIO's `build_flags` if your
-hardware layout differs.
+and reports transitions over the serial console at 115200 baud, alongside
+battery, SPL, and microphone bias safety reminders.
 
 See [`AGENTS.md`](AGENTS.md) for details on how we integrate LLMs and prompts.
 

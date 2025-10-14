@@ -17,8 +17,7 @@ Deliver cohesive refinements across firmware, CAD assets, documentation, and hel
 regressing existing functionality.
 
 CONTEXT:
-- Snapshot repo layout: firmware/, hardware/, docs/, scripts/, sigma/, tests/, plus planned
-  apps/firmware, hardware/ (SCAD sources), viewer/ (docs preview), and infra/ (CI automation).
+- Snapshot repo layout: apps/firmware/, hardware/, docs/, scripts/, sigma/, tests/, viewer/, infra/.
 - Firmware builds rely on PlatformIO; run `pio run` for builds and `pio test -e native` for unit tests.
 - Regenerate STLs from OpenSCAD sources with `bash scripts/build_stl.sh`; commit regenerated files and
   auto-generated checksum manifests to detect drift.
@@ -30,8 +29,8 @@ REQUEST:
    - Document directory ownership, PlatformIO environments, flashing flows, and STL regeneration.
    - Explain how `llms.py` ingests `llms.txt`, where secrets live, and how scripts support releases.
 2. Stage structural refactors.
-   - Migrate firmware into apps/firmware while preserving PlatformIO configs and configs in
-     firmware/include.
+   - Migrate firmware into apps/firmware while preserving PlatformIO configs and headers in
+     apps/firmware/include.
    - Move CAD sources into hardware/, expose SCAD inputs, and scaffold a viewer/ docs preview.
    - Add infra/ automation that rebuilds STLs, verifies checksums, and posts results in CI.
    - Extract audio pipeline interfaces (PTT, Whisper STT, LLM routing, TTS) so implementations are

@@ -1,16 +1,24 @@
 # Hardware
 
-This folder contains CAD files and reference diagrams for the Sigma S1
-push‑to‑talk device. Models are written in OpenSCAD so you can tweak
-dimensions as needed.
+This folder contains the hardware sources and exports for the Sigma S1
+push-to-talk device.
+
+- `scad/` – Parameterized OpenSCAD models for the enclosure.  Tune dimensions by
+  editing [`inputs/enclosure.json`](inputs/enclosure.json); the STL build script
+  injects those values via `openscad -D` flags.
+- `stl/` – Auto-generated STL exports plus `checksums.sha256` for drift detection.
 
 The enclosure includes cutouts for the button, microphone, speaker, battery,
-USB-C port, a small lanyard hole for attaching a strap, and a 5 mm status LED
-opening. The lanyard hole measures 10 mm in diameter and sits 6 mm from the left
-edge. The USB-C cutout is 14 mm wide for improved cable clearance.
+USB-C port, a 5 mm status LED opening, and a 10 mm lanyard hole set 6 mm from the
+left edge. The USB-C cutout is 14 mm wide for improved cable clearance.
 
-- `cad/` – OpenSCAD models for 3D printing
-- `stl/` – auto-generated STL exports
+## Editing parameters
 
-See [docs/sigma-s1-assembly.md](../docs/sigma-s1-assembly.md) for a full
-bill of materials and assembly instructions.
+Feed new dimensions into the SCAD by editing `inputs/enclosure.json`.  Run
+`bash scripts/build_stl.sh` to regenerate meshes and the checksum manifest; the
+script replays JSON values into OpenSCAD on every export.
+
+## Safety guidance
+
+Refer to [`docs/hardware/safety.md`](../docs/hardware/safety.md) for headset
+SPL limits, microphone bias recommendations, and battery/charging cautions.

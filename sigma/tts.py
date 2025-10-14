@@ -7,7 +7,9 @@ from array import array
 from pathlib import Path
 from typing import Iterable
 
-__all__ = ["synthesize_speech", "save_speech"]
+from sigma.audio.interfaces import TextToSpeechInterface
+
+__all__ = ["synthesize_speech", "save_speech", "FormantTextToSpeech"]
 
 # Simple formant-style frequencies for vowel sounds (Hz).
 _VOWEL_FORMANTS: dict[str, tuple[float, float]] = {
@@ -185,3 +187,14 @@ def save_speech(
     data = synthesize_speech(text, sample_rate=sample_rate)
     destination.write_bytes(data)
     return destination
+
+
+class FormantTextToSpeech(TextToSpeechInterface):
+    """Adapter that wraps :func:`synthesize_speech`."""
+
+    def __init__(self, *, default_sample_rate: int = 22_050) -> None:
+        self._default_sample_rate = default_sample_rate
+
+    def synthesize(self, text: str, /, *, sample_rate: int = 22_050) -> bytes:
+        resolved_rate = sample_rate or self._default_sample_rate
+        return synthesize_speech(text, sample_rate=resolved_rate)
