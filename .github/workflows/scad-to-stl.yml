@@ -1,7 +1,9 @@
 name: Build STL
 on:
   push:
-    paths: ['hardware/cad/**/*.scad']
+    paths:
+      - 'hardware/scad/**/*.scad'
+      - 'hardware/inputs/**/*.json'
   workflow_dispatch:
 
 jobs:
@@ -16,13 +18,13 @@ jobs:
       - name: Install OpenSCAD
         run: sudo apt-get update && sudo apt-get install -y openscad
       - name: Render SCAD files
-        run: bash scripts/build_stl.sh
+        run: infra/ci/stl_regression.py
       - name: Commit STL models
         if: github.ref == 'refs/heads/main'
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add hardware/stl/**/*.stl || true
+          git add hardware/stl/**/*.stl hardware/stl/checksums.sha256 || true
           if git diff --cached --quiet; then
             echo "No STL changes to commit"
           else

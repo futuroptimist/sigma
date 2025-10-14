@@ -11,7 +11,9 @@ from pathlib import Path
 from typing import Any, BinaryIO, Mapping
 from urllib import error, request
 
-__all__ = ["WhisperResult", "transcribe_audio"]
+from sigma.audio.interfaces import AudioInput, SpeechToTextInterface
+
+__all__ = ["WhisperResult", "transcribe_audio", "WhisperSpeechToText"]
 
 
 @dataclass(frozen=True)
@@ -248,3 +250,33 @@ def transcribe_audio(
     except error.URLError as exc:
         message = f"Failed to reach Whisper server: {exc.reason}"
         raise RuntimeError(message) from exc
+
+
+class WhisperSpeechToText(SpeechToTextInterface):
+    """Speech-to-text adapter that delegates to :func:`transcribe_audio`."""
+
+    def __init__(self, *, default_url: str | None = None) -> None:
+        self._default_url = default_url
+
+    def transcribe(
+        self,
+        audio: AudioInput,
+        /,
+        *,
+        url: str | None = None,
+        model: str | None = None,
+        language: str | None = None,
+        temperature: float | None = None,
+        extra_params: Mapping[str, Any] | None = None,
+        timeout: float = 30.0,
+    ) -> WhisperResult:
+        resolved_url = url or self._default_url or _DEFAULT_WHISPER_URL
+        return transcribe_audio(
+            audio,
+            url=resolved_url,
+            model=model,
+            language=language,
+            temperature=temperature,
+            extra_params=extra_params,
+            timeout=timeout,
+        )

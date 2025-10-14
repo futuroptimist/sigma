@@ -6,7 +6,7 @@ recognition, routes text to a configurable LLM, and replies with text-to-speech.
 
 ## Project Structure
 - `/firmware` – PlatformIO project for the ESP32
-- `/hardware/cad` – OpenSCAD models for the enclosure
+- `/hardware/scad` – OpenSCAD models for the enclosure
 - `/hardware/stl` – generated STL files committed by CI
 - `/scripts` – helper scripts and CI checks
 - `/tests` – pytest suite verifying basic functionality

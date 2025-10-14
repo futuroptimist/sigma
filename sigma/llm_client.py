@@ -11,8 +11,9 @@ from typing import Any, Mapping, MutableMapping
 from urllib import error, parse, request
 
 from llms import resolve_llm_endpoint
+from sigma.audio.interfaces import LLMRouterInterface
 
-__all__ = ["LLMResponse", "query_llm"]
+__all__ = ["LLMResponse", "query_llm", "ConfiguredLLMRouter"]
 
 
 @dataclass(frozen=True)
@@ -506,6 +507,50 @@ def query_llm(
             reason=exc.reason,
         )
         raise RuntimeError(message) from exc
+
+
+class ConfiguredLLMRouter(LLMRouterInterface):
+    """Adapter that exposes :func:`query_llm` via an interface."""
+
+    def __init__(
+        self,
+        *,
+        default_name: str | None = None,
+        default_path: str | os.PathLike[str] | None = None,
+        default_timeout: float = 10.0,
+    ) -> None:
+        self._default_name = default_name
+        self._default_path = default_path
+        self._default_timeout = default_timeout
+
+    def query(
+        self,
+        prompt: str | None,
+        /,
+        *,
+        name: str | None = None,
+        path: str | None = None,
+        timeout: float | None = None,
+        extra_payload: Mapping[str, Any] | None = None,
+    ) -> LLMResponse:
+        if timeout is None:
+            resolved_timeout = self._default_timeout
+        else:
+            resolved_timeout = timeout
+        resolved_name = name or self._default_name
+        if path is not None:
+            resolved_path = path
+        elif self._default_path is not None:
+            resolved_path = os.fspath(self._default_path)
+        else:
+            resolved_path = None
+        return query_llm(
+            prompt,
+            name=resolved_name,
+            path=resolved_path,
+            timeout=resolved_timeout,
+            extra_payload=extra_payload,
+        )
 
 
 def _parse_cli_args(argv: list[str] | None = None) -> argparse.Namespace:

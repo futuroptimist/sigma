@@ -15,9 +15,9 @@ PURPOSE:
 Update OpenSCAD models and regenerate STL files.
 
 CONTEXT:
-- Edit `.scad` files under `hardware/cad/`.
+- Edit `.scad` files under `hardware/scad/` and parameters in `hardware/inputs/`.
 - Rebuild STLs using `bash scripts/build_stl.sh`.
-- Commit generated files under `hardware/stl/`.
+- Commit generated files and `checksums.sha256` under `hardware/stl/`.
 - Ensure `pre-commit run --all-files` and `make test` succeed.
 
 REQUEST:
