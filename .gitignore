@@ -4,6 +4,7 @@ apps/firmware/include/config.secrets.h
 # Environment files
 .env
 .env.*
+!.env.example
 
 # Build artifacts
 __pycache__/
