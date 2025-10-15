@@ -7,6 +7,8 @@ This snapshot documents how the repository is organized after the migration to
 
 - `apps/firmware/` – Firmware team (PlatformIO project, configuration headers,
   Unity tests).
+- `apps/firmware/include/` – Holds `config.h` plus the `config.secrets` template
+  that downstream device builders copy and fill outside of source control.
 - `hardware/` – Hardware team (OpenSCAD sources in `hardware/scad`, generated
   STL exports in `hardware/stl`, checksum manifests).
 - `docs/` – Documentation team (assembly manual, operational guides, SPL
@@ -58,10 +60,12 @@ committed meshes.
 
 `llms.py` reads endpoint metadata from [`llms.txt`](../llms.txt).  The parser
 supports comments, default fallbacks, and tags; see
-[`tests/test_llms.py`](../tests/test_llms.py) for coverage.  Secrets are
-loaded from environment variables or `.env` files (see
-[`docs/operations/secrets.md`](secrets.md)).  Keep production credentials in
-`secrets/.env` when deploying, never in source control.
+[`tests/test_llms.py`](../tests/test_llms.py) for coverage.  Secrets are loaded
+from environment variables or `.env` files—start from the tracked
+[`.env.example`](../.env.example) for host services and from
+`apps/firmware/include/config.secrets.example.h` for embedded credentials.
+Never commit real tokens.  The `scripts/llms-cli.sh` helper bootstraps
+`PYTHONPATH` so the CLI works from any directory.
 
 ## Release support scripts
 
