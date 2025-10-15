@@ -56,12 +56,22 @@ committed meshes.
 
 ## LLM routing and secrets
 
-`llms.py` reads endpoint metadata from [`llms.txt`](../llms.txt).  The parser
-supports comments, default fallbacks, and tags; see
-[`tests/test_llms.py`](../tests/test_llms.py) for coverage.  Secrets are
-loaded from environment variables or `.env` files (see
+`llms.py` reads endpoint metadata from [`llms.txt`](../llms.txt) on demand.
+`get_llm_endpoints` scans for the `## LLM Endpoints` heading, tolerates mixed
+bullet markers (`-`, `*`, `+`), and preserves the original link text so URLs are
+never mutated.  `resolve_llm_endpoint` trims whitespace, honours the
+`SIGMA_DEFAULT_LLM` environment variable, and raises descriptive errors if the
+name is missing or unknown.  The module also exposes a CLI (`python -m llms` or
+[`scripts/llms-cli.sh`](../scripts/llms-cli.sh)) that prints the active
+endpoints or resolves a single entry in JSON for automation.  Behavioural
+regression tests live in [`tests/test_llms.py`](../tests/test_llms.py) to guard
+against parser drift.
+
+Secrets are loaded from environment variables or `.env` files (see
 [`docs/operations/secrets.md`](secrets.md)).  Keep production credentials in
-`secrets/.env` when deploying, never in source control.
+`secrets/.env` when deploying, never in source control, and rely on the
+provided templates (`.env.example`,
+`apps/firmware/include/config.secrets.example.h`) for scaffolding.
 
 ## Release support scripts
 
