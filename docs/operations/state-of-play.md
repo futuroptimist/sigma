@@ -28,14 +28,16 @@ This snapshot documents how the repository is organized after the migration to
 - `env:native` for host-side builds that exercise Unity tests without the
   toolchain.
 
-Run `pio run` to build the device image and `pio test -e native` to execute the
-Unity tests.
+Run `pio run -d apps/firmware` to build the device image and
+`pio test -d apps/firmware -e native` to execute the Unity tests (or `cd` into
+`apps/firmware` first if you prefer shorter commands).
 
 ## Flashing workflow
 
 1. Install PlatformIO Core (`pip install platformio`).
 2. Connect the ESP32 board over USB.
-3. From the repository root: `pio run` then `pio run --target upload`.
+3. From the repository root: `pio run -d apps/firmware` then
+   `pio run -d apps/firmware --target upload`.
 4. Monitor serial output at 115200 baud (`pio device monitor`).
 
 Configuration and safety limits live in `apps/firmware/include/config.h`; keep
