@@ -147,6 +147,12 @@ normalises the token by stripping whitespace and raises a `RuntimeError` if the
 variable is set but empty. Use `SIGMA_LLM_AUTH_SCHEME` to customise the prefix
 (`Bearer` by default, set it to an empty string to send the raw token).
 
+Set `SIGMA_LLM_URL` when you want to skip `llms.txt` entirely during
+development. If you call `sigma.query_llm` without an explicit endpoint name or
+path, the helper trims this environment variable and contacts that URL instead
+of resolving the Markdown list. Empty values raise `RuntimeError` so
+misconfiguration is surfaced immediately.
+
 ## Command-line Queries
 
 Invoke the helper directly from the command line to send a prompt without

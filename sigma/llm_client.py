@@ -48,6 +48,7 @@ _SUPPORTED_SCHEMES = {"http", "https"}
 _JSON_CONTENT_TYPES = {"application/json", "text/json"}
 _AUTH_TOKEN_ENV = "SIGMA_LLM_AUTH_TOKEN"
 _AUTH_SCHEME_ENV = "SIGMA_LLM_AUTH_SCHEME"
+_URL_OVERRIDE_ENV = "SIGMA_LLM_URL"
 _TRAILING_ONLY_KEYS = {
     "outputs",
     "result",
@@ -263,6 +264,26 @@ def _prepare_payload(
         raise TypeError(message) from exc
 
 
+def _resolve_endpoint(
+    name: str | None, path: str | os.PathLike[str] | None
+) -> tuple[str, str]:
+    """Return endpoint details honouring environment overrides when present."""
+
+    if name is None and path is None:
+        env_override_raw = os.getenv(_URL_OVERRIDE_ENV)
+        if env_override_raw is not None:
+            env_override = env_override_raw.strip()
+            if not env_override:
+                message = (
+                    f"Environment variable {_URL_OVERRIDE_ENV} is set "
+                    "but empty after stripping."
+                )
+                raise RuntimeError(message)
+            return _URL_OVERRIDE_ENV, env_override
+
+    return resolve_llm_endpoint(name, path=path)
+
+
 def _build_authorisation_header() -> Mapping[str, str]:
     """Return optional ``Authorization`` header derived from environment."""
 
@@ -422,7 +443,7 @@ def query_llm(
 ) -> LLMResponse:
     """Send *prompt* to an HTTP LLM endpoint and return the parsed response."""
 
-    display_name, url = resolve_llm_endpoint(name, path=path)
+    display_name, url = _resolve_endpoint(name, path)
     normalized_url = url.strip()
     parsed = parse.urlparse(normalized_url)
     if parsed.scheme.lower() not in _SUPPORTED_SCHEMES:
