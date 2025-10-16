@@ -6,7 +6,8 @@ push-to-talk device.
 - `scad/` – Parameterized OpenSCAD models for the enclosure.  Tune dimensions by
   editing [`inputs/enclosure.json`](inputs/enclosure.json); the STL build script
   injects those values via `openscad -D` flags.
-- `stl/` – Auto-generated STL exports plus `checksums.sha256` for drift detection.
+- `stl/` – Auto-generated STL exports plus `checksums.sha256` for drift detection
+  (see [`docs/hardware/stl-manifest.md`](../docs/hardware/stl-manifest.md)).
 
 The enclosure includes cutouts for the button, microphone, speaker, battery,
 USB-C port, a 5 mm status LED opening, and a 10 mm lanyard hole set 6 mm from the

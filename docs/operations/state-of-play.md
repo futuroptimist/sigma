@@ -7,6 +7,8 @@ This snapshot documents how the repository is organized after the migration to
 
 - `apps/firmware/` – Firmware team (PlatformIO project, configuration headers,
   Unity tests).
+- `apps/firmware/include/` – Holds `config.h` plus the `config.secrets` template
+  that downstream device builders copy and fill outside of source control.
 - `hardware/` – Hardware team (OpenSCAD sources in `hardware/scad`, generated
   STL exports in `hardware/stl`, checksum manifests).
 - `docs/` – Documentation team (assembly manual, operational guides, SPL
