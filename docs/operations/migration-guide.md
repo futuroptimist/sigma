@@ -20,8 +20,9 @@ at the new paths.
 - Include headers from `apps/firmware/include/` instead of macros passed via
   PlatformIO `build_flags`.
 - Copy `config.secrets.example.h` for any Wi-Fi or API keys.
-- Run `pio run`, `pio test -e native`, and `pio run --target upload` from the
-  repository root to keep relative paths working with CI.
+- Run `pio run -d apps/firmware`, `pio test -d apps/firmware -e native`, and
+  `pio run -d apps/firmware --target upload` from the repository root to keep
+  relative paths working with CI.
 
 ## CAD regeneration
 
@@ -34,8 +35,8 @@ at the new paths.
 
 - The STL workflow now calls `infra/ci/stl_regression.py`; run it locally when
   updating CAD to reproduce CI behaviour.
-- `pre-commit run --all-files`, `make test`, `pio run`, and
-  `pio test -e native` remain mandatory before submitting PRs.
+- `pre-commit run --all-files`, `make test`, `pio run -d apps/firmware`, and
+  `pio test -d apps/firmware -e native` remain mandatory before submitting PRs.
 
 ## Viewer usage
 
