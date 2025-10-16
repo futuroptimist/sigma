@@ -248,6 +248,11 @@ encoded audio. String paths expand environment variables and `~`, so
 `transcribe_audio("~/clips/status.wav")` reads from your home directory without
 extra path handling.
 
+Set `SIGMA_WHISPER_URL` to override the default inference endpoint when you
+omit the `url` argument. The value is trimmed before use, and a `RuntimeError`
+is raised if the environment variable is present but empty so misconfigured
+deployments fail fast instead of silently falling back to localhost.
+
 Secure Whisper deployments often expect an `Authorization` header. Set
 `SIGMA_WHISPER_AUTH_TOKEN` to inject one automatically; the value is trimmed
 before use, and a `RuntimeError` is raised if the variable is present but

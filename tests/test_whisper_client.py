@@ -355,3 +355,54 @@ def test_transcribe_audio_empty_authorisation_token_raises(
 
     with pytest.raises(RuntimeError, match="SIGMA_WHISPER_AUTH_TOKEN"):
         transcribe_audio(b"bytes", url=f"{base_url}/inference")
+
+
+def test_transcribe_audio_env_override(
+    monkeypatch: pytest.MonkeyPatch,
+    whisper_test_server: ServerFixture,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "env"}).encode("utf-8"),
+        )
+    )
+    monkeypatch.setenv("SIGMA_WHISPER_URL", f"  {base_url}/env  ")
+
+    result = transcribe_audio(b"bytes")
+
+    assert result.text == "env"
+    latest = _latest_request(handler)
+    assert latest["path"] == "/env"
+
+
+def test_transcribe_audio_env_override_respects_explicit_url(
+    monkeypatch: pytest.MonkeyPatch,
+    whisper_test_server: ServerFixture,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "explicit"}).encode("utf-8"),
+        )
+    )
+    monkeypatch.setenv("SIGMA_WHISPER_URL", "http://example.com/ignored")
+
+    result = transcribe_audio(b"bytes", url=f"{base_url}/direct")
+
+    assert result.text == "explicit"
+    latest = _latest_request(handler)
+    assert latest["path"] == "/direct"
+
+
+def test_transcribe_audio_empty_env_override_raises(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SIGMA_WHISPER_URL", "   ")
+
+    with pytest.raises(RuntimeError, match="SIGMA_WHISPER_URL"):
+        transcribe_audio(b"bytes", extra_params={"foo": "bar"})

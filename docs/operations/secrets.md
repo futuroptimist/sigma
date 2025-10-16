@@ -27,5 +27,9 @@ audio pipeline end to end:
 | `SIGMA_LLM_AUTH_SCHEME` | Optional scheme prefix for the LLM `Authorization` header (defaults to `Bearer`). |
 | `SIGMA_AUDIO_DIR` | Directory where captured audio files are staged during tests. |
 
+Whitespace is stripped from these values before use. When `SIGMA_WHISPER_URL`
+is set but trims down to an empty string the speech-to-text helper raises a
+`RuntimeError` so misconfiguration is detected immediately.
+
 Use `scripts/scan-secrets.py` or `pre-commit run --all-files` before pushing to
 ensure no tokens were accidentally committed.

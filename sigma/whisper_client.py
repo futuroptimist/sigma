@@ -47,6 +47,7 @@ _DEFAULT_WHISPER_URL = "http://127.0.0.1:8080/inference"
 _ERR_NO_TRANSCRIPT = "Whisper server response did not include a transcription"
 _AUTH_TOKEN_ENV = "SIGMA_WHISPER_AUTH_TOKEN"
 _AUTH_SCHEME_ENV = "SIGMA_WHISPER_AUTH_SCHEME"
+_URL_OVERRIDE_ENV = "SIGMA_WHISPER_URL"
 
 
 def _coerce_audio_bytes(audio: Any) -> bytes:
@@ -153,10 +154,32 @@ def _build_authorisation_header() -> dict[str, str]:
     return {"Authorization": value}
 
 
+def _resolve_whisper_url(url: str | None) -> str:
+    """Return the Whisper endpoint URL honouring environment overrides."""
+
+    if url is not None:
+        if not isinstance(url, str):
+            raise TypeError("url must be a string when provided")
+        return url
+
+    env_override_raw = os.getenv(_URL_OVERRIDE_ENV)
+    if env_override_raw is not None:
+        env_override = env_override_raw.strip()
+        if not env_override:
+            message = (
+                f"Environment variable {_URL_OVERRIDE_ENV} is set "
+                "but empty after stripping."
+            )
+            raise RuntimeError(message)
+        return env_override
+
+    return _DEFAULT_WHISPER_URL
+
+
 def transcribe_audio(
     audio: bytes | bytearray | memoryview | str | os.PathLike[str] | BinaryIO,
     *,
-    url: str = _DEFAULT_WHISPER_URL,
+    url: str | None = None,
     model: str | None = None,
     language: str | None = None,
     temperature: float | None = None,
@@ -169,6 +192,8 @@ def transcribe_audio(
     audio_payload = base64.b64encode(audio_bytes).decode("ascii")
     if not audio_payload.isascii():  # pragma: no cover - defensive guard
         raise RuntimeError("Encoded audio payload must be ASCII")
+
+    resolved_url = _resolve_whisper_url(url)
 
     payload: dict[str, Any] = {
         "audio": audio_payload,
@@ -207,7 +232,12 @@ def transcribe_audio(
     }
     headers.update(_build_authorisation_header())
 
-    req = request.Request(url, data=body, headers=headers, method="POST")
+    req = request.Request(
+        resolved_url,
+        data=body,
+        headers=headers,
+        method="POST",
+    )
 
     try:
         with request.urlopen(req, timeout=timeout) as response:
@@ -270,7 +300,12 @@ class WhisperSpeechToText(SpeechToTextInterface):
         extra_params: Mapping[str, Any] | None = None,
         timeout: float = 30.0,
     ) -> WhisperResult:
-        resolved_url = url or self._default_url or _DEFAULT_WHISPER_URL
+        if url is not None:
+            resolved_url: str | None = url
+        elif self._default_url is not None:
+            resolved_url = self._default_url
+        else:
+            resolved_url = None
         return transcribe_audio(
             audio,
             url=resolved_url,
