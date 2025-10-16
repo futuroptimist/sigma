@@ -30,14 +30,16 @@ This snapshot documents how the repository is organized after the migration to
 - `env:native` for host-side builds that exercise Unity tests without the
   toolchain.
 
-Run `pio run` to build the device image and `pio test -e native` to execute the
-Unity tests.
+Run `pio run -d apps/firmware` to build the device image and
+`pio test -d apps/firmware -e native` to execute the Unity tests (or `cd` into
+`apps/firmware` first if you prefer shorter commands).
 
 ## Flashing workflow
 
 1. Install PlatformIO Core (`pip install platformio`).
 2. Connect the ESP32 board over USB.
-3. From the repository root: `pio run` then `pio run --target upload`.
+3. From the repository root: `pio run -d apps/firmware` then
+   `pio run -d apps/firmware --target upload`.
 4. Monitor serial output at 115200 baud (`pio device monitor`).
 
 Configuration and safety limits live in `apps/firmware/include/config.h`; keep
@@ -58,14 +60,22 @@ committed meshes.
 
 ## LLM routing and secrets
 
-`llms.py` reads endpoint metadata from [`llms.txt`](../llms.txt).  The parser
-supports comments, default fallbacks, and tags; see
-[`tests/test_llms.py`](../tests/test_llms.py) for coverage.  Secrets are loaded
-from environment variables or `.env` files—start from the tracked
-[`.env.example`](../.env.example) for host services and from
-`apps/firmware/include/config.secrets.example.h` for embedded credentials.
-Never commit real tokens.  The `scripts/llms-cli.sh` helper bootstraps
-`PYTHONPATH` so the CLI works from any directory.
+`llms.py` reads endpoint metadata from [`llms.txt`](../llms.txt) on demand.
+`get_llm_endpoints` scans for the `## LLM Endpoints` heading, tolerates mixed
+bullet markers (`-`, `*`, `+`), and preserves the original link text so URLs are
+never mutated.  `resolve_llm_endpoint` trims whitespace, honours the
+`SIGMA_DEFAULT_LLM` environment variable, and raises descriptive errors if the
+name is missing or unknown.  The module also exposes a CLI (`python -m llms` or
+[`scripts/llms-cli.sh`](../scripts/llms-cli.sh)) that prints the active
+endpoints or resolves a single entry in JSON for automation.  Behavioural
+regression tests live in [`tests/test_llms.py`](../tests/test_llms.py) to guard
+against parser drift.
+
+Secrets are loaded from environment variables or `.env` files (see
+[`docs/operations/secrets.md`](secrets.md)).  Keep production credentials in
+`secrets/.env` when deploying, never in source control, and rely on the
+provided templates (`.env.example`,
+`apps/firmware/include/config.secrets.example.h`) for scaffolding.
 
 ## Release support scripts
 

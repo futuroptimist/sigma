@@ -347,6 +347,13 @@ empty a `RuntimeError` is raised to surface misconfiguration quickly. Provide an
 optional `SIGMA_LLM_AUTH_SCHEME` to override the default `Bearer` prefix (set it
 to an empty string to send the raw token).
 
+Set `SIGMA_LLM_URL` when you want to bypass `llms.txt` entirely. If no endpoint
+name or path is supplied, `sigma.query_llm` sends the request to the trimmed
+environment URL instead of resolving the Markdown list. This makes it easy to
+point development builds at ad-hoc gateways without editing repository files;
+misconfigured values raise a `RuntimeError` so empty strings do not silently
+fall back to the default list.
+
 The helper raises `RuntimeError` if the endpoint does not speak HTTP(S), if a
 JSON reply is malformed or empty, or if it lacks an obvious text field, making
 integration failures easier to spot.

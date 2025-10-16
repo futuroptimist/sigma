@@ -1126,6 +1126,51 @@ def test_query_llm_trims_whitespace_from_url(
     assert handler.requests, "no request captured"
 
 
+def test_query_llm_uses_environment_url_override(
+    monkeypatch: pytest.MonkeyPatch,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "env"}).encode("utf-8"),
+        )
+    )
+
+    monkeypatch.setenv("SIGMA_LLM_URL", f"{base_url}/env-endpoint   ")
+
+    def _fail_resolve(*_args: Any, **_kwargs: Any) -> tuple[str, str]:
+        pytest.fail("SIGMA_LLM_URL override should skip resolve")
+
+    monkeypatch.setattr("sigma.llm_client.resolve_llm_endpoint", _fail_resolve)
+
+    result = query_llm("Env override")
+
+    assert result.text == "env"
+    assert result.url == f"{base_url}/env-endpoint"
+    assert result.name == "SIGMA_LLM_URL"
+    request = _latest_request(handler)
+    assert request["path"] == "/env-endpoint"
+
+
+def test_query_llm_empty_environment_url_raises(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SIGMA_LLM_URL", "   ")
+
+    def _fail_resolve(*_args: Any, **_kwargs: Any) -> tuple[str, str]:
+        pytest.fail("Empty SIGMA_LLM_URL should abort before resolve")
+
+    monkeypatch.setattr("sigma.llm_client.resolve_llm_endpoint", _fail_resolve)
+
+    with pytest.raises(RuntimeError) as excinfo:
+        query_llm("Env override")
+
+    assert "SIGMA_LLM_URL" in str(excinfo.value)
+
+
 def test_query_llm_extra_payload_included(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
