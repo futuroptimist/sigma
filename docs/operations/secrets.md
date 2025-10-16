@@ -19,7 +19,7 @@ audio pipeline end to end:
 | Variable | Purpose |
 | --- | --- |
 | `SIGMA_DEFAULT_LLM` | Preferred endpoint label from [`llms.txt`](../../llms.txt); blank uses the first entry. |
-| `SIGMA_WHISPER_URL` | Base URL for the speech-to-text provider used by `sigma.whisper_client`. |
+| `SIGMA_WHISPER_URL` | Base URL for the speech-to-text provider used by `sigma.whisper_client`; trimmed values must not be empty (errors otherwise). |
 | `SIGMA_WHISPER_AUTH_TOKEN` | Authentication token injected into Whisper requests. |
 | `SIGMA_WHISPER_AUTH_SCHEME` | Optional scheme prefix for the Whisper `Authorization` header (defaults to `Bearer`). |
 | `SIGMA_LLM_URL` | Endpoint URL for the primary LLM provider. |

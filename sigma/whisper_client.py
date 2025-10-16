@@ -47,6 +47,7 @@ _DEFAULT_WHISPER_URL = "http://127.0.0.1:8080/inference"
 _ERR_NO_TRANSCRIPT = "Whisper server response did not include a transcription"
 _AUTH_TOKEN_ENV = "SIGMA_WHISPER_AUTH_TOKEN"
 _AUTH_SCHEME_ENV = "SIGMA_WHISPER_AUTH_SCHEME"
+_URL_ENV = "SIGMA_WHISPER_URL"
 
 
 def _coerce_audio_bytes(audio: Any) -> bytes:
@@ -153,17 +154,62 @@ def _build_authorisation_header() -> dict[str, str]:
     return {"Authorization": value}
 
 
+def _resolve_whisper_url(
+    url: str | None,
+    *,
+    default_url: str | None = None,
+) -> str:
+    """Return the Whisper endpoint honouring environment overrides."""
+
+    if url is not None:
+        if isinstance(url, os.PathLike):
+            return os.fspath(url)
+        if not isinstance(url, str):
+            raise TypeError("url must be a string when provided")
+        return url
+
+    if default_url is not None:
+        if isinstance(default_url, os.PathLike):
+            return os.fspath(default_url)
+        if not isinstance(default_url, str):
+            raise TypeError("default_url must be a string when provided")
+        return default_url
+
+    env_override = os.getenv(_URL_ENV)
+    if env_override is not None:
+        trimmed = env_override.strip()
+        if not trimmed:
+            message = "".join(
+                [
+                    "Environment variable ",
+                    _URL_ENV,
+                    " is set but empty after stripping.",
+                ]
+            )
+            raise RuntimeError(message)
+        return trimmed
+
+    return _DEFAULT_WHISPER_URL
+
+
 def transcribe_audio(
     audio: bytes | bytearray | memoryview | str | os.PathLike[str] | BinaryIO,
     *,
-    url: str = _DEFAULT_WHISPER_URL,
+    url: str | None = None,
     model: str | None = None,
     language: str | None = None,
     temperature: float | None = None,
     extra_params: Mapping[str, Any] | None = None,
     timeout: float = 30.0,
 ) -> WhisperResult:
-    """Send *audio* to a Whisper server and return the transcription result."""
+    """Send *audio* to a Whisper server and return the transcription result.
+
+    When *url* is omitted the helper consults ``SIGMA_WHISPER_URL`` before
+    falling back to the built-in default endpoint. This lets deployments be
+    configured via environment variables without touching code.
+    Whitespace-only overrides raise ``RuntimeError`` to surface
+    misconfiguration early.
+    """
 
     audio_bytes = _coerce_audio_bytes(audio)
     audio_payload = base64.b64encode(audio_bytes).decode("ascii")
@@ -200,6 +246,8 @@ def transcribe_audio(
             raise ValueError(message)
         payload.update(extra_params)
 
+    resolved_url = _resolve_whisper_url(url)
+
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     headers = {
         "Content-Type": "application/json; charset=utf-8",
@@ -207,7 +255,12 @@ def transcribe_audio(
     }
     headers.update(_build_authorisation_header())
 
-    req = request.Request(url, data=body, headers=headers, method="POST")
+    req = request.Request(
+        resolved_url,
+        data=body,
+        headers=headers,
+        method="POST",
+    )
 
     try:
         with request.urlopen(req, timeout=timeout) as response:
@@ -255,7 +308,16 @@ def transcribe_audio(
 class WhisperSpeechToText(SpeechToTextInterface):
     """Speech-to-text adapter that delegates to :func:`transcribe_audio`."""
 
-    def __init__(self, *, default_url: str | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        default_url: str | os.PathLike[str] | None = None,
+    ) -> None:
+        if default_url is not None:
+            if isinstance(default_url, os.PathLike):
+                default_url = os.fspath(default_url)
+            elif not isinstance(default_url, str):
+                raise TypeError("default_url must be a string when provided")
         self._default_url = default_url
 
     def transcribe(
@@ -270,7 +332,7 @@ class WhisperSpeechToText(SpeechToTextInterface):
         extra_params: Mapping[str, Any] | None = None,
         timeout: float = 30.0,
     ) -> WhisperResult:
-        resolved_url = url or self._default_url or _DEFAULT_WHISPER_URL
+        resolved_url = _resolve_whisper_url(url, default_url=self._default_url)
         return transcribe_audio(
             audio,
             url=resolved_url,

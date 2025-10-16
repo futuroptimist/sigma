@@ -224,7 +224,10 @@ Sigma ships a helper for sending audio clips to a local
 [`whisper.cpp`](https://github.com/ggerganov/whisper.cpp) server. The
 `transcribe_audio` function accepts raw bytes, file paths, or file-like objects
 and posts the clip as base64-encoded JSON to
-`http://127.0.0.1:8080/inference` (override the URL to match your deployment).
+`http://127.0.0.1:8080/inference` by default. Set the `SIGMA_WHISPER_URL`
+environment variable to override the endpoint globally (the value is trimmed
+and must not be blank) or pass `url=` explicitly when you need a one-off
+destination.
 The payload is encoded with Python's `base64` module so the `audio` field is a
 pure ASCII string suitable for JSON APIs.
 It returns a `WhisperResult` containing the decoded text, response metadata,

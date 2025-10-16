@@ -12,7 +12,11 @@ from typing import Any, Dict, Iterator, Tuple
 
 import pytest
 
-from sigma.whisper_client import WhisperResult, transcribe_audio
+from sigma import whisper_client
+
+WhisperResult = whisper_client.WhisperResult
+WhisperSpeechToText = whisper_client.WhisperSpeechToText
+transcribe_audio = whisper_client.transcribe_audio
 
 _TEMPERATURE_ERROR = "temperature must be a finite number"
 
@@ -355,3 +359,55 @@ def test_transcribe_audio_empty_authorisation_token_raises(
 
     with pytest.raises(RuntimeError, match="SIGMA_WHISPER_AUTH_TOKEN"):
         transcribe_audio(b"bytes", url=f"{base_url}/inference")
+
+
+def test_transcribe_audio_uses_environment_url(
+    whisper_test_server: ServerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "env ok"}).encode("utf-8"),
+        )
+    )
+    monkeypatch.setenv("SIGMA_WHISPER_URL", f"  {base_url}/env  ")
+
+    result = transcribe_audio(b"env-bytes")
+
+    assert result.text == "env ok"
+    latest = _latest_request(handler)
+    assert latest["path"] == "/env"
+
+
+def test_transcribe_audio_empty_environment_url_raises(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SIGMA_WHISPER_URL", "   ")
+
+    with pytest.raises(RuntimeError, match="SIGMA_WHISPER_URL"):
+        transcribe_audio(b"env-error")
+
+
+def test_whisper_speech_to_text_honours_environment_default(
+    whisper_test_server: ServerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "speech ok"}).encode("utf-8"),
+        )
+    )
+    monkeypatch.setenv("SIGMA_WHISPER_URL", f"{base_url}/speech")
+
+    stt = WhisperSpeechToText()
+    result = stt.transcribe(b"speech-bytes")
+
+    assert result.text == "speech ok"
+    latest = _latest_request(handler)
+    assert latest["path"] == "/speech"
