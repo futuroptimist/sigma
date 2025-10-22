@@ -6,7 +6,9 @@ import base64
 import json
 import math
 import os
+import uuid
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, BinaryIO, Mapping
 from urllib import error, request
@@ -48,6 +50,7 @@ _ERR_NO_TRANSCRIPT = "Whisper server response did not include a transcription"
 _AUTH_TOKEN_ENV = "SIGMA_WHISPER_AUTH_TOKEN"
 _AUTH_SCHEME_ENV = "SIGMA_WHISPER_AUTH_SCHEME"
 _URL_OVERRIDE_ENV = "SIGMA_WHISPER_URL"
+_AUDIO_STAGING_ENV = "SIGMA_AUDIO_DIR"
 
 
 def _coerce_audio_bytes(audio: Any) -> bytes:
@@ -70,6 +73,41 @@ def _coerce_audio_bytes(audio: Any) -> bytes:
     if not data:
         raise ValueError("audio payload must be non-empty")
     return data
+
+
+def _stage_audio_payload(data: bytes) -> None:
+    """Persist *data* to ``SIGMA_AUDIO_DIR`` when configured."""
+
+    staging_raw = os.getenv(_AUDIO_STAGING_ENV)
+    if staging_raw is None:
+        return
+
+    expanded = os.path.expandvars(staging_raw)
+    trimmed = expanded.strip()
+    if not trimmed:
+        message = (
+            f"Environment variable {_AUDIO_STAGING_ENV} is set "
+            "but empty after stripping."
+        )
+        raise RuntimeError(message)
+
+    destination_dir = Path(trimmed).expanduser()
+    try:
+        destination_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:  # pragma: no cover - filesystem failure guard
+        detail = f"{destination_dir}: {exc}"
+        message = "Failed to create audio staging directory " + detail
+        raise RuntimeError(message) from exc
+
+    extension = "wav" if data.startswith(b"RIFF") else "raw"
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    filename = f"capture-{timestamp}-{uuid.uuid4().hex}.{extension}"
+    destination = destination_dir / filename
+    try:
+        destination.write_bytes(data)
+    except OSError as exc:  # pragma: no cover - filesystem failure guard
+        message = f"Failed to write staged audio to {destination}: {exc}"
+        raise RuntimeError(message) from exc
 
 
 def _extract_transcript(value: Any) -> tuple[str | None, str | None]:
@@ -189,6 +227,7 @@ def transcribe_audio(
     """Send *audio* to a Whisper server and return the transcription result."""
 
     audio_bytes = _coerce_audio_bytes(audio)
+    _stage_audio_payload(audio_bytes)
     audio_payload = base64.b64encode(audio_bytes).decode("ascii")
     if not audio_payload.isascii():  # pragma: no cover - defensive guard
         raise RuntimeError("Encoded audio payload must be ASCII")

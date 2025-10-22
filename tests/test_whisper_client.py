@@ -242,6 +242,43 @@ def test_transcribe_audio_accepts_file_object(
     assert base64.b64decode(payload["audio"]) == b"streamed-bytes"
 
 
+def test_transcribe_audio_stages_payload(
+    tmp_path: Path,
+    whisper_test_server: ServerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
+        )
+    )
+
+    stage_dir = tmp_path / "captures"
+    monkeypatch.setenv("SIGMA_AUDIO_DIR", str(stage_dir))
+
+    transcribe_audio(b"\x01\x02", url=f"{base_url}/inference")
+
+    staged_files = sorted(stage_dir.iterdir())
+    assert len(staged_files) == 1
+    assert staged_files[0].read_bytes() == b"\x01\x02"
+
+
+def test_transcribe_audio_empty_stage_dir_raises(
+    whisper_test_server: ServerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    base_url, handler = whisper_test_server
+    monkeypatch.setenv("SIGMA_AUDIO_DIR", "   ")
+
+    with pytest.raises(RuntimeError, match="SIGMA_AUDIO_DIR"):
+        transcribe_audio(b"\x01", url=f"{base_url}/inference")
+
+    assert not handler.requests
+
+
 def test_transcribe_audio_requires_transcript(
     whisper_test_server: ServerFixture,
 ) -> None:

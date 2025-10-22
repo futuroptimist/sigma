@@ -25,11 +25,17 @@ audio pipeline end to end:
 | `SIGMA_LLM_URL` | Endpoint URL for the primary LLM provider. |
 | `SIGMA_LLM_AUTH_TOKEN` | Authentication token for LLM queries. |
 | `SIGMA_LLM_AUTH_SCHEME` | Optional scheme prefix for the LLM `Authorization` header (defaults to `Bearer`). |
-| `SIGMA_AUDIO_DIR` | Directory where captured audio files are staged during tests. |
+| `SIGMA_AUDIO_DIR` | Directory where each audio payload is staged before Whisper requests. |
 
 Whitespace is stripped from these values before use. When `SIGMA_WHISPER_URL`
 is set but trims down to an empty string the speech-to-text helper raises a
 `RuntimeError` so misconfiguration is detected immediately.
+
+When `SIGMA_AUDIO_DIR` is configured, `sigma.whisper_client.transcribe_audio`
+stores a copy of every audio payload in that directory before sending it to the
+Whisper service. The path is expanded relative to the current environment,
+created on demand, and empty values raise a `RuntimeError` so staging failures
+surface immediately.
 
 Use `scripts/scan-secrets.py` or `pre-commit run --all-files` before pushing to
 ensure no tokens were accidentally committed.
