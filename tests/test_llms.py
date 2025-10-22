@@ -611,6 +611,126 @@ def test_llms_cli_json_listing(tmp_path):
     ]
 
 
+def test_llms_cli_lists_url_override(monkeypatch):
+    env = os.environ.copy()
+    env.pop("SIGMA_DEFAULT_LLM", None)
+    env["SIGMA_LLM_URL"] = " https://override.example.com/api  "
+
+    result = _run_llms_cli([], env)
+
+    assert result.returncode == 0
+    lines = []
+    for raw_line in result.stdout.strip().splitlines():
+        stripped = raw_line.strip()
+        if stripped:
+            lines.append(stripped)
+    assert lines
+    expected = "SIGMA_LLM_URL: https://override.example.com/api [default]"
+    assert lines[0] == expected
+    for line in lines[1:]:
+        assert not line.endswith("[default]")
+
+
+def test_llms_cli_json_lists_url_override(monkeypatch):
+    env = os.environ.copy()
+    env.pop("SIGMA_DEFAULT_LLM", None)
+    env["SIGMA_LLM_URL"] = "https://override.example.com/api"
+
+    result = _run_llms_cli(["--json"], env)
+
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert payload
+    assert payload[0] == {
+        "name": "SIGMA_LLM_URL",
+        "url": "https://override.example.com/api",
+        "is_default": True,
+    }
+    assert all(not entry["is_default"] for entry in payload[1:])
+
+
+def test_llms_cli_lists_url_override_with_custom_path(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "## LLM Endpoints\n"
+            "- [Primary](https://primary.example.com)\n"
+            "- [Secondary](https://secondary.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    env = os.environ.copy()
+    env.pop("SIGMA_DEFAULT_LLM", None)
+    env["SIGMA_LLM_URL"] = " https://override.example.com/api  "
+
+    result = _run_llms_cli([str(llms_file)], env)
+
+    assert result.returncode == 0
+    assert not result.stderr
+    lines = [line.strip() for line in result.stdout.strip().splitlines()]
+    expected = "SIGMA_LLM_URL: https://override.example.com/api [default]"
+    assert lines[0] == expected
+    assert lines[1:] == [
+        "Primary: https://primary.example.com",
+        "Secondary: https://secondary.example.com",
+    ]
+
+
+def test_llms_cli_json_lists_url_override_with_custom_path(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Only](https://only.example.com)\n",
+        encoding="utf-8",
+    )
+    env = os.environ.copy()
+    env.pop("SIGMA_DEFAULT_LLM", None)
+    env["SIGMA_LLM_URL"] = "https://override.example.com/api"
+
+    result = _run_llms_cli([str(llms_file), "--json"], env)
+
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert payload[0] == {
+        "name": "SIGMA_LLM_URL",
+        "url": "https://override.example.com/api",
+        "is_default": True,
+    }
+    assert payload[1:] == [
+        {
+            "name": "Only",
+            "url": "https://only.example.com",
+            "is_default": False,
+        }
+    ]
+
+
+def test_llms_cli_reports_empty_url_override(monkeypatch):
+    env = os.environ.copy()
+    env["SIGMA_LLM_URL"] = "   "
+
+    result = _run_llms_cli([], env)
+
+    assert result.returncode == 1
+    assert "SIGMA_LLM_URL" in result.stderr
+    assert not result.stdout.strip()
+
+
+def test_llms_cli_custom_path_reports_empty_url_override(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Only](https://only.example.com)\n",
+        encoding="utf-8",
+    )
+    env = os.environ.copy()
+    env["SIGMA_LLM_URL"] = "   "
+
+    result = _run_llms_cli([str(llms_file)], env)
+
+    assert result.returncode == 1
+    assert "SIGMA_LLM_URL" in result.stderr
+    assert not result.stdout.strip()
+
+
 def test_llms_cli_help_mentions_is_default():
     result = subprocess.run(
         [sys.executable, "-m", "llms", "--help"],
@@ -718,4 +838,44 @@ def test_llms_cli_json_resolve(tmp_path):
         "name": "Beta",
         "url": "https://beta.example.com",
         "is_default": False,
+    }
+
+
+def test_llms_cli_resolve_uses_url_override():
+    env = os.environ.copy()
+    env.pop("SIGMA_DEFAULT_LLM", None)
+    env["SIGMA_LLM_URL"] = "https://override.example.com/api"
+
+    result = subprocess.run(
+        [sys.executable, "-m", "llms", "--resolve"],
+        check=True,
+        capture_output=True,
+        text=True,
+        cwd=str(REPO_ROOT),
+        env=env,
+    )
+
+    expected = "SIGMA_LLM_URL: https://override.example.com/api [default]"
+    assert result.stdout.strip() == expected
+
+
+def test_llms_cli_json_resolve_uses_url_override():
+    env = os.environ.copy()
+    env.pop("SIGMA_DEFAULT_LLM", None)
+    env["SIGMA_LLM_URL"] = "https://override.example.com/api"
+
+    result = subprocess.run(
+        [sys.executable, "-m", "llms", "--resolve", "--json"],
+        check=True,
+        capture_output=True,
+        text=True,
+        cwd=str(REPO_ROOT),
+        env=env,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload == {
+        "name": "SIGMA_LLM_URL",
+        "url": "https://override.example.com/api",
+        "is_default": True,
     }

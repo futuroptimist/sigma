@@ -27,7 +27,11 @@ python -m llms --json  # list endpoints as JSON
 ```
 
 Plain-text listings annotate the active endpoint with ``[default]`` so you can
-see which entry ``resolve_llm_endpoint`` will return.
+see which entry ``resolve_llm_endpoint`` will return. When ``SIGMA_LLM_URL`` is
+set the CLI prepends a synthetic entry named ``SIGMA_LLM_URL`` marked
+``[default]`` so you can spot the override that ``sigma.query_llm`` will use.
+The synthetic override entry is included even when you point the CLI at a
+custom ``llms.txt`` path so environment-driven routing stays obvious.
 When ``SIGMA_DEFAULT_LLM`` references an unknown entry (or collapses to an empty
 string after trimming) the CLI exits with an error instead of guessing, making
 misconfiguration obvious during a quick listing.
@@ -55,7 +59,8 @@ python -m llms $HOME/custom-llms.txt
 ```
 
 Resolve a single endpoint from the command line (respecting
-``SIGMA_DEFAULT_LLM`` unless ``--name`` is supplied):
+``SIGMA_DEFAULT_LLM`` unless ``--name`` is supplied and honouring
+``SIGMA_LLM_URL`` when no path is given):
 
 ```bash
 python -m llms --resolve
