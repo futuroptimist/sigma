@@ -259,6 +259,11 @@ before use, and a `RuntimeError` is raised if the variable is present but
 empty. Provide an optional `SIGMA_WHISPER_AUTH_SCHEME` to override the default
 `Bearer` prefix (set it to an empty string to send the raw token).
 
+Set `SIGMA_AUDIO_DIR` to stage a copy of each audio payload before it is sent
+to Whisper. The directory is created automatically when needed, a `.wav`
+extension is used for RIFF-encoded clips, and invalid (blank) values raise a
+`RuntimeError` so staging problems are surfaced immediately.
+
 ### Text-to-Speech
 
 Sigma includes a tiny formant-based synthesiser so replies can be rendered to
