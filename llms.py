@@ -10,6 +10,8 @@ from typing import Dict, List, Tuple
 
 __all__ = ["get_llm_endpoints", "resolve_llm_endpoint"]
 
+_URL_OVERRIDE_ENV = "SIGMA_LLM_URL"
+
 
 def _parse_markdown_link(text: str) -> tuple[str, str] | None:
     """Return the ``[text](url)`` tuple parsed from Markdown content."""
@@ -53,6 +55,22 @@ def _normalize_heading_title(raw: str) -> str:
     while title.endswith(("#", ":")):
         title = title[:-1].rstrip()
     return " ".join(title.split())
+
+
+def _read_url_override() -> str | None:
+    """Return the trimmed ``SIGMA_LLM_URL`` override when set."""
+
+    value = os.getenv(_URL_OVERRIDE_ENV)
+    if value is None:
+        return None
+    trimmed = value.strip()
+    if not trimmed:
+        message = (
+            "Environment variable "
+            f"{_URL_OVERRIDE_ENV} is set but empty after stripping."
+        )
+        raise RuntimeError(message)
+    return trimmed
 
 
 def get_llm_endpoints(path: str | Path | None = None) -> List[Tuple[str, str]]:
@@ -222,22 +240,37 @@ def main(argv: list[str] | None = None) -> int:
         namespace.resolve = True
 
     if namespace.resolve:
+        override_entry: tuple[str, str] | None = None
+        if namespace.name is None and namespace.path is None:
+            try:
+                override_url = _read_url_override()
+            except RuntimeError as exc:
+                print(str(exc), file=sys.stderr)
+                return 1
+            if override_url is not None:
+                override_entry = (_URL_OVERRIDE_ENV, override_url)
         try:
-            name, url = resolve_llm_endpoint(
-                namespace.name,
-                path=namespace.path,
-            )
+            if override_entry is not None:
+                name, url = override_entry
+            else:
+                name, url = resolve_llm_endpoint(
+                    namespace.name,
+                    path=namespace.path,
+                )
         except (RuntimeError, ValueError) as exc:
             print(str(exc), file=sys.stderr)
             return 1
-        is_default = False
-        try:
-            default_candidate = resolve_llm_endpoint(path=namespace.path)
-        except RuntimeError:
-            default_candidate = None
+        if override_entry is not None:
+            is_default = True
         else:
-            default_name, default_url = default_candidate
-            is_default = (name, url) == (default_name, default_url)
+            is_default = False
+            try:
+                default_candidate = resolve_llm_endpoint(path=namespace.path)
+            except RuntimeError:
+                default_candidate = None
+            else:
+                default_name, default_url = default_candidate
+                is_default = (name, url) == (default_name, default_url)
         if namespace.json:
             payload = {
                 "name": name,
@@ -251,8 +284,16 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     endpoints = get_llm_endpoints(namespace.path)
+    override_entry: tuple[str, str] | None = None
+    try:
+        override_url = _read_url_override()
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    if override_url is not None:
+        override_entry = (_URL_OVERRIDE_ENV, override_url)
     default_entry: tuple[str, str] | None = None
-    if endpoints:
+    if override_entry is None and endpoints:
         try:
             default_entry = resolve_llm_endpoint(path=namespace.path)
         except RuntimeError as exc:
@@ -260,6 +301,14 @@ def main(argv: list[str] | None = None) -> int:
             return 1
     if namespace.json:
         payload = []
+        if override_entry is not None:
+            payload.append(
+                {
+                    "name": override_entry[0],
+                    "url": override_entry[1],
+                    "is_default": True,
+                }
+            )
         for name, url in endpoints:
             is_default = False
             if default_entry is not None:
@@ -272,6 +321,8 @@ def main(argv: list[str] | None = None) -> int:
             payload.append(entry)
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:
+        if override_entry is not None:
+            print(f"{override_entry[0]}: {override_entry[1]} [default]")
         for name, url in endpoints:
             suffix = ""
             if default_entry is not None and (name, url) == default_entry:
