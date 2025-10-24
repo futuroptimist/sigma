@@ -79,6 +79,10 @@ receive the same whitespace trimming so `resolve_llm_endpoint("  OpenRouter  ")`
 Pass endpoint names as strings—non-string inputs raise ``TypeError`` to surface
 misuse quickly.
 
+When ``SIGMA_LLM_URL`` is set and you call ``resolve_llm_endpoint()`` without a
+name, the helper returns the override entry so host-side utilities and manual
+lookups stay in sync with the forced routing.
+
 You can list the configured endpoints with:
 
 ```bash

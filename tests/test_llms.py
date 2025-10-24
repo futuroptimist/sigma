@@ -347,6 +347,24 @@ def test_resolve_llm_endpoint_blank_env_falls_back(tmp_path, monkeypatch):
     )
 
 
+def test_resolve_llm_endpoint_honours_url_override(monkeypatch):
+    monkeypatch.setenv(
+        "SIGMA_LLM_URL",
+        " https://override.example.com/api  ",
+    )
+    assert llms.resolve_llm_endpoint() == (
+        "SIGMA_LLM_URL",
+        "https://override.example.com/api",
+    )
+
+
+def test_resolve_llm_endpoint_named_lookup_ignores_url_override(monkeypatch):
+    monkeypatch.setenv("SIGMA_LLM_URL", "https://override.example.com/api")
+    name, url = llms.resolve_llm_endpoint("OpenRouter")
+    assert name == "OpenRouter"
+    assert url == "https://openrouter.ai/"
+
+
 def test_resolve_llm_endpoint_no_entries(tmp_path):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text("## LLM Endpoints\n", encoding="utf-8")
