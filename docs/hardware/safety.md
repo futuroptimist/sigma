@@ -15,6 +15,9 @@ rails when assembling and operating hardware.
 The firmware prints these reminders on boot and the configuration header exposes
 `kRecommendedMaxSplDb` and `kAbsoluteMaxSplDb` constants for quick tuning.
 
+Automated tests compare these documented limits against
+`apps/firmware/include/config.h`, so update both when thresholds change.
+
 ## Microphone biasing
 
 - Electret capsules typically expect 2.0–3.0 V bias.
