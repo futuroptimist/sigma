@@ -14,7 +14,7 @@ if str(REPO_ROOT) not in sys.path:
 
 import sigma.llm_client as llm_client_module  # noqa: E402
 
-from sigma.llm_client import (  # noqa: E402
+from sigma.llm_client import (  # noqa: E402  # isort: skip
     ConfiguredLLMRouter,
     LLMResponse,
     query_llm,
@@ -1239,7 +1239,10 @@ def test_configured_router_honours_environment_override(
         timeout: float,
         extra_payload: Dict[str, Any] | None,
     ) -> LLMResponse:
-        resolved_name, resolved_url = llm_client_module._resolve_endpoint(name, path)
+        (
+            resolved_name,
+            resolved_url,
+        ) = llm_client_module._resolve_endpoint(name, path)
         captured["call"] = {
             "prompt": prompt,
             "name": name,
@@ -1259,12 +1262,20 @@ def test_configured_router_honours_environment_override(
         )
 
     monkeypatch.setattr("sigma.llm_client.query_llm", _fake_query)
-    monkeypatch.setenv("SIGMA_LLM_URL", " https://override.example.com ")
+    monkeypatch.setenv(
+        "SIGMA_LLM_URL",
+        " https://override.example.com ",
+    )
 
     def _fail_resolve(*_args: Any, **_kwargs: Any) -> tuple[str, str]:
-        pytest.fail("resolve_llm_endpoint should not run when override is set")
+        pytest.fail(
+            "resolve_llm_endpoint should not run when override is set",
+        )
 
-    monkeypatch.setattr("sigma.llm_client.resolve_llm_endpoint", _fail_resolve)
+    monkeypatch.setattr(
+        "sigma.llm_client.resolve_llm_endpoint",
+        _fail_resolve,
+    )
 
     router = ConfiguredLLMRouter(
         default_name="RouterDefault",
@@ -1280,7 +1291,10 @@ def test_configured_router_honours_environment_override(
         "path": None,
         "timeout": 3.0,
         "extra_payload": None,
-        "resolved": ("SIGMA_LLM_URL", "https://override.example.com"),
+        "resolved": (
+            "SIGMA_LLM_URL",
+            "https://override.example.com",
+        ),
     }
     assert result.name == llm_client_module._URL_OVERRIDE_ENV
     assert result.url == "https://override.example.com"
