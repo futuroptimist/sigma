@@ -12,6 +12,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.append(str(REPO_ROOT))
 
+import sigma.llm_client as llm_client_module  # noqa: E402
+
 from sigma.llm_client import (  # noqa: E402
     ConfiguredLLMRouter,
     LLMResponse,
@@ -1235,16 +1237,18 @@ def test_configured_router_honours_environment_override(
         timeout: float,
         extra_payload: Dict[str, Any] | None,
     ) -> LLMResponse:
+        resolved_name, resolved_url = llm_client_module._resolve_endpoint(name, path)
         captured["call"] = {
             "prompt": prompt,
             "name": name,
             "path": path,
             "timeout": timeout,
             "extra_payload": extra_payload,
+            "resolved": (resolved_name, resolved_url),
         }
         return LLMResponse(
-            name=name or "",
-            url="https://override.example.com",
+            name=resolved_name,
+            url=resolved_url,
             text="override",
             status=200,
             headers={},
@@ -1254,6 +1258,11 @@ def test_configured_router_honours_environment_override(
 
     monkeypatch.setattr("sigma.llm_client.query_llm", _fake_query)
     monkeypatch.setenv("SIGMA_LLM_URL", " https://override.example.com ")
+
+    def _fail_resolve(*_args: Any, **_kwargs: Any) -> tuple[str, str]:
+        pytest.fail("resolve_llm_endpoint should not run when override is set")
+
+    monkeypatch.setattr("sigma.llm_client.resolve_llm_endpoint", _fail_resolve)
 
     router = ConfiguredLLMRouter(
         default_name="RouterDefault",
@@ -1269,7 +1278,9 @@ def test_configured_router_honours_environment_override(
         "path": None,
         "timeout": 3.0,
         "extra_payload": None,
+        "resolved": ("SIGMA_LLM_URL", "https://override.example.com"),
     }
+    assert result.name == llm_client_module._URL_OVERRIDE_ENV
     assert result.url == "https://override.example.com"
 
 
