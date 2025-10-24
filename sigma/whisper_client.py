@@ -203,13 +203,9 @@ def _resolve_whisper_url(url: str | None) -> str:
     env_override_raw = os.getenv(_URL_OVERRIDE_ENV)
     if env_override_raw is not None:
         env_override = env_override_raw.strip()
-        if not env_override:
-            message = (
-                f"Environment variable {_URL_OVERRIDE_ENV} is set "
-                "but empty after stripping."
-            )
-            raise RuntimeError(message)
-        return env_override
+        if env_override:
+            return env_override
+        return _DEFAULT_WHISPER_URL
 
     return _DEFAULT_WHISPER_URL
 

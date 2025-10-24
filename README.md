@@ -256,9 +256,9 @@ encoded audio. String paths expand environment variables and `~`, so
 extra path handling.
 
 Set `SIGMA_WHISPER_URL` to override the default inference endpoint when you
-omit the `url` argument. The value is trimmed before use, and a `RuntimeError`
-is raised if the environment variable is present but empty so misconfigured
-deployments fail fast instead of silently falling back to localhost.
+omit the `url` argument. The value is trimmed before use; blank entries fall
+back to the built-in localhost default so `.env` templates with empty values
+continue to work, while non-empty overrides take precedence.
 
 Secure Whisper deployments often expect an `Authorization` header. Set
 `SIGMA_WHISPER_AUTH_TOKEN` to inject one automatically; the value is trimmed

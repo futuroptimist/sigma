@@ -436,10 +436,26 @@ def test_transcribe_audio_env_override_respects_explicit_url(
     assert latest["path"] == "/direct"
 
 
-def test_transcribe_audio_empty_env_override_raises(
+def test_transcribe_audio_empty_env_override_uses_default(
     monkeypatch: pytest.MonkeyPatch,
+    whisper_test_server: ServerFixture,
 ) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "fallback"}).encode("utf-8"),
+        )
+    )
     monkeypatch.setenv("SIGMA_WHISPER_URL", "   ")
+    monkeypatch.setattr(
+        "sigma.whisper_client._DEFAULT_WHISPER_URL",
+        f"{base_url}/fallback",
+    )
 
-    with pytest.raises(RuntimeError, match="SIGMA_WHISPER_URL"):
-        transcribe_audio(b"bytes", extra_params={"foo": "bar"})
+    result = transcribe_audio(b"bytes")
+
+    assert result.text == "fallback"
+    latest = _latest_request(handler)
+    assert latest["path"] == "/fallback"
