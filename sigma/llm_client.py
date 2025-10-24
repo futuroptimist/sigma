@@ -561,10 +561,14 @@ class ConfiguredLLMRouter(LLMRouterInterface):
         resolved_name = name or self._default_name
         if path is not None:
             resolved_path = path
-        elif self._default_path is not None:
-            resolved_path = os.fspath(self._default_path)
         else:
-            resolved_path = None
+            override = os.getenv(_URL_OVERRIDE_ENV)
+            if override is not None:
+                resolved_path = None
+            elif self._default_path is not None:
+                resolved_path = os.fspath(self._default_path)
+            else:
+                resolved_path = None
         return query_llm(
             prompt,
             name=resolved_name,

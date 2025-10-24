@@ -12,7 +12,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.append(str(REPO_ROOT))
 
-from sigma.llm_client import LLMResponse, query_llm  # noqa: E402
+from sigma.llm_client import (  # noqa: E402
+    ConfiguredLLMRouter,
+    LLMResponse,
+    query_llm,
+)
 
 
 class _RecordingHandler(BaseHTTPRequestHandler):
@@ -1169,6 +1173,104 @@ def test_query_llm_empty_environment_url_raises(
         query_llm("Env override")
 
     assert "SIGMA_LLM_URL" in str(excinfo.value)
+
+
+def test_configured_router_uses_default_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: Dict[str, Any] = {}
+
+    def _fake_query(
+        prompt: str,
+        *,
+        name: str | None,
+        path: str | None,
+        timeout: float,
+        extra_payload: Dict[str, Any] | None,
+    ) -> LLMResponse:
+        captured["call"] = {
+            "prompt": prompt,
+            "name": name,
+            "path": path,
+            "timeout": timeout,
+            "extra_payload": extra_payload,
+        }
+        return LLMResponse(
+            name=name or "",  # type: ignore[arg-type]
+            url="http://example.com",
+            text="stub",
+            status=200,
+            headers={},
+            raw=b"{}",
+            encoding="utf-8",
+        )
+
+    monkeypatch.setattr("sigma.llm_client.query_llm", _fake_query)
+    router = ConfiguredLLMRouter(
+        default_name="RouterDefault",
+        default_path="custom-llms.txt",
+        default_timeout=7.5,
+    )
+
+    result = router.query("Prompt", timeout=None, extra_payload={"foo": "bar"})
+
+    assert captured["call"] == {
+        "prompt": "Prompt",
+        "name": "RouterDefault",
+        "path": "custom-llms.txt",
+        "timeout": 7.5,
+        "extra_payload": {"foo": "bar"},
+    }
+    assert result.text == "stub"
+
+
+def test_configured_router_honours_environment_override(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: Dict[str, Any] = {}
+
+    def _fake_query(
+        prompt: str,
+        *,
+        name: str | None,
+        path: str | None,
+        timeout: float,
+        extra_payload: Dict[str, Any] | None,
+    ) -> LLMResponse:
+        captured["call"] = {
+            "prompt": prompt,
+            "name": name,
+            "path": path,
+            "timeout": timeout,
+            "extra_payload": extra_payload,
+        }
+        return LLMResponse(
+            name=name or "",
+            url="https://override.example.com",
+            text="override",
+            status=200,
+            headers={},
+            raw=b"{}",
+            encoding="utf-8",
+        )
+
+    monkeypatch.setattr("sigma.llm_client.query_llm", _fake_query)
+    monkeypatch.setenv("SIGMA_LLM_URL", " https://override.example.com ")
+
+    router = ConfiguredLLMRouter(
+        default_name="RouterDefault",
+        default_path="custom-llms.txt",
+        default_timeout=9.0,
+    )
+
+    result = router.query("Prompt", timeout=3.0)
+
+    assert captured["call"] == {
+        "prompt": "Prompt",
+        "name": "RouterDefault",
+        "path": None,
+        "timeout": 3.0,
+        "extra_payload": None,
+    }
+    assert result.url == "https://override.example.com"
 
 
 def test_query_llm_extra_payload_included(
