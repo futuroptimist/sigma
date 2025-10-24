@@ -330,15 +330,21 @@ def test_resolve_llm_endpoint_env_strips_whitespace(tmp_path, monkeypatch):
     )
 
 
-def test_resolve_llm_endpoint_empty_env_raises(tmp_path, monkeypatch):
+def test_resolve_llm_endpoint_blank_env_falls_back(tmp_path, monkeypatch):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text(
-        "## LLM Endpoints\n- [Alpha](https://alpha.example.com)",
+        (
+            "## LLM Endpoints\n"
+            "- [Alpha](https://alpha.example.com)\n"
+            "- [Beta](https://beta.example.com)\n"
+        ),
         encoding="utf-8",
     )
     monkeypatch.setenv("SIGMA_DEFAULT_LLM", "   ")
-    with pytest.raises(RuntimeError, match="set but empty"):
-        llms.resolve_llm_endpoint(path=llms_file)
+    assert llms.resolve_llm_endpoint(path=llms_file) == (
+        "Alpha",
+        "https://alpha.example.com",
+    )
 
 
 def test_resolve_llm_endpoint_no_entries(tmp_path):
@@ -789,6 +795,47 @@ def test_llms_cli_marks_env_override(tmp_path):
         "Primary: https://primary.example.com",
         "Secondary: https://secondary.example.com [default]",
     ]
+
+
+def test_llms_cli_handles_blank_env(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        (
+            "## LLM Endpoints\n"
+            "- [Primary](https://primary.example.com)\n"
+            "- [Secondary](https://secondary.example.com)\n"
+        ),
+        encoding="utf-8",
+    )
+    env = os.environ.copy()
+    env["SIGMA_DEFAULT_LLM"] = "   "
+
+    listing = _run_llms_cli([str(llms_file)], env)
+
+    assert listing.returncode == 0
+    assert not listing.stderr
+    lines = [line.strip() for line in listing.stdout.strip().splitlines()]
+    assert lines == [
+        "Primary: https://primary.example.com [default]",
+        "Secondary: https://secondary.example.com",
+    ]
+
+    resolved = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "llms",
+            str(llms_file),
+            "--resolve",
+        ],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        check=True,
+        env=env,
+    )
+    expected_default = "Primary: https://primary.example.com [default]"
+    assert resolved.stdout.strip() == expected_default
 
 
 def test_llms_cli_reports_invalid_env(tmp_path):

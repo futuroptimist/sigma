@@ -32,9 +32,10 @@ set the CLI prepends a synthetic entry named ``SIGMA_LLM_URL`` marked
 ``[default]`` so you can spot the override that ``sigma.query_llm`` will use.
 The synthetic override entry is included even when you point the CLI at a
 custom ``llms.txt`` path so environment-driven routing stays obvious.
-When ``SIGMA_DEFAULT_LLM`` references an unknown entry (or collapses to an empty
-string after trimming) the CLI exits with an error instead of guessing, making
-misconfiguration obvious during a quick listing.
+When ``SIGMA_DEFAULT_LLM`` references an unknown entry the CLI exits with an
+error instead of guessing, making misconfiguration obvious during a quick
+listing. Whitespace-only values fall back to the first configured endpoint so
+`.env` templates can leave the variable blank.
 
 Provide `--json` to return a machine-readable list of endpoints. Entries contain
 `name`, `url`, and an `is_default` flag mirroring the plain-text `[default]`
@@ -99,9 +100,10 @@ name, url = resolve_llm_endpoint("OpenRouter")  # case-insensitive lookup
 ```
 
 Set the `SIGMA_DEFAULT_LLM` environment variable to change the default without
-modifying code. Leading and trailing whitespace is ignored, and the resolver
-raises an error if the variable is empty, references an unknown endpoint, or if
-`llms.txt` does not list any entries. Explicit `name` lookups receive the same
+modifying code. Leading and trailing whitespace is ignored. Leave the variable
+blank to fall back to the first entry; references to unknown endpoints still
+raise an error, as does the absence of any configured entries in `llms.txt`.
+Explicit `name` lookups receive the same
 trimming, so `resolve_llm_endpoint("  OpenRouter  ")` resolves successfully.
 The `name` parameter expects a string—passing any other type raises
 ``TypeError`` so incorrect calls fail fast.

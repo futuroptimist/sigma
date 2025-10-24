@@ -64,8 +64,9 @@ committed meshes.
 `get_llm_endpoints` scans for the `## LLM Endpoints` heading, tolerates mixed
 bullet markers (`-`, `*`, `+`), and preserves the original link text so URLs are
 never mutated.  `resolve_llm_endpoint` trims whitespace, honours the
-`SIGMA_DEFAULT_LLM` environment variable, and raises descriptive errors if the
-name is missing or unknown.  The module also exposes a CLI (`python -m llms` or
+`SIGMA_DEFAULT_LLM` environment variable (treating blank values as "use the
+first entry"), and raises descriptive errors when the requested name is
+unknown.  The module also exposes a CLI (`python -m llms` or
 [`scripts/llms-cli.sh`](../scripts/llms-cli.sh)) that prints the active
 endpoints or resolves a single entry in JSON for automation.  Behavioural
 regression tests live in [`tests/test_llms.py`](../tests/test_llms.py) to guard
