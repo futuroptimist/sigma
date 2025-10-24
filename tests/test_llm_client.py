@@ -1177,7 +1177,9 @@ def test_query_llm_empty_environment_url_raises(
     assert "SIGMA_LLM_URL" in str(excinfo.value)
 
 
-def test_configured_router_uses_default_path(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_configured_router_uses_default_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     captured: Dict[str, Any] = {}
 
     def _fake_query(
@@ -1274,7 +1276,7 @@ def test_configured_router_honours_environment_override(
 
     assert captured["call"] == {
         "prompt": "Prompt",
-        "name": "RouterDefault",
+        "name": None,
         "path": None,
         "timeout": 3.0,
         "extra_payload": None,

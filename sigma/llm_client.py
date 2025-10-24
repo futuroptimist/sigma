@@ -560,17 +560,22 @@ class ConfiguredLLMRouter(LLMRouterInterface):
             resolved_timeout = self._default_timeout
         else:
             resolved_timeout = timeout
-        resolved_name = name or self._default_name
-        if path is not None:
-            resolved_path = path
+        override_raw = os.getenv(_URL_OVERRIDE_ENV)
+        has_override = override_raw is not None
+
+        if has_override:
+            resolved_name = None
         else:
-            override = os.getenv(_URL_OVERRIDE_ENV)
-            if override is not None:
-                resolved_path = None
-            elif self._default_path is not None:
-                resolved_path = os.fspath(self._default_path)
-            else:
-                resolved_path = None
+            resolved_name = name or self._default_name
+
+        if path is not None and not has_override:
+            resolved_path = path
+        elif has_override:
+            resolved_path = None
+        elif self._default_path is not None:
+            resolved_path = os.fspath(self._default_path)
+        else:
+            resolved_path = None
         return query_llm(
             prompt,
             name=resolved_name,
