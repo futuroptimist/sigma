@@ -65,8 +65,9 @@ committed meshes.
 bullet markers (`-`, `*`, `+`), and preserves the original link text so URLs are
 never mutated.  `resolve_llm_endpoint` trims whitespace, honours the
 `SIGMA_DEFAULT_LLM` environment variable (treating blank values as "use the
-first entry"), and raises descriptive errors when the requested name is
-unknown.  The module also exposes a CLI (`python -m llms` or
+first entry"), returns the `SIGMA_LLM_URL` override when no explicit name is
+requested, and raises descriptive errors when the requested name is unknown.
+The module also exposes a CLI (`python -m llms` or
 [`scripts/llms-cli.sh`](../scripts/llms-cli.sh)) that prints the active
 endpoints or resolves a single entry in JSON for automation.  Behavioural
 regression tests live in [`tests/test_llms.py`](../tests/test_llms.py) to guard

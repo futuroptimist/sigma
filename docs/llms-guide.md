@@ -111,6 +111,10 @@ trimming, so `resolve_llm_endpoint("  OpenRouter  ")` resolves successfully.
 The `name` parameter expects a string—passing any other type raises
 ``TypeError`` so incorrect calls fail fast.
 
+When ``SIGMA_LLM_URL`` is set, calling ``resolve_llm_endpoint()`` without a
+`name` returns the override entry so manual lookups honour the same forced
+routing that host-side helpers use.
+
 ## Issuing a Request
 
 The `sigma.query_llm` helper wraps `resolve_llm_endpoint` and submits a JSON

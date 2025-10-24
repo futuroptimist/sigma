@@ -131,6 +131,11 @@ def resolve_llm_endpoint(
 ) -> Tuple[str, str]:
     """Return a single LLM endpoint according to preference rules."""
 
+    if name is None:
+        override = _read_url_override()
+        if override is not None:
+            return _URL_OVERRIDE_ENV, override
+
     endpoints = get_llm_endpoints(path)
     if not endpoints:
         raise RuntimeError("llms.txt does not define any LLM endpoints")
