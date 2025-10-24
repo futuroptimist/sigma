@@ -28,8 +28,9 @@ audio pipeline end to end:
 | `SIGMA_AUDIO_DIR` | Directory where each audio payload is staged before Whisper requests. |
 
 Whitespace is stripped from these values before use. When `SIGMA_WHISPER_URL`
-is set but trims down to an empty string the speech-to-text helper raises a
-`RuntimeError` so misconfiguration is detected immediately.
+trims down to an empty string the speech-to-text helper falls back to the
+built-in localhost default, matching the `.env` template so blank entries keep
+working without extra edits.
 
 When `SIGMA_AUDIO_DIR` is configured, `sigma.whisper_client.transcribe_audio`
 stores a copy of every audio payload in that directory before sending it to the
