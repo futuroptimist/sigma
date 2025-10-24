@@ -244,7 +244,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if namespace.resolve:
         override_entry: tuple[str, str] | None = None
-        if namespace.name is None and namespace.path is None:
+        if namespace.name is None:
             try:
                 override_url = _read_url_override()
             except RuntimeError as exc:

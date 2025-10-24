@@ -69,6 +69,9 @@ python -m llms --resolve --name OpenRouter
 python -m llms --resolve --name OpenRouter --json  # returns {"name", "url", "is_default"}
 ```
 
+Environment overrides take precedence even when you provide `--path`, so
+`SIGMA_LLM_URL` stays visible while inspecting alternate configurations.
+
 You can also import the helper in Python:
 
 ```python

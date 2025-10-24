@@ -906,6 +906,29 @@ def test_llms_cli_resolve_uses_url_override():
     assert result.stdout.strip() == expected
 
 
+def test_llms_cli_resolve_uses_url_override_with_custom_path(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Only](https://only.example.com)\n",
+        encoding="utf-8",
+    )
+    env = os.environ.copy()
+    env.pop("SIGMA_DEFAULT_LLM", None)
+    env["SIGMA_LLM_URL"] = "https://override.example.com/api"
+
+    result = subprocess.run(
+        [sys.executable, "-m", "llms", "--resolve", str(llms_file)],
+        check=True,
+        capture_output=True,
+        text=True,
+        cwd=str(REPO_ROOT),
+        env=env,
+    )
+
+    expected = "SIGMA_LLM_URL: https://override.example.com/api [default]"
+    assert result.stdout.strip() == expected
+
+
 def test_llms_cli_json_resolve_uses_url_override():
     env = os.environ.copy()
     env.pop("SIGMA_DEFAULT_LLM", None)
@@ -913,6 +936,40 @@ def test_llms_cli_json_resolve_uses_url_override():
 
     result = subprocess.run(
         [sys.executable, "-m", "llms", "--resolve", "--json"],
+        check=True,
+        capture_output=True,
+        text=True,
+        cwd=str(REPO_ROOT),
+        env=env,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload == {
+        "name": "SIGMA_LLM_URL",
+        "url": "https://override.example.com/api",
+        "is_default": True,
+    }
+
+
+def test_llms_cli_json_resolve_uses_url_override_with_custom_path(tmp_path):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Only](https://only.example.com)\n",
+        encoding="utf-8",
+    )
+    env = os.environ.copy()
+    env.pop("SIGMA_DEFAULT_LLM", None)
+    env["SIGMA_LLM_URL"] = "https://override.example.com/api"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "llms",
+            "--resolve",
+            "--json",
+            str(llms_file),
+        ],
         check=True,
         capture_output=True,
         text=True,
