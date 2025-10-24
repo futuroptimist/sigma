@@ -51,6 +51,7 @@ _AUTH_TOKEN_ENV = "SIGMA_WHISPER_AUTH_TOKEN"
 _AUTH_SCHEME_ENV = "SIGMA_WHISPER_AUTH_SCHEME"
 _URL_OVERRIDE_ENV = "SIGMA_WHISPER_URL"
 _AUDIO_STAGING_ENV = "SIGMA_AUDIO_DIR"
+_WAV_CHUNK_IDS = {b"RIFF", b"RIFX", b"RF64"}
 
 
 def _coerce_audio_bytes(audio: Any) -> bytes:
@@ -73,6 +74,17 @@ def _coerce_audio_bytes(audio: Any) -> bytes:
     if not data:
         raise ValueError("audio payload must be non-empty")
     return data
+
+
+def _guess_audio_extension(data: bytes) -> str:
+    """Return a best-effort file extension for staged audio payloads."""
+
+    if len(data) >= 12:
+        chunk_id = data[:4]
+        format_tag = data[8:12]
+        if chunk_id in _WAV_CHUNK_IDS and format_tag == b"WAVE":
+            return "wav"
+    return "raw"
 
 
 def _stage_audio_payload(data: bytes) -> None:
@@ -99,7 +111,7 @@ def _stage_audio_payload(data: bytes) -> None:
         message = "Failed to create audio staging directory " + detail
         raise RuntimeError(message) from exc
 
-    extension = "wav" if data.startswith(b"RIFF") else "raw"
+    extension = _guess_audio_extension(data)
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     filename = f"capture-{timestamp}-{uuid.uuid4().hex}.{extension}"
     destination = destination_dir / filename

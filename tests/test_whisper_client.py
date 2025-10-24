@@ -263,7 +263,39 @@ def test_transcribe_audio_stages_payload(
 
     staged_files = sorted(stage_dir.iterdir())
     assert len(staged_files) == 1
-    assert staged_files[0].read_bytes() == b"\x01\x02"
+    staged_file = staged_files[0]
+    assert staged_file.suffix == ".raw"
+    assert staged_file.read_bytes() == b"\x01\x02"
+
+
+@pytest.mark.parametrize("chunk_id", [b"RIFF", b"RIFX", b"RF64"])
+def test_transcribe_audio_stages_wav_payload(
+    tmp_path: Path,
+    whisper_test_server: ServerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    chunk_id: bytes,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "ok"}).encode("utf-8"),
+        )
+    )
+
+    stage_dir = tmp_path / "captures"
+    monkeypatch.setenv("SIGMA_AUDIO_DIR", str(stage_dir))
+
+    wav_payload = chunk_id + b"\x00\x00\x00\x00" + b"WAVE" + b"\x00\x01"
+
+    transcribe_audio(wav_payload, url=f"{base_url}/inference")
+
+    staged_files = sorted(stage_dir.iterdir())
+    assert len(staged_files) == 1
+    staged_file = staged_files[0]
+    assert staged_file.suffix == ".wav"
+    assert staged_file.read_bytes() == wav_payload
 
 
 def test_transcribe_audio_empty_stage_dir_raises(

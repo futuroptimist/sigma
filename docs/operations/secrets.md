@@ -33,9 +33,10 @@ is set but trims down to an empty string the speech-to-text helper raises a
 
 When `SIGMA_AUDIO_DIR` is configured, `sigma.whisper_client.transcribe_audio`
 stores a copy of every audio payload in that directory before sending it to the
-Whisper service. The path is expanded relative to the current environment,
-created on demand, and empty values raise a `RuntimeError` so staging failures
-surface immediately.
+Whisper service. WAV payloads with RIFF-family headers (RIFF/RIFX/RF64) are
+saved with a `.wav` extension. The path is expanded relative to the current
+environment, created on demand, and empty values raise a `RuntimeError` so
+staging failures surface immediately.
 
 Use `scripts/scan-secrets.py` or `pre-commit run --all-files` before pushing to
 ensure no tokens were accidentally committed.

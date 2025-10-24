@@ -267,8 +267,9 @@ empty. Provide an optional `SIGMA_WHISPER_AUTH_SCHEME` to override the default
 
 Set `SIGMA_AUDIO_DIR` to stage a copy of each audio payload before it is sent
 to Whisper. The directory is created automatically when needed, a `.wav`
-extension is used for RIFF-encoded clips, and invalid (blank) values raise a
-`RuntimeError` so staging problems are surfaced immediately.
+extension is used for RIFF-family WAV clips (RIFF/RIFX/RF64), and invalid
+(blank) values raise a `RuntimeError` so staging problems are surfaced
+immediately.
 
 ### Text-to-Speech
 
