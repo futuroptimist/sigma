@@ -162,6 +162,9 @@ development. If you call `sigma.query_llm` without an explicit endpoint name or
 path, the helper trims this environment variable and contacts that URL instead
 of resolving the Markdown list. Empty values raise `RuntimeError` so
 misconfiguration is surfaced immediately.
+Overrides apply even when utilities such as ``ConfiguredLLMRouter`` provide a
+default path, so exporting ``SIGMA_LLM_URL`` reroutes higher-level helpers
+without touching code.
 
 ## Command-line Queries
 

@@ -269,17 +269,19 @@ def _resolve_endpoint(
 ) -> tuple[str, str]:
     """Return endpoint details honouring environment overrides when present."""
 
-    if name is None and path is None:
+    env_override_raw = None
+    if path is None:
         env_override_raw = os.getenv(_URL_OVERRIDE_ENV)
-        if env_override_raw is not None:
-            env_override = env_override_raw.strip()
-            if not env_override:
-                message = (
-                    f"Environment variable {_URL_OVERRIDE_ENV} is set "
-                    "but empty after stripping."
-                )
-                raise RuntimeError(message)
-            return _URL_OVERRIDE_ENV, env_override
+
+    if env_override_raw is not None:
+        env_override = env_override_raw.strip()
+        if not env_override:
+            message = (
+                f"Environment variable {_URL_OVERRIDE_ENV} is set "
+                "but empty after stripping."
+            )
+            raise RuntimeError(message)
+        return _URL_OVERRIDE_ENV, env_override
 
     return resolve_llm_endpoint(name, path=path)
 
@@ -558,9 +560,18 @@ class ConfiguredLLMRouter(LLMRouterInterface):
             resolved_timeout = self._default_timeout
         else:
             resolved_timeout = timeout
-        resolved_name = name or self._default_name
-        if path is not None:
+        override_raw = os.getenv(_URL_OVERRIDE_ENV)
+        has_override = override_raw is not None
+
+        if has_override:
+            resolved_name = None
+        else:
+            resolved_name = name or self._default_name
+
+        if path is not None and not has_override:
             resolved_path = path
+        elif has_override:
+            resolved_path = None
         elif self._default_path is not None:
             resolved_path = os.fspath(self._default_path)
         else:

@@ -371,6 +371,9 @@ environment URL instead of resolving the Markdown list. This makes it easy to
 point development builds at ad-hoc gateways without editing repository files;
 misconfigured values raise a `RuntimeError` so empty strings do not silently
 fall back to the default list.
+Environment overrides take precedence even when helpers such as
+`ConfiguredLLMRouter` provide a default path, so exporting `SIGMA_LLM_URL`
+reroutes conversation utilities without code changes.
 
 The helper raises `RuntimeError` if the endpoint does not speak HTTP(S), if a
 JSON reply is malformed or empty, or if it lacks an obvious text field, making
