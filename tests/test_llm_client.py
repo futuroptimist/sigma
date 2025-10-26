@@ -1225,9 +1225,12 @@ def test_query_llm_explicit_name_bypasses_environment_override(
     def _fake_resolve(
         name: str | None,
         path: str | None = None,
+        *,
+        allow_env_override: bool = True,
     ) -> tuple[str, str]:
         assert name == "Local"
         assert path is None
+        assert allow_env_override is True
         return (
             "Local",
             f"{base_url}/explicit-name",
@@ -1406,9 +1409,12 @@ def test_configured_router_explicit_name_bypasses_override(
     def _fake_resolve(
         name: str | None,
         path: str | None = None,
+        *,
+        allow_env_override: bool = True,
     ) -> tuple[str, str]:
         assert name == "Direct"
         assert path == "custom-llms.txt"
+        assert allow_env_override is True
         return (
             "Direct",
             "https://named.example.com",

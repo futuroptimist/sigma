@@ -128,10 +128,11 @@ def resolve_llm_endpoint(
     name: str | None = None,
     *,
     path: str | Path | None = None,
+    allow_env_override: bool = True,
 ) -> Tuple[str, str]:
     """Return a single LLM endpoint according to preference rules."""
 
-    if name is None:
+    if allow_env_override and name is None:
         override = _read_url_override()
         if override is not None:
             return _URL_OVERRIDE_ENV, override

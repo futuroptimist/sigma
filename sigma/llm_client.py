@@ -284,12 +284,11 @@ def _resolve_endpoint(
         return _URL_OVERRIDE_ENV, env_override
 
     if path is not None and name is None:
-        override_temp = os.environ.pop(_URL_OVERRIDE_ENV, None)
-        try:
-            return resolve_llm_endpoint(name, path=path)
-        finally:
-            if override_temp is not None:
-                os.environ[_URL_OVERRIDE_ENV] = override_temp
+        return resolve_llm_endpoint(
+            name,
+            path=path,
+            allow_env_override=False,
+        )
 
     return resolve_llm_endpoint(name, path=path)
 

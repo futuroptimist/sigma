@@ -358,6 +358,23 @@ def test_resolve_llm_endpoint_honours_url_override(monkeypatch):
     )
 
 
+def test_resolve_llm_endpoint_can_bypass_url_override(tmp_path, monkeypatch):
+    llms_file = tmp_path / "custom.txt"
+    llms_file.write_text(
+        "## LLM Endpoints\n- [Primary](https://primary.example.com)\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("SIGMA_LLM_URL", "https://override.example.com/api")
+
+    name, url = llms.resolve_llm_endpoint(
+        path=llms_file,
+        allow_env_override=False,
+    )
+
+    assert name == "Primary"
+    assert url == "https://primary.example.com"
+
+
 def test_resolve_llm_endpoint_named_lookup_ignores_url_override(monkeypatch):
     monkeypatch.setenv("SIGMA_LLM_URL", "https://override.example.com/api")
     name, url = llms.resolve_llm_endpoint("OpenRouter")
