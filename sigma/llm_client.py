@@ -270,7 +270,7 @@ def _resolve_endpoint(
     """Return endpoint details honouring environment overrides when present."""
 
     env_override_raw = None
-    if path is None:
+    if name is None and path is None:
         env_override_raw = os.getenv(_URL_OVERRIDE_ENV)
 
     if env_override_raw is not None:
@@ -282,6 +282,14 @@ def _resolve_endpoint(
             )
             raise RuntimeError(message)
         return _URL_OVERRIDE_ENV, env_override
+
+    if path is not None and name is None:
+        override_temp = os.environ.pop(_URL_OVERRIDE_ENV, None)
+        try:
+            return resolve_llm_endpoint(name, path=path)
+        finally:
+            if override_temp is not None:
+                os.environ[_URL_OVERRIDE_ENV] = override_temp
 
     return resolve_llm_endpoint(name, path=path)
 
@@ -560,22 +568,22 @@ class ConfiguredLLMRouter(LLMRouterInterface):
             resolved_timeout = self._default_timeout
         else:
             resolved_timeout = timeout
+
         override_raw = os.getenv(_URL_OVERRIDE_ENV)
-        has_override = override_raw is not None
+        override_present = override_raw is not None
+        use_override = override_present and name is None and path is None
 
-        if has_override:
+        if use_override:
             resolved_name = None
-        else:
-            resolved_name = name or self._default_name
-
-        if path is not None and not has_override:
-            resolved_path = path
-        elif has_override:
             resolved_path = None
-        elif self._default_path is not None:
-            resolved_path = os.fspath(self._default_path)
         else:
-            resolved_path = None
+            resolved_name = name if name is not None else self._default_name
+            if path is not None:
+                resolved_path = path
+            elif self._default_path is not None:
+                resolved_path = os.fspath(self._default_path)
+            else:
+                resolved_path = None
         return query_llm(
             prompt,
             name=resolved_name,

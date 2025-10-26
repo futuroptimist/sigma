@@ -374,7 +374,8 @@ name or path is supplied, `sigma.query_llm` sends the request to the trimmed
 environment URL instead of resolving the Markdown list. This makes it easy to
 point development builds at ad-hoc gateways without editing repository files;
 misconfigured values raise a `RuntimeError` so empty strings do not silently
-fall back to the default list.
+fall back to the default list. Passing an explicit `name` or `path` bypasses the
+override so deliberate selections keep targeting the requested endpoint.
 Environment overrides take precedence even when helpers such as
 `ConfiguredLLMRouter` provide a default path, so exporting `SIGMA_LLM_URL`
 reroutes conversation utilities without code changes.

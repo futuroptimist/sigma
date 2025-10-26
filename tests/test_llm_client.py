@@ -1177,6 +1177,75 @@ def test_query_llm_empty_environment_url_raises(
     assert "SIGMA_LLM_URL" in str(excinfo.value)
 
 
+def test_query_llm_path_argument_bypasses_environment_override(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "path"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, f"{base_url}/from-path")
+
+    monkeypatch.setenv(
+        "SIGMA_LLM_URL",
+        "https://override.example.com/api",
+    )
+
+    result = query_llm("Prefer path", path=llms_file)
+
+    assert result.name == "Local"
+    assert result.url == f"{base_url}/from-path"
+    request = _latest_request(handler)
+    assert request["path"] == "/from-path"
+
+
+def test_query_llm_explicit_name_bypasses_environment_override(
+    monkeypatch: pytest.MonkeyPatch,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "named"}).encode("utf-8"),
+        )
+    )
+    monkeypatch.setenv(
+        "SIGMA_LLM_URL",
+        "https://override.example.com/api",
+    )
+
+    def _fake_resolve(
+        name: str | None,
+        path: str | None = None,
+    ) -> tuple[str, str]:
+        assert name == "Local"
+        assert path is None
+        return (
+            "Local",
+            f"{base_url}/explicit-name",
+        )
+
+    monkeypatch.setattr(
+        "sigma.llm_client.resolve_llm_endpoint",
+        _fake_resolve,
+    )
+
+    result = query_llm("Prefer name", name="Local")
+
+    assert result.name == "Local"
+    assert result.url == f"{base_url}/explicit-name"
+    request = _latest_request(handler)
+    assert request["path"] == "/explicit-name"
+
+
 def test_configured_router_uses_default_path(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1298,6 +1367,69 @@ def test_configured_router_honours_environment_override(
     }
     assert result.name == llm_client_module._URL_OVERRIDE_ENV
     assert result.url == "https://override.example.com"
+
+
+def test_configured_router_explicit_name_bypasses_override(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: Dict[str, Any] = {}
+
+    def _fake_query(
+        prompt: str,
+        *,
+        name: str | None,
+        path: str | None,
+        timeout: float,
+        extra_payload: Dict[str, Any] | None,
+    ) -> LLMResponse:
+        resolved = llm_client_module._resolve_endpoint(name, path)
+        captured["resolved"] = resolved
+        return LLMResponse(
+            name=resolved[0],
+            url=resolved[1],
+            text="named",
+            status=200,
+            headers={},
+            raw=b"{}",
+            encoding="utf-8",
+        )
+
+    monkeypatch.setattr(
+        "sigma.llm_client.query_llm",
+        _fake_query,
+    )
+    monkeypatch.setenv(
+        "SIGMA_LLM_URL",
+        "https://override.example.com/api",
+    )
+
+    def _fake_resolve(
+        name: str | None,
+        path: str | None = None,
+    ) -> tuple[str, str]:
+        assert name == "Direct"
+        assert path == "custom-llms.txt"
+        return (
+            "Direct",
+            "https://named.example.com",
+        )
+
+    monkeypatch.setattr(
+        "sigma.llm_client.resolve_llm_endpoint",
+        _fake_resolve,
+    )
+
+    router = ConfiguredLLMRouter(
+        default_name="RouterDefault",
+        default_path="custom-llms.txt",
+        default_timeout=9.0,
+    )
+
+    result = router.query("Prompt", name="Direct")
+
+    assert captured["resolved"] == ("Direct", "https://named.example.com")
+    assert result.name == "Direct"
+    assert result.url == "https://named.example.com"
 
 
 def test_query_llm_extra_payload_included(

@@ -61,7 +61,7 @@ python -m llms $HOME/custom-llms.txt
 
 Resolve a single endpoint from the command line (respecting
 ``SIGMA_DEFAULT_LLM`` unless ``--name`` is supplied and honouring
-``SIGMA_LLM_URL`` when no path is given):
+``SIGMA_LLM_URL`` when neither ``--name`` nor ``--path`` is provided):
 
 ```bash
 python -m llms --resolve
@@ -69,8 +69,9 @@ python -m llms --resolve --name OpenRouter
 python -m llms --resolve --name OpenRouter --json  # returns {"name", "url", "is_default"}
 ```
 
-Environment overrides take precedence even when you provide `--path`, so
-`SIGMA_LLM_URL` stays visible while inspecting alternate configurations.
+Environment overrides stay visible in listings even when you provide
+`--path`, but explicit ``--name`` or ``--path`` selections bypass the
+override when resolving.
 
 You can also import the helper in Python:
 
