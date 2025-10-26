@@ -15,7 +15,10 @@ regressions are detected automatically.
 
    The script renders every SCAD file in [`hardware/scad`](../../hardware/scad/)
    into [`hardware/stl`](../../hardware/stl/) and rewrites
-   `hardware/stl/checksums.sha256` with SHA-256 hashes.
+   `hardware/stl/checksums.sha256` with SHA-256 hashes. Manifest entries are
+   recorded relative to the repository root (for example
+   `hardware/stl/sigma-s1-enclosure.stl`) so CI tooling can compare them
+   directly against regenerated exports.
 
 3. Commit both the `.stl` exports and the checksum manifest together.
 
