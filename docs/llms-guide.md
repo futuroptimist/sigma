@@ -122,7 +122,8 @@ payload to the selected HTTP(S) endpoint. It accepts an optional
 `extra_payload` mapping for provider-specific parameters and ignores any
 `prompt` field from that mapping when the function's `prompt` argument is
 present, ensuring helper callers retain control of the final prompt value. Pass
-`prompt=None` to supply the field yourself when needed. The helper extracts a reply
+`prompt=None` to supply the field yourself when needed; structured prompt
+payloads (for example chat `messages`) are forwarded unchanged in that case. The helper extracts a reply
 from common response shapes (`response`, `text`, the first
 `choices[].message.content`, message arrays in `messages[].content`,
 streaming deltas in `choices[].delta.content`, OpenAI Responses API payloads in

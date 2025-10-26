@@ -250,7 +250,9 @@ def _prepare_payload(
         payload.pop("prompt", None)
         payload["prompt"] = _ensure_prompt(prompt)
     elif "prompt" in payload:
-        payload["prompt"] = _ensure_prompt(payload["prompt"])
+        value = payload["prompt"]
+        if isinstance(value, str):
+            payload["prompt"] = _ensure_prompt(value)
 
     if not payload:
         raise ValueError(
