@@ -30,9 +30,13 @@ def read_manifest() -> dict[str, str]:
 
 def compute_checksums() -> dict[str, str]:
     mapping: dict[str, str] = {}
-    for stl in sorted(STL_DIR.glob("*.stl")):
+    for stl in sorted(STL_DIR.rglob("*.stl")):
         digest = hashlib.sha256(stl.read_bytes()).hexdigest()
-        mapping[stl.name] = digest
+        try:
+            relative_path = stl.relative_to(REPO_ROOT)
+        except ValueError:
+            relative_path = stl.resolve()
+        mapping[relative_path.as_posix()] = digest
     return mapping
 
 
