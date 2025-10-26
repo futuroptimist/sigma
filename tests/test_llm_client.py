@@ -102,6 +102,39 @@ def test_query_llm_returns_response_field(
     assert payload == {"prompt": "Hi there"}
 
 
+def test_query_llm_allows_structured_prompt_via_extra_payload(
+    tmp_path: Path,
+    llm_test_server: Tuple[str, type[_RecordingHandler]],
+) -> None:
+    base_url, handler = llm_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "Acknowledged"}).encode("utf-8"),
+        )
+    )
+    llms_file = _write_llms_file(tmp_path, base_url)
+
+    structured_prompt = {
+        "messages": [
+            {"role": "system", "content": "You are Sigma"},
+            {"role": "user", "content": "Status?"},
+        ]
+    }
+
+    result = query_llm(
+        None,
+        path=llms_file,
+        extra_payload={"prompt": structured_prompt},
+    )
+
+    assert result.text == "Acknowledged"
+    request_body = _latest_request(handler)["body"].decode("utf-8")
+    payload = json.loads(request_body)
+    assert payload == {"prompt": structured_prompt}
+
+
 def test_query_llm_handles_openai_message(
     tmp_path: Path,
     llm_test_server: Tuple[str, type[_RecordingHandler]],
