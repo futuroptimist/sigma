@@ -71,7 +71,9 @@ python -m llms --resolve --name OpenRouter --json  # returns {"name", "url", "is
 
 Environment overrides stay visible in listings even when you provide
 `--path`, but explicit ``--name`` or ``--path`` selections bypass the
-override when resolving.
+override when resolving. For example, ``python -m llms --resolve
+~/custom-llms.txt`` ignores ``SIGMA_LLM_URL`` so you can inspect alternate
+configurations without touching your environment.
 
 You can also import the helper in Python:
 

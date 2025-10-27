@@ -926,7 +926,8 @@ def test_llms_cli_json_resolve(tmp_path):
 def test_llms_cli_resolve_uses_url_override():
     env = os.environ.copy()
     env.pop("SIGMA_DEFAULT_LLM", None)
-    env["SIGMA_LLM_URL"] = "https://override.example.com/api"
+    override_url = "https://override.example.com/api"
+    env["SIGMA_LLM_URL"] = override_url
 
     result = subprocess.run(
         [sys.executable, "-m", "llms", "--resolve"],
@@ -941,7 +942,7 @@ def test_llms_cli_resolve_uses_url_override():
     assert result.stdout.strip() == expected
 
 
-def test_llms_cli_resolve_uses_url_override_with_custom_path(tmp_path):
+def test_llms_cli_resolve_bypasses_override_with_path(tmp_path):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text(
         "## LLM Endpoints\n- [Only](https://only.example.com)\n",
@@ -949,7 +950,8 @@ def test_llms_cli_resolve_uses_url_override_with_custom_path(tmp_path):
     )
     env = os.environ.copy()
     env.pop("SIGMA_DEFAULT_LLM", None)
-    env["SIGMA_LLM_URL"] = "https://override.example.com/api"
+    override_url = "https://override.example.com/api"
+    env["SIGMA_LLM_URL"] = override_url
 
     result = subprocess.run(
         [sys.executable, "-m", "llms", "--resolve", str(llms_file)],
@@ -960,14 +962,15 @@ def test_llms_cli_resolve_uses_url_override_with_custom_path(tmp_path):
         env=env,
     )
 
-    expected = "SIGMA_LLM_URL: https://override.example.com/api [default]"
+    expected = "Only: https://only.example.com [default]"
     assert result.stdout.strip() == expected
 
 
 def test_llms_cli_json_resolve_uses_url_override():
     env = os.environ.copy()
     env.pop("SIGMA_DEFAULT_LLM", None)
-    env["SIGMA_LLM_URL"] = "https://override.example.com/api"
+    override_url = "https://override.example.com/api"
+    env["SIGMA_LLM_URL"] = override_url
 
     result = subprocess.run(
         [sys.executable, "-m", "llms", "--resolve", "--json"],
@@ -986,7 +989,7 @@ def test_llms_cli_json_resolve_uses_url_override():
     }
 
 
-def test_llms_cli_json_resolve_uses_url_override_with_custom_path(tmp_path):
+def test_llms_cli_json_resolve_bypasses_override_with_path(tmp_path):
     llms_file = tmp_path / "custom.txt"
     llms_file.write_text(
         "## LLM Endpoints\n- [Only](https://only.example.com)\n",
@@ -994,7 +997,8 @@ def test_llms_cli_json_resolve_uses_url_override_with_custom_path(tmp_path):
     )
     env = os.environ.copy()
     env.pop("SIGMA_DEFAULT_LLM", None)
-    env["SIGMA_LLM_URL"] = "https://override.example.com/api"
+    override_url = "https://override.example.com/api"
+    env["SIGMA_LLM_URL"] = override_url
 
     result = subprocess.run(
         [
@@ -1014,7 +1018,7 @@ def test_llms_cli_json_resolve_uses_url_override_with_custom_path(tmp_path):
 
     payload = json.loads(result.stdout)
     assert payload == {
-        "name": "SIGMA_LLM_URL",
-        "url": "https://override.example.com/api",
+        "name": "Only",
+        "url": "https://only.example.com",
         "is_default": True,
     }

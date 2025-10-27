@@ -6,7 +6,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 __all__ = ["get_llm_endpoints", "resolve_llm_endpoint"]
 
@@ -250,7 +250,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if namespace.resolve:
         override_entry: tuple[str, str] | None = None
-        if namespace.name is None:
+        if namespace.name is None and namespace.path is None:
             try:
                 override_url = _read_url_override()
             except RuntimeError as exc:
@@ -262,9 +262,13 @@ def main(argv: list[str] | None = None) -> int:
             if override_entry is not None:
                 name, url = override_entry
             else:
+                resolve_kwargs: dict[str, Any] = {}
+                if namespace.path is not None and namespace.name is None:
+                    resolve_kwargs["allow_env_override"] = False
                 name, url = resolve_llm_endpoint(
                     namespace.name,
                     path=namespace.path,
+                    **resolve_kwargs,
                 )
         except (RuntimeError, ValueError) as exc:
             print(str(exc), file=sys.stderr)
@@ -274,7 +278,10 @@ def main(argv: list[str] | None = None) -> int:
         else:
             is_default = False
             try:
-                default_candidate = resolve_llm_endpoint(path=namespace.path)
+                default_candidate = resolve_llm_endpoint(
+                    path=namespace.path,
+                    allow_env_override=namespace.path is None,
+                )
             except RuntimeError:
                 default_candidate = None
             else:
