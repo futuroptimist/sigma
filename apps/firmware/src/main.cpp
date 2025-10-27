@@ -16,7 +16,9 @@ void enforce_audio_safety() {
 void report_safety_callouts() {
   Serial.print("[safety] Maintain SPL under ");
   Serial.print(sigma::config::kRecommendedMaxSplDb);
-  Serial.println(" dB for extended sessions (absolute max 94 dB).");
+  Serial.print(" dB for extended sessions (absolute max ");
+  Serial.print(sigma::config::kAbsoluteMaxSplDb);
+  Serial.println(" dB).");
   Serial.print("[safety] Keep mic bias between ");
   Serial.print(sigma::config::kMicBiasMinVolts);
   Serial.print(" V and ");
@@ -24,7 +26,9 @@ void report_safety_callouts() {
   Serial.println(" V.");
   Serial.print("[safety] Stop use if battery drops below ");
   Serial.print(sigma::config::kBatteryLowVolts);
-  Serial.println(" V (critical at 3.0 V).");
+  Serial.print(" V (critical at ");
+  Serial.print(sigma::config::kBatteryCriticalVolts);
+  Serial.println(" V).");
 }
 }  // namespace
 
