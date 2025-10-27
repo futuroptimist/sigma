@@ -149,6 +149,10 @@ and its segments so streamed fragments stay contiguous. When a response includes
 top-level `outputs` alongside `choices`, the helper appends those extras after
 the main completion instead of replacing it.
 
+When providers include a top-level text field alongside streaming `choices`
+entries, Sigma appends the streamed fragments after the leading text so mixed
+payloads stay contiguous.
+
 When responses include both structured `output[].content` data and aggregated
 `output_text` strings, Sigma emits the structured stream first and appends the
 aggregated text afterwards so the original generation order is preserved.

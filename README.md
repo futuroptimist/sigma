@@ -326,6 +326,10 @@ When a provider supplies both a base `value` and additional `segments` or
 fragment in order so streaming responses are reconstructed without missing
 tokens.
 
+When providers include a top-level text field alongside `choices`
+fragments, Sigma appends the streamed `choices` content after the leading
+text so mixed payloads remain contiguous.
+
 Additional response fields (such as trailing `outputs` arrays) are appended
 after the reconstructed base-and-segment text so the streamed content remains
 contiguous before any provider-specific extras. When providers return

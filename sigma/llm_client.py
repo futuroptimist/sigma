@@ -358,7 +358,7 @@ def _extract_text(data: Any) -> str | None:
             fragments: list[str] = []
             if base_text is not None:
                 fragments.append(base_text)
-            elif combined_choice is not None:
+            if combined_choice is not None:
                 fragments.append(combined_choice)
             if extras_text:
                 fragments.append(extras_text)
