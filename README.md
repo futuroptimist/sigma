@@ -266,6 +266,9 @@ Set `SIGMA_WHISPER_URL` to override the default inference endpoint when you
 omit the `url` argument. The value is trimmed before use; blank entries fall
 back to the built-in localhost default so `.env` templates with empty values
 continue to work, while non-empty overrides take precedence.
+Overrides apply even when helpers such as `WhisperSpeechToText` provide a
+default URL, so higher-level conversation utilities honour the same forced
+endpoint without code changes.
 
 Secure Whisper deployments often expect an `Authorization` header. Set
 `SIGMA_WHISPER_AUTH_TOKEN` to inject one automatically; the value is trimmed
