@@ -120,6 +120,9 @@ python -m llms --resolve --name OpenRouter
 python -m llms --resolve --name OpenRouter --json  # emits {"name", "url", "is_default"}
 ```
 
+Explicit `--path` resolutions ignore `SIGMA_LLM_URL`, making it easy to inspect
+alternate configuration files without unsetting an override.
+
 When you're working outside the repository root, use the helper script which
 bootstraps ``PYTHONPATH`` before calling the module:
 
