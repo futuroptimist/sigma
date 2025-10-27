@@ -12,7 +12,7 @@ from typing import Any, Dict, Iterator, Tuple
 
 import pytest
 
-from sigma.whisper_client import WhisperResult, transcribe_audio
+import sigma.whisper_client as whisper_client
 
 _TEMPERATURE_ERROR = "temperature must be a finite number"
 
@@ -85,7 +85,7 @@ def test_transcribe_audio_with_bytes(
         )
     )
 
-    result = transcribe_audio(
+    result = whisper_client.transcribe_audio(
         b"\x01\x02",
         url=f"{base_url}/inference",
         model="base.en",
@@ -93,7 +93,7 @@ def test_transcribe_audio_with_bytes(
         temperature=0.0,
     )
 
-    assert isinstance(result, WhisperResult)
+    assert isinstance(result, whisper_client.WhisperResult)
     assert result.text == "hello"
     assert result.language == "en"
 
@@ -120,7 +120,7 @@ def test_transcribe_audio_coerces_numeric_temperature(
         )
     )
 
-    transcribe_audio(
+    whisper_client.transcribe_audio(
         b"\x01",
         url=f"{base_url}/inference",
         temperature=Decimal("0.25"),
@@ -137,18 +137,18 @@ def test_transcribe_audio_coerces_numeric_temperature(
 
 def test_transcribe_audio_rejects_non_numeric_temperature() -> None:
     with pytest.raises(TypeError, match=_TEMPERATURE_ERROR):
-        transcribe_audio(b"\x01", temperature="warm")
+        whisper_client.transcribe_audio(b"\x01", temperature="warm")
 
 
 def test_transcribe_audio_rejects_boolean_temperature() -> None:
     with pytest.raises(TypeError, match=_TEMPERATURE_ERROR):
-        transcribe_audio(b"\x01", temperature=True)
+        whisper_client.transcribe_audio(b"\x01", temperature=True)
 
 
 def test_transcribe_audio_rejects_non_finite_temperature() -> None:
     for value in (math.nan, math.inf, -math.inf):
         with pytest.raises(ValueError, match=_TEMPERATURE_ERROR):
-            transcribe_audio(b"\x01", temperature=value)
+            whisper_client.transcribe_audio(b"\x01", temperature=value)
 
 
 def test_transcribe_audio_accepts_path(
@@ -167,7 +167,8 @@ def test_transcribe_audio_accepts_path(
     audio_path = tmp_path / "clip.raw"
     audio_path.write_bytes(b"audio-bytes")
 
-    result = transcribe_audio(audio_path, url=f"{base_url}/inference")
+    inference_url = f"{base_url}/inference"
+    result = whisper_client.transcribe_audio(audio_path, url=inference_url)
 
     assert result.text == "Hello world"
 
@@ -202,11 +203,11 @@ def test_transcribe_audio_expands_path(
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("SIGMA_AUDIO_DIR", str(tmp_path))
 
-    first = transcribe_audio(
+    first = whisper_client.transcribe_audio(
         "~/clip.raw",
         url=f"{base_url}/inference",
     )
-    second = transcribe_audio(
+    second = whisper_client.transcribe_audio(
         "$SIGMA_AUDIO_DIR/clip.raw",
         url=f"{base_url}/inference",
     )
@@ -234,7 +235,8 @@ def test_transcribe_audio_accepts_file_object(
     )
 
     buffer = io.BytesIO(b"streamed-bytes")
-    result = transcribe_audio(buffer, url=f"{base_url}/inference")
+    inference_url = f"{base_url}/inference"
+    result = whisper_client.transcribe_audio(buffer, url=inference_url)
 
     assert result.text == "transcribed text"
     latest = _latest_request(handler)
@@ -259,7 +261,7 @@ def test_transcribe_audio_stages_payload(
     stage_dir = tmp_path / "captures"
     monkeypatch.setenv("SIGMA_AUDIO_DIR", str(stage_dir))
 
-    transcribe_audio(b"\x01\x02", url=f"{base_url}/inference")
+    whisper_client.transcribe_audio(b"\x01\x02", url=f"{base_url}/inference")
 
     staged_files = sorted(stage_dir.iterdir())
     assert len(staged_files) == 1
@@ -289,7 +291,7 @@ def test_transcribe_audio_stages_wav_payload(
 
     wav_payload = chunk_id + b"\x00\x00\x00\x00" + b"WAVE" + b"\x00\x01"
 
-    transcribe_audio(wav_payload, url=f"{base_url}/inference")
+    whisper_client.transcribe_audio(wav_payload, url=f"{base_url}/inference")
 
     staged_files = sorted(stage_dir.iterdir())
     assert len(staged_files) == 1
@@ -306,7 +308,7 @@ def test_transcribe_audio_empty_stage_dir_raises(
     monkeypatch.setenv("SIGMA_AUDIO_DIR", "   ")
 
     with pytest.raises(RuntimeError, match="SIGMA_AUDIO_DIR"):
-        transcribe_audio(b"\x01", url=f"{base_url}/inference")
+        whisper_client.transcribe_audio(b"\x01", url=f"{base_url}/inference")
 
     assert not handler.requests
 
@@ -324,17 +326,17 @@ def test_transcribe_audio_requires_transcript(
     )
 
     with pytest.raises(RuntimeError, match="did not include a transcription"):
-        transcribe_audio(b"abc", url=f"{base_url}/inference")
+        whisper_client.transcribe_audio(b"abc", url=f"{base_url}/inference")
 
 
 def test_transcribe_audio_rejects_empty_audio() -> None:
     with pytest.raises(ValueError, match="audio payload must be non-empty"):
-        transcribe_audio(b"")
+        whisper_client.transcribe_audio(b"")
 
 
 def test_transcribe_audio_rejects_invalid_audio_type() -> None:
     with pytest.raises(TypeError, match="audio must be bytes"):
-        transcribe_audio(123)  # type: ignore[arg-type]
+        whisper_client.transcribe_audio(123)  # type: ignore[arg-type]
 
 
 def test_transcribe_audio_http_error(
@@ -350,7 +352,7 @@ def test_transcribe_audio_http_error(
     )
 
     with pytest.raises(RuntimeError, match="HTTP status 400"):
-        transcribe_audio(b"bytes", url=f"{base_url}/inference")
+        whisper_client.transcribe_audio(b"bytes", url=f"{base_url}/inference")
 
 
 def test_transcribe_audio_includes_authorisation_header(
@@ -367,7 +369,7 @@ def test_transcribe_audio_includes_authorisation_header(
     )
     monkeypatch.setenv("SIGMA_WHISPER_AUTH_TOKEN", "secret-token")
 
-    transcribe_audio(b"auth", url=f"{base_url}/inference")
+    whisper_client.transcribe_audio(b"auth", url=f"{base_url}/inference")
 
     headers = _latest_request(handler)["headers"]
     assert headers.get("authorization") == "Bearer secret-token"
@@ -388,7 +390,7 @@ def test_transcribe_audio_customises_authorisation_scheme(
     monkeypatch.setenv("SIGMA_WHISPER_AUTH_TOKEN", "abc123")
     monkeypatch.setenv("SIGMA_WHISPER_AUTH_SCHEME", "ApiKey")
 
-    transcribe_audio(b"first", url=f"{base_url}/inference")
+    whisper_client.transcribe_audio(b"first", url=f"{base_url}/inference")
 
     first_headers = _latest_request(handler)["headers"].copy()
     assert first_headers.get("authorization") == "ApiKey abc123"
@@ -402,7 +404,7 @@ def test_transcribe_audio_customises_authorisation_scheme(
     )
     monkeypatch.setenv("SIGMA_WHISPER_AUTH_SCHEME", "   ")
 
-    transcribe_audio(b"second", url=f"{base_url}/inference")
+    whisper_client.transcribe_audio(b"second", url=f"{base_url}/inference")
 
     second_headers = _latest_request(handler)["headers"]
     assert second_headers.get("authorization") == "abc123"
@@ -423,7 +425,7 @@ def test_transcribe_audio_empty_authorisation_token_raises(
     monkeypatch.setenv("SIGMA_WHISPER_AUTH_TOKEN", "   ")
 
     with pytest.raises(RuntimeError, match="SIGMA_WHISPER_AUTH_TOKEN"):
-        transcribe_audio(b"bytes", url=f"{base_url}/inference")
+        whisper_client.transcribe_audio(b"bytes", url=f"{base_url}/inference")
 
 
 def test_transcribe_audio_env_override(
@@ -440,7 +442,7 @@ def test_transcribe_audio_env_override(
     )
     monkeypatch.setenv("SIGMA_WHISPER_URL", f"  {base_url}/env  ")
 
-    result = transcribe_audio(b"bytes")
+    result = whisper_client.transcribe_audio(b"bytes")
 
     assert result.text == "env"
     latest = _latest_request(handler)
@@ -461,7 +463,8 @@ def test_transcribe_audio_env_override_respects_explicit_url(
     )
     monkeypatch.setenv("SIGMA_WHISPER_URL", "http://example.com/ignored")
 
-    result = transcribe_audio(b"bytes", url=f"{base_url}/direct")
+    direct_url = f"{base_url}/direct"
+    result = whisper_client.transcribe_audio(b"bytes", url=direct_url)
 
     assert result.text == "explicit"
     latest = _latest_request(handler)
@@ -486,8 +489,75 @@ def test_transcribe_audio_empty_env_override_uses_default(
         f"{base_url}/fallback",
     )
 
-    result = transcribe_audio(b"bytes")
+    result = whisper_client.transcribe_audio(b"bytes")
 
     assert result.text == "fallback"
     latest = _latest_request(handler)
     assert latest["path"] == "/fallback"
+
+
+def test_whisper_speech_to_text_honours_env_override(
+    monkeypatch: pytest.MonkeyPatch,
+    whisper_test_server: ServerFixture,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "override"}).encode("utf-8"),
+        )
+    )
+    monkeypatch.setenv("SIGMA_WHISPER_URL", f"  {base_url}/env  ")
+
+    stt = whisper_client.WhisperSpeechToText(default_url=f"{base_url}/default")
+
+    result = stt.transcribe(b"bytes")
+
+    assert result.text == "override"
+    latest = _latest_request(handler)
+    assert latest["path"] == "/env"
+
+
+def test_whisper_speech_to_text_uses_default_url_without_override(
+    whisper_test_server: ServerFixture,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "default"}).encode("utf-8"),
+        )
+    )
+
+    stt = whisper_client.WhisperSpeechToText(default_url=f"{base_url}/default")
+
+    result = stt.transcribe(b"bytes")
+
+    assert result.text == "default"
+    latest = _latest_request(handler)
+    assert latest["path"] == "/default"
+
+
+def test_whisper_speech_to_text_blank_override_prefers_default_url(
+    monkeypatch: pytest.MonkeyPatch,
+    whisper_test_server: ServerFixture,
+) -> None:
+    base_url, handler = whisper_test_server
+    handler.responses.append(
+        (
+            200,
+            {"Content-Type": "application/json"},
+            json.dumps({"text": "default"}).encode("utf-8"),
+        )
+    )
+    monkeypatch.setenv("SIGMA_WHISPER_URL", "   ")
+
+    stt = whisper_client.WhisperSpeechToText(default_url=f"{base_url}/default")
+
+    result = stt.transcribe(b"bytes")
+
+    assert result.text == "default"
+    latest = _latest_request(handler)
+    assert latest["path"] == "/default"

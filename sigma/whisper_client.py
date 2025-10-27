@@ -349,10 +349,17 @@ class WhisperSpeechToText(SpeechToTextInterface):
     ) -> WhisperResult:
         if url is not None:
             resolved_url: str | None = url
-        elif self._default_url is not None:
-            resolved_url = self._default_url
         else:
-            resolved_url = None
+            env_override_raw = os.getenv(_URL_OVERRIDE_ENV)
+            env_override_active = bool(
+                env_override_raw is not None and env_override_raw.strip()
+            )
+            if env_override_active:
+                resolved_url = None
+            elif self._default_url is not None:
+                resolved_url = self._default_url
+            else:
+                resolved_url = None
         return transcribe_audio(
             audio,
             url=resolved_url,

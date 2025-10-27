@@ -31,6 +31,9 @@ Whitespace is stripped from these values before use. When `SIGMA_WHISPER_URL`
 trims down to an empty string the speech-to-text helper falls back to the
 built-in localhost default, matching the `.env` template so blank entries keep
 working without extra edits.
+When the variable points at a non-empty URL it overrides any defaults provided
+by helpers such as `WhisperSpeechToText`, ensuring conversation workflows and
+direct calls to `transcribe_audio` route through the same endpoint.
 
 When `SIGMA_AUDIO_DIR` is configured, `sigma.whisper_client.transcribe_audio`
 stores a copy of every audio payload in that directory before sending it to the
