@@ -13,7 +13,11 @@ rails when assembling and operating hardware.
   meter if you modify the enclosure volume.
 
 The firmware prints these reminders on boot and the configuration header exposes
-`kRecommendedMaxSplDb` and `kAbsoluteMaxSplDb` constants for quick tuning.
+`kRecommendedMaxSplDb` and `kAbsoluteMaxSplDb` constants for quick tuning. The
+serial boot banner pulls the SPL and battery thresholds directly from
+`config.h`, so adjusting `kAbsoluteMaxSplDb`, `kBatteryLowVolts`, or
+`kBatteryCriticalVolts` automatically updates the warnings without editing the
+source.
 
 Automated tests compare these documented limits against
 `apps/firmware/include/config.h`, so update both when thresholds change.
